@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img">
+  <title>BITION</title>
+  <defs>
+    <radialGradient id="cw-bg" cx="30%" cy="0%" r="120%">
+      <stop offset="0%" stop-color="#0d2a4a"/>
+      <stop offset="55%" stop-color="#050d1c"/>
+      <stop offset="100%" stop-color="#020610"/>
+    </radialGradient>
+    <linearGradient id="cw-mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#25d0ff"/>
+      <stop offset="100%" stop-color="#5578ff"/>
+    </linearGradient>
+    <linearGradient id="cw-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#25d0ff" stop-opacity=".38"/>
+      <stop offset="100%" stop-color="#25d0ff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#cw-bg)"/>
+
+  <g stroke="#ffffff" stroke-opacity=".05">
+    <path d="M0 150h1200M0 270h1200M0 390h1200M0 510h1200"/>
+    <path d="M200 0v630M400 0v630M600 0v630M800 0v630M1000 0v630"/>
+  </g>
+
+  <path d="M60 470 L200 430 L330 452 L460 356 L590 384 L720 286 L850 314 L980 214 L1140 168 L1140 560 L60 560 Z" fill="url(#cw-fill)"/>
+  <path d="M60 470 L200 430 L330 452 L460 356 L590 384 L720 286 L850 314 L980 214 L1140 168"
+        fill="none" stroke="#25d0ff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="1140" cy="168" r="13" fill="#25d0ff"/>
+  <circle cx="1140" cy="168" r="26" fill="none" stroke="#25d0ff" stroke-opacity=".35" stroke-width="4"/>
+
+  <g transform="translate(60 86)">
+    <rect width="76" height="76" rx="22" fill="url(#cw-mark)"/>
+    <path d="M38 14 v58 M24 30 h20 a12 12 0 0 1 0 24 h-20 M24 54 h24 a12 12 0 0 1 0 24 h-24"
+          fill="none" stroke="#04101f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"
+          transform="translate(0 -10) scale(1 .86)"/>
+  </g>
+
+  <text x="164" y="140" font-family="Inter, 'SF Pro Display', system-ui, -apple-system, Segoe UI, sans-serif"
+        font-size="62" font-weight="800" letter-spacing="14" fill="#ffffff">BITION</text>
+  <text x="168" y="188" font-family="Inter, 'SF Pro Display', system-ui, -apple-system, Segoe UI, sans-serif"
+        font-size="25" font-weight="700" letter-spacing="7" fill="#25d0ff">AI ARBITRAGE PLATFORM</text>
+</svg>

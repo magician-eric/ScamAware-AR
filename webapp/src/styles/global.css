@@ -1,0 +1,119 @@
+/* The app's global foundation - and deliberately nothing else.
+ *
+ * Every rule below is here because it has no single owner: a reset, a base
+ * element style, the stage/layout box every screen is rendered into, a design
+ * primitive several modules share, or an animation more than one module runs.
+ * A rule whose consumers all sit in one scenario, one App module or one shared
+ * component belongs to that owner's stylesheet instead - see
+ * styles/scenario01.css, styles/scenario02.css, styles/scenario03.css,
+ * pages/entryScreens.css, pages/staff/staff.css, the per-App sheets under
+ * apps/<app>/styles/, the component-adjacent sheets next to
+ * components/ui/ScenarioFinalDecision.jsx, ScenarioEntryBriefing.jsx,
+ * components/outcome/ScenarioOutcome.jsx, FraudClueAnalysis.jsx and
+ * components/warnings/FraudWarningBanner.jsx, and
+ * pages/scenario03/components/PhoneShell.css.
+ *
+ * `npm run validate:shared-ui-ownership` derives that rule from who actually
+ * renders each class, so a scenario- or module-only rule dropped back into
+ * this file fails the build whatever it is called.
+ *
+ * What is left, and why each one stays:
+ *   :root / * / html / body / [hidden]  - reset, tokens, accessibility
+ *   .ar-stage (+ tablet breakpoint)     - the viewport box every screen uses
+ *   .app / .app>*                       - the universal layout foundation
+ *   .topbar / .brand / .home-link       - shell chrome (shell/TopBar.jsx)
+ *   .hero / .card                       - components/ui/Card.jsx's two variants
+ *   h1 / h2 / p                         - base typography
+ *   .btns / .btn (+ .secondary/.danger) - the app-wide button primitives
+ *   .warning                            - Scenario 02 + GuGo Invest
+ *   .mini                               - Coin Winner + the staff screens
+ *   @keyframes chartSweep / bitionBlink - Coin Winner + GuGo Invest
+ *   @keyframes lineVideoSpin            - Coin Winner + Scenario 02
+ *   --phone-shell-home-indicator-height - read by two different owners
+ */
+/* The bare h1/h2/p rules below carry `:not(.gugo-app *)`.
+ *
+ * They are unlayered, and unlayered CSS beats every cascade layer no matter
+ * the specificity - which is exactly how this file is kept safe from the
+ * gugo-invest App module's Tailwind (see src/apps/gugo-invest/app/styles/index.css).
+ * That same rule runs the other way too: GuGo's <h1>/<p> carry Tailwind
+ * type utilities, and while it was an iframe these element rules could
+ * never reach them. Mounted inline they would, silently resizing and
+ * recolouring the app's headings and body copy.
+ *
+ * Only these three needed it - they are the only bare element selectors in
+ * this file that GuGo's markup uses. Nothing outside .gugo-app changes: the
+ * more specific rules that override them (`.cibar-outcome .cibar-outcome-title`
+ * in components/outcome/ScenarioOutcome.css, `.antifraud-quiz-card>p` in
+ * components/ui/ScenarioFinalDecision.css, `.staff-card h2` in
+ * pages/staff/staff.css) all live in stylesheets loaded after this one, so
+ * they still win - by specificity where they have more of it, and by source
+ * order where they tie.
+ */
+:root{--bg:#06162d;--bg2:#0b2447;--card:rgba(255,255,255,.08);--line:rgba(255,255,255,.18);--text:#f6fbff;--muted:#b9c7d9;--accent:#25d0ff;--danger:#ff4d6d;--ok:#39d98a;--warn:#ffd166}*{box-sizing:border-box;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}html{height:100%;height:100dvh}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#000;color:var(--text);height:100%;height:100dvh;overflow:hidden;display:grid;place-items:center}
+/* Real phone viewports (below the tablet/desktop breakpoint) always render
+   full-bleed at the device's own actual size - no fixed aspect-ratio canvas,
+   no letterboxing. A rigid 9:20 canvas (this app's previous approach) only
+   renders letterbox-free on a phone that happens to match 9:20 exactly;
+   real phones vary widely (iPhones run closer to 9:19.5, Android even more
+   inconsistently), so locking the ratio was forcing an extra scale-down on
+   most real devices, making everything look smaller/narrower than the
+   screen actually allows. On tablet/desktop windows (no longer "a phone"
+   the app is running on), fall back to the old fixed-size centered card so
+   it still reads as "a phone simulator" rather than stretching edge to edge
+   across a huge window. useFitStage.js re-measures and transform-scales
+   this same box on top, as a fallback for browser-chrome resize jitter -
+   on the full-bleed mobile branch that resolves to scale(1), a no-op. */
+.ar-stage{width:100vw;width:100dvw;height:100vh;height:100dvh;margin:auto;overflow:hidden}
+@media (min-width:768px){.ar-stage{width:min(430px,100dvw);height:min(956px,100dvh);aspect-ratio:9/20}}
+/* AR-passthrough-ready background: semi-transparent + blurred (not fully
+   transparent) so real-world light/detail can show through once this runs
+   behind an actual AR-glasses optical lens, while still keeping text
+   readable when tested on a plain phone/browser with nothing behind it -
+   the 40% dark tint alone provides contrast for the light text even where
+   backdrop-filter has nothing textured to blur against. */
+.app{background:rgba(0,0,0,.4);backdrop-filter:blur(20px);padding:max(22px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:14px}
+/* Flex items shrink by default - without this, a page whose stacked content
+   is taller than the fixed 9:16 stage (chiefly Profit's .scroll-stage, in
+   styles/scenario01.css, where that's expected) gets every child SQUEEZED
+   shorter than its own content instead of actually overflowing, silently
+   clipping content that an `overflow:hidden` card then hides with no visual
+   sign anything is wrong. Elements that deliberately want to flex/shrink (.chat, .phone-frame)
+   set their own flex-shrink via `flex:1` further down and still win, since
+   they're later in the cascade at equal specificity. */
+.app>*{flex-shrink:0}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;letter-spacing:.08em;color:#fff}.home-link{color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:999px}.hero,.card{background:var(--card);border-radius:20px;padding:clamp(14px,3.5vh,22px);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(10px)}h1:not(.gugo-app *){font-size:clamp(22px,6.4vw,32px);line-height:1.15;margin:10px 0}h2:not(.gugo-app *){font-size:clamp(18px,4.6vw,24px);margin:0 0 10px}p:not(.gugo-app *){color:var(--muted);line-height:1.5;font-size:clamp(13px,3.6vw,15px)}/* .btns.btns-dual (AUD-06): opt-in modifier making the pair two equal columns, for the screens whose AR Interaction Contract is `dual` - there LEFT and RIGHT are the whole decision, and a stacked pair gives the player on the glasses nothing on screen saying which wave is which. A modifier and NOT a change to .btns itself: most .btns groups are a single button, or a primary + secondary that are not a LEFT/RIGHT pair, and widening the base rule would restyle all of them. No media query, mirroring .antifraud-quiz-choices in components/ui/ScenarioFinalDecision.css - the pair must not restack vertically anywhere in the portrait range (320px-430px), because left-is-one-thing / right-is-the-other is the geometry being taught; labels wrap and the buttons grow taller instead. */.btns{display:grid;gap:10px;margin-top:14px}.btns.btns-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.btns.btns-dual>.btn{width:100%;min-width:0;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}.btn{appearance:none;border:0;border-radius:14px;padding:clamp(12px,2.6vh,16px) 16px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:white;font-size:clamp(14px,3.8vw,16px);font-weight:800;text-decoration:none;text-align:center;cursor:pointer}.btn.secondary{background:rgba(255,255,255,.09);border:1px solid var(--line)}.btn.danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}.warning{background:#19040a;border:1px solid var(--danger);border-radius:20px;padding:clamp(16px,4vh,22px);max-width:560px;margin:0 auto}.mini{font-size:13px;color:var(--muted)}
+[hidden]{display:none!important}
+/* Shared by two App modules, so it stays in the shared layer rather than
+   moving into either: Coin Winner's .bition-asset-card (apps/coin-winner/
+   styles/index.css) and GuGo Invest's .profit-asset-card (apps/gugo-invest/
+   app/styles/platform.css) both run it. Its former global consumer
+   `.fake-chart` had no markup left anywhere in the tree and is gone. */
+@keyframes chartSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+/* Shared by two App modules, so it stays in the shared layer rather than
+   moving into either: Coin Winner's .bition-node-dot (apps/coin-winner/
+   styles/index.css) and GuGo Invest's .profit-live-dot (apps/gugo-invest/
+   app/styles/platform.css) both run it. */
+@keyframes bitionBlink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* --phone-shell-home-indicator-height lives on :root here, not next to
+   .phone-shell in pages/scenario03/components/PhoneShell.css, and not scoped
+   to that class - FraudWarningBanner (and anything else that needs this
+   clearance) is rendered via createPortal(document.body), so it is a DOM
+   SIBLING of .phone-shell, never a descendant. A variable declared on
+   .phone-shell itself would never cascade into a portaled element; :root
+   is the one ancestor portaled content and in-tree content both always
+   share, so this is the only scope that actually reaches both.
+
+   It also still has two owners after AD-07 moved the shell into Scenario 03:
+   the shared FraudWarningBanner reads it from every scenario it is mounted
+   in, so it is a cross-owner token, not Scenario 03's private value. */
+:root{ --phone-shell-home-indicator-height:16px; }
+
+/* Generic 360-degree rotation with two consumers and no LINE consumer at
+   all: `.line-video-spinner` (scenario02's story video player, now in
+   pages/scenario02/PrivateChat.css) and `.bition-opening-spinner` (the Coin
+   Winner opening overlay, in apps/coin-winner/styles/index.css since #290).
+   Shared by two owners in two different modules, so it stays here rather
+   than moving into either; the `line` in its name is legacy and renaming it
+   would mean editing Coin Winner CSS, which is not this change's scope. */
+@keyframes lineVideoSpin{to{transform:rotate(360deg)}}

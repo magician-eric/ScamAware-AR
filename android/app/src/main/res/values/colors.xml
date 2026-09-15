@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+    <!--
+      The adaptive launcher icon's background layer. This is not a colour chosen here: it is the
+      flat colour that webapp/public/icons/icon-512-maskable.png already paints right out to its
+      own border, so the 4% of margin drawable/ic_launcher_foreground.xml leaves around the
+      artwork is the same navy the artwork ends in and the join cannot be seen. AppIconTest reads
+      that PNG's border pixel and fails if this value stops matching it.
+    -->
+    <color name="ic_launcher_background">#0A1638</color>
+</resources>

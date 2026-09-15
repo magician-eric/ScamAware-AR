@@ -1,0 +1,83 @@
+/* ---------------------------------------------------------------------
+   Scenario 02 (戀愛投資詐騙) - the story chrome the scenario stamps over the
+   幣勝客 Coin Winner platform.
+
+   These rules used to sit in webapp/src/styles/global.css among the App's
+   own `bition-*` rules. They are not Coin Winner platform UI: they dress
+   Scenario 02's own anti-fraud interventions - the forced red warning
+   (pages/scenario02/components/RedWarning.jsx) and the closing risk
+   disclosure (pages/scenario02/RiskAnalysis.jsx) - which is why they stayed
+   with the scenario rather than moving into apps/coin-winner/ with the
+   platform's design system. The class names keep the App's `bition-`
+   prefix: renaming them would be a visual/markup change, and this move
+   deliberately changed neither.
+
+   The 165 hotline overlay came along for a reason worth spelling out: it is
+   rendered *inside* the red warning (RedWarning.jsx mounts Hotline165), so
+   `.bition-warning p` and `.hotline165-card p` both match the overlay's body
+   copy at identical specificity - which of the two wins is decided purely by
+   which is written last. Leaving the overlay in global.css while the warning
+   moved here would have flipped that and recoloured the overlay's text, so
+   the pair moved together, in the order they already had.
+
+   Same file/import shape as styles/scenario03.css: loaded from main.jsx
+   directly after global.css, so every one of these rules still resolves
+   after the app-wide .warning/.hero/.card primitives it overrides, exactly
+   as it did when it lived further down global.css.
+--------------------------------------------------------------------- */
+
+.bition-warning{background:#19040a;text-align:left}
+.bition-warning-icon{color:var(--danger);margin-bottom:10px}
+.bition-warning h2{color:#fff}
+.bition-warning p{color:#e7c7cf}
+.bition-warning-emphasis{color:#ff8fa3;font-weight:800;margin-top:12px}
+
+/* Red-warning action buttons: three large always-tappable buttons, no
+   checkbox gate. "Continue anyway" is deliberately the least prominent. */
+.bition-warning-actions{display:grid;gap:12px;margin-top:20px}/* AUD-06: the main-line stop-point (TopupWarning, hotline={false}) is a real
+   two-action decision, so its buttons are the contract's LEFT and RIGHT and
+   are drawn as two equal columns. No media query, matching
+   .antifraud-quiz-choices: this pair must stay side by side across the whole
+   portrait range rather than restacking on a narrow phone. Labels wrap and
+   the buttons grow taller instead, which is why min-height becomes a floor
+   (height:auto) and the long 我已了解，仍要繼續 label is allowed to break. */
+.bition-warning-actions.is-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.bition-warning-actions.is-dual .bition-warn-btn{min-width:0;height:auto;padding:12px 10px;text-align:center;overflow-wrap:anywhere}
+.bition-warn-btn{min-height:56px;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border:0}
+.bition-warn-btn-stop{background:linear-gradient(135deg,#ff4d6d,#a9183c);color:#fff}
+.bition-warn-btn-hotline{background:linear-gradient(135deg,#2b7fff,#1a4fc4);color:#fff}
+.bition-warn-btn-continue{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#9db4d4;font-weight:600;font-size:14px}
+
+/* 165 hotline overlay - no real tel: link anywhere, purely educational. */
+.hotline165-overlay{position:fixed;inset:0;z-index:10000;background:rgba(2,6,14,.86);display:flex;align-items:center;justify-content:center;padding:24px}
+.hotline165-card{width:min(360px,100%);background:#0b1729;border:1px solid rgba(43,127,255,.4);border-radius:22px;padding:28px 22px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.hotline165-icon{width:64px;height:64px;border-radius:50%;background:rgba(43,127,255,.16);border:1px solid rgba(43,127,255,.5);color:#6db2ff;display:grid;place-items:center;margin:0 auto 14px}
+.hotline165-card h2{color:#fff;font-size:20px;margin:0 0 10px}
+.hotline165-card p{color:#c9d6ea;font-size:14px;line-height:1.6;margin-bottom:18px}
+
+.bition-ending-note{max-width:100%}
+
+/* ---- Moved out of styles/global.css by the global-CSS ownership audit -----
+   Every rule below styles markup rendered only by pages/scenario02/**: the
+   MeetU fraud-warning marquee (components/WarningMarquee.jsx) and the stage
+   variant Scenario 02's
+   phone-shaped screens select through useStageClassName(). ------------------ */
+
+.meetu-warning-marquee{display:flex;align-items:center;gap:8px;background:#8a0f24;color:#fff;padding:9px 14px;border-radius:12px;overflow:hidden;margin-bottom:14px}
+.meetu-warning-marquee-icon{flex:none}
+.meetu-warning-marquee-track{flex:1;min-width:0;overflow:hidden}
+.meetu-warning-marquee-inner{display:flex;width:max-content;animation:meetu-marquee-scroll 13s linear infinite}
+.meetu-warning-marquee-text{flex:none;white-space:nowrap;padding-right:56px;font-size:13px;font-weight:700;letter-spacing:.01em}
+@keyframes meetu-marquee-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion: reduce){.meetu-warning-marquee-inner{animation:none}.meetu-warning-marquee-text:nth-child(2){display:none}}
+/* RiskAnalysis.jsx's own disclosure-list styling used to sit here. That page
+   is 詐騙疑點分析 now and renders through the shared Outcome System
+   (components/outcome/FraudClueAnalysis.css), outside the 幣勝客 platform
+   shell entirely - so Scenario 02 no longer styles it. */
+
+/* Stage treatments for scenario02's phone-shaped pages: the MeetU app module
+   (apps/meetu/, which owns everything inside the frame) and the LINE-style
+   private chat that follows it - a deliberate visual downgrade to something
+   Taiwanese users recognize as LINE-like, since the scam moves the victim
+   off the polished platform onto "just a normal messaging app". Which stage
+   class a page uses is the scenario's call, so these rules stay here. */
+.ar-stage.meetu-stage{padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0b0f16}

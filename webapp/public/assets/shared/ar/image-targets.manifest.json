@@ -1,0 +1,42 @@
+{
+  "generatedBy": "npm run build:image-targets",
+  "compileScale": 1,
+  "sharpenAmount": 1.5,
+  "targets": [
+    {
+      "targetIndex": 0,
+      "id": "scenario1",
+      "file": "scenario1.png",
+      "scenario": "investment",
+      "route": "/scenario01-investment"
+    },
+    {
+      "targetIndex": 1,
+      "id": "scenario2",
+      "file": "scenario2.png",
+      "scenario": "romance",
+      "route": "/scenario02-romance"
+    },
+    {
+      "targetIndex": 2,
+      "id": "scenario3",
+      "file": "scenario3.png",
+      "scenario": "authority",
+      "route": "/scenario03-police"
+    },
+    {
+      "targetIndex": 3,
+      "id": "scenario4",
+      "file": "scenario4.png",
+      "scenario": "fakeSeller",
+      "route": "/scenario04-shopping"
+    },
+    {
+      "targetIndex": 4,
+      "id": "scenario5",
+      "file": "scenario5.png",
+      "scenario": "fakeBuyer",
+      "route": "/scenario05-atm"
+    }
+  ]
+}

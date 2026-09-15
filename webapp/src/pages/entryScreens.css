@@ -1,0 +1,259 @@
+/* The pre-scenario entry flow's own styling: language select -> AR scan ->
+   scenario menu, plus the hidden staff entry on the language screen.
+
+   Imported by the three pages that render it (pages/LanguageSelect.jsx,
+   pages/arScan/ArScanHome.jsx, pages/ScenarioMenu.jsx). These screens share
+   one artwork-plus-overlay-buttons approach, which is why they share one
+   stylesheet rather than three near-identical ones - but they are ordinary
+   pages, not global foundation, so the rules no longer live in
+   styles/global.css. */
+
+/* Scenario-selection page: designer background artwork (masthead, mascot,
+   tech backdrop - see scenario-menu-background.webp) with real button
+   elements layered on top by percentage, not baked into the image. The
+   image doesn't include a page title or button frames, so the heading is
+   still real text positioned in the empty gap below the mascot, and the
+   buttons use the app's existing blue-gradient button look directly
+   against the backdrop instead of trying to align to drawn frames that
+   don't exist in this artwork. */
+/* `justify-content` is the VERTICAL alignment here - `.app` sets
+   flex-direction:column and this rule only overrides `display`. Centred, as
+   before, so the artwork sits in the middle of a phone screen taller than it
+   is; but `safe` centring, because plain `center` overflows a viewport
+   SHORTER than the artwork equally in both directions and the top half of
+   that overflow is unreachable - a scroll container cannot scroll above its
+   own start. That is what puts the corner gear (and, before it, the top of
+   the masthead) off-screen for good in a short window. `safe` falls back to
+   start-alignment exactly when the content overflows, so the overflow all
+   goes downward where scrolling can reach it. The plain `center` is kept
+   ahead of it as the fallback for any engine that does not understand the
+   keyword. */
+.ar-stage.scenario-menu-stage{padding:0;overflow-y:auto;background:#000713;display:flex;align-items:flex-start;justify-content:center;justify-content:safe center}
+.scenario-selection-page{position:relative;width:100%;max-width:928px;margin:0 auto;aspect-ratio:941/1672;overflow:hidden;background:#020916}
+.scenario-selection-background{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.scenario-selection-heading{position:absolute;top:23%;left:6%;width:88%;text-align:center;color:#fff;z-index:2}
+.scenario-selection-category{margin:0 0 5px;font-size:clamp(13px,3.3vw,17px);color:rgba(217,239,255,.8)}
+.scenario-selection-title{margin:0 0 5px;font-size:clamp(20px,5.6vw,30px);font-weight:800;line-height:1.2}
+.scenario-selection-description{margin:0;font-size:clamp(12px,3vw,15px);color:rgba(217,239,255,.75);line-height:1.35}
+.scenario-button-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+.scenario-overlay-button{position:absolute;left:8%;width:84%;height:10.5%;pointer-events:auto;padding:1.4% 2.4%;box-sizing:border-box}
+.scenario-overlay-button:nth-child(1){top:38%}
+.scenario-overlay-button:nth-child(2){top:50.15%}
+.scenario-overlay-button:nth-child(3){top:62.3%}
+.scenario-overlay-button:nth-child(4){top:74.45%}
+.scenario-overlay-button:nth-child(5){top:86.6%}
+.scenario-button{width:100%;height:100%;border:0;border-radius:clamp(12px,2.8vw,22px);background:linear-gradient(105deg,rgba(42,187,244,.92) 0%,rgba(70,116,250,.92) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;cursor:pointer;font-family:inherit;box-shadow:0 8px 18px rgba(0,61,160,.25),inset 0 1px 0 rgba(255,255,255,.18);transition:transform 160ms ease,filter 160ms ease,box-shadow 160ms ease}
+.scenario-button:active{transform:scale(.975);filter:brightness(1.08)}
+.scenario-button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (hover:hover){.scenario-button:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 10px 24px rgba(0,115,255,.35),inset 0 1px 0 rgba(255,255,255,.2)}}
+.scenario-button-title{font-size:clamp(22px,6.2vw,38px);line-height:1.15;font-weight:800;letter-spacing:.02em;color:#fff}
+.scenario-button-subtitle{margin-top:4px;font-size:clamp(15px,4vw,25px);line-height:1.2;font-weight:600;color:rgba(217,239,255,.92)}
+
+/* Language-select page: same background artwork + overlay-button approach
+   as ScenarioMenu, three buttons instead of five so they get more vertical
+   room each. */
+.language-button-layer .scenario-overlay-button{height:12%}
+.language-button-layer .scenario-overlay-button:nth-child(1){top:41%}
+.language-button-layer .scenario-overlay-button:nth-child(2){top:60%}
+.language-button-layer .scenario-overlay-button:nth-child(3){top:79%}
+.language-button.is-active{box-shadow:0 8px 18px rgba(0,61,160,.25),inset 0 1px 0 rgba(255,255,255,.18),0 0 0 3px #fff}
+/* Hidden staff entry (see LanguageSelect.jsx) - an invisible hit-target
+   over just the logo area of the artwork, not the whole background. */
+.scenario-selection-hidden-entry{position:absolute;top:0;left:0;width:70%;height:16%;z-index:3}
+/* The visible staff-settings entry (see LanguageSelect.jsx): a gear icon in
+   the top-right corner, and no text at all. It used to be a wide 定位 pill
+   below the third language button - player-facing wording on a staff door,
+   sitting in the middle of the player's first screen and reading like a
+   fourth option. In the corner it is the settings affordance every host
+   already recognises and a visitor has no reason to read as part of the
+   flow.
+
+   Top-right specifically, clear of the hidden long-press target above
+   (.scenario-selection-hidden-entry covers the LEFT 70% of the top band, so
+   the two never overlap) and clear of the three language buttons, whose
+   41/60/79% positions are the page's layout contract with the artwork and
+   are NOT moved.
+
+   Square, sized as a share of the artwork like everything else on this page,
+   with a 44px floor so it stays a full-size finger target on the narrowest
+   phone even though the icon inside it is drawn small and quiet. The circle
+   is the whole hit area - the gear is 52% of it, so there is a generous ring
+   of padding around the glyph. */
+.language-location-entry{position:absolute;top:1.8%;right:3.5%;width:12%;aspect-ratio:1;min-width:44px;min-height:44px;z-index:4}
+.language-location-button{width:100%;height:100%;border:1px solid rgba(122,200,255,.55);border-radius:50%;background:rgba(4,20,44,.55);display:flex;align-items:center;justify-content:center;color:#eaf6ff;cursor:pointer;font-family:inherit;padding:0;-webkit-tap-highlight-color:transparent;transition:transform 160ms ease,filter 160ms ease,box-shadow 160ms ease}
+.language-location-button:active{transform:scale(.94);filter:brightness(1.15)}
+.language-location-button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (hover:hover){.language-location-button:hover{filter:brightness(1.15);box-shadow:0 6px 16px rgba(0,115,255,.3)}}
+.language-location-icon{width:52%;height:52%;display:block}
+
+/* AR scan home (spec: language select -> here -> scenario menu). Full-bleed
+   like the other immersive stages (romance/blackpi/meetu) - own background,
+   no default .app padding. v2 artwork (see heroLayout.js) has a real alpha
+   cutout for the camera box, so the camera picture sits BEHIND the artwork
+   (.ar-scan-camera-box, z-index 1) and the artwork's transparent hole
+   shows it through directly - pixel-perfect at any screen size, no manual
+   alignment needed the way a solid-fill placeholder box would. The prompt,
+   the story CTA and the manual-selection button are placed freely in the
+   open area below the box (nothing is baked into the artwork there) rather
+   than aligning to drawn bars, which is also what lets the CTA appear and
+   disappear with the offer without moving anything drawn. Scroll fallback
+   kept in case a future artwork revision doesn't match the stage's own
+   aspect ratio as closely as this one does. */
+.ar-stage.ar-scan-stage{padding:0;overflow-y:auto;background:#050914;display:flex;flex-direction:column}
+.ar-scan-page{flex:none}
+.ar-scan-camera-box{z-index:1;overflow:hidden;background:#050914;display:flex;align-items:center;justify-content:center}
+/* The camera picture element is created by lib/ar/cameraSource.js and mounted
+   into .ar-scan-camera-host, so it is an <img> on the AR glasses (their MJPEG
+   stream) and a <video> in a desktop browser (getUserMedia). Both carry
+   .ar-camera-frame, so the box is sized here once for either. The host is
+   inset rather than a flex child so the camera-error message still centres in
+   the box when no camera element was mounted at all. */
+.ar-scan-camera-host{position:absolute;inset:0}
+.ar-scan-camera-box .ar-camera-frame{width:100%;height:100%;object-fit:cover;display:block}
+.ar-scan-camera-error{margin:0;padding:0 10%;color:rgba(255,255,255,.75);font-size:clamp(12px,3.2vw,15px);text-align:center;line-height:1.4}
+.ar-scan-offer-ring{position:absolute;inset:0;box-shadow:inset 0 0 0 4px #3ddc84;pointer-events:none}
+.ar-scan-hero-img{position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+.ar-scan-below-camera{position:absolute;left:6%;width:88%;z-index:3;text-align:center}
+/* The prompt area is one region in two states (searching / a card on offer),
+   so it is styled once and only its copy changes. The <h1> carries the
+   searching line and the found card's opening sentence alike - never a
+   status message; ArScanHome.jsx says why. */
+.ar-scan-prompt{padding-top:6%}
+.ar-scan-title{margin:0;color:#fff;font-weight:800;font-size:clamp(18px,5vw,26px);line-height:1.35}
+.ar-scan-hint{margin:8px 0 0;color:rgba(226,240,255,.72);font-size:clamp(12px,3.4vw,15px);line-height:1.4}
+/* An offer is a sentence of story, not a four-word instruction, and it arrives
+   with a second button under it. The area below the camera cutout is fixed
+   (the artwork decides where it starts), so the offer state tightens rather
+   than pushing the manual fallback off the bottom of the glasses' display. */
+.ar-scan-prompt-offer{padding-top:3%}
+.ar-scan-prompt-offer .ar-scan-title{font-size:clamp(16px,4.2vw,22px);line-height:1.3}
+/* The one transition on this screen, and it is short on purpose: the prompt
+   changes the instant a card is recognised, and an animation long enough to
+   notice would be an animation the player is waiting on. Nothing here delays
+   the CTA - the button is live from its first frame, whatever the copy above
+   it is doing. `prefers-reduced-motion` drops it entirely. */
+.ar-scan-prompt-copy{animation:arScanPromptIn 240ms ease-out both}
+@keyframes arScanPromptIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ar-scan-prompt-copy{animation:none}}
+/* Two buttons below it, sharing one shape: the CTA that takes the offer
+   (rendered only while there is one) and the manual fallback that is always
+   there. The CTA is the brighter of the two - it is the story action, and the
+   RIGHT gesture runs it - and the fallback drops to an outline so a player is
+   never choosing between two equally loud buttons. */
+.ar-scan-enter-button,.ar-scan-manual-button{margin:14px auto 0;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 16px;box-sizing:border-box;border-radius:14px;font-size:clamp(15px,4vw,19px);font-weight:700;cursor:pointer;font-family:inherit}
+.ar-scan-enter-button{border:1px solid rgba(75,183,255,.7);background:linear-gradient(135deg,#15bdf4,#526cf5);color:#fff;box-shadow:0 8px 22px rgba(21,189,244,.28)}
+.ar-scan-manual-button{border:1px solid rgba(75,183,255,.7);background:linear-gradient(135deg,#15bdf4,#526cf5);color:#fff}
+/* With a CTA above it the fallback steps back; on its own it keeps the filled
+   look the screen has always had. */
+.ar-scan-enter-button{margin-top:12px;min-height:50px}
+.ar-scan-enter-button~.ar-scan-manual-button{margin-top:8px;background:rgba(8,22,46,.66);border-color:rgba(122,175,230,.5);color:rgba(226,240,255,.82);font-weight:600;min-height:40px;padding:10px 16px;font-size:clamp(12px,3.4vw,15px)}
+.ar-scan-enter-button:active,.ar-scan-manual-button:active{transform:scale(.98)}
+.ar-scan-button-arrow{font-size:1.1em}
+
+/* Scan pipeline diagnostics (ArScanDiagnosticsOverlay.jsx). Never rendered
+   for a player - the component returns null unless
+   lib/ar/scanDiagnostics.js's isScanDiagnosticsEnabled() says otherwise -
+   so this styles a tester's tool, drawn over the artwork on the glasses
+   where there is no DevTools to read the same information from.
+   Deliberately monospace, small and top-anchored: it has to be legible
+   through the glasses' display while the wearer is also trying to point
+   the camera at a card, and it must not cover the camera cutout it is
+   reporting on. pointer-events:none so it can never swallow the tap on
+   the manual-selection button underneath it. */
+.ar-scan-diag{position:absolute;top:0;left:0;z-index:4;max-width:100%;padding:6px 8px;box-sizing:border-box;background:rgba(2,6,16,.82);color:#cfe4ff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:clamp(9px,2.4vw,12px);line-height:1.35;pointer-events:none;overflow-wrap:anywhere}
+.ar-scan-diag-title{color:#7ea6cc;letter-spacing:.08em;margin-bottom:2px}
+.ar-scan-diag-line{display:block}
+.ar-scan-diag-step{color:#9fb6cc}
+.ar-scan-diag-step::after{content:':';padding-right:4px}
+.ar-scan-diag-status{font-weight:700;padding-right:6px}
+.ar-scan-diag-detail{color:#8fa6bb}
+.ar-scan-diag-ok .ar-scan-diag-status{color:#3ddc84}
+.ar-scan-diag-fail .ar-scan-diag-status{color:#ff6b81}
+.ar-scan-diag-pending .ar-scan-diag-status{color:#ffd166}
+.ar-scan-diag-info .ar-scan-diag-status{color:#6fc3ff}
+/* The exact failure, next to the calm sentence the player reads. Only
+   rendered while diagnostics are on (see ArScanHome.jsx). */
+.ar-scan-camera-error-detail{display:block;margin-top:6px;color:#ff9aa8;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;overflow-wrap:anywhere}
+
+/* Gesture tutorial (spec: language select -> here -> AR scan). Reuses the
+   language home's own Hero artwork - the same scenario-menu-background.webp
+   file LanguageSelect and ScenarioMenu render - so the first three screens
+   of the flow read as one place. `object-fit: contain` rather than `cover`:
+   the artwork carries the CIB masthead top left and 刑事熊 with the patrol
+   car top right, and a `cover` fit on a taller stage would crop straight
+   through them. The stage's own dark fill takes whatever the artwork does
+   not reach, so the background is still edge to edge.
+
+   Read on AR glasses, not just on a phone: one line of very large,
+   high-contrast text over a dark scrim, kept inside the artwork's empty
+   middle band (26%-78%) so it never sits near a screen edge and never lands
+   on the masthead or the mascot. No card, no stacked panels, no small print
+   - and no interactive element at all, because the only way past this screen
+   is to actually wave (see GestureTutorial.jsx).
+
+   The text rules are scoped under .gesture-tutorial-page deliberately: the
+   global base typography is `p:not(.gugo-app *)`, whose :not() argument
+   makes it specificity (0,1,1), so a bare class here would lose to it and
+   the instruction would render at the 15px body size - which is the one
+   thing this screen cannot be.
+
+   Every size is `min(vw, vh)`, not vw alone: the stage is a portrait box on
+   a phone and on the glasses' own display (>=768px gives it 430x956), but a
+   short landscape window is a real case too, and text sized only against
+   width overflows the band there instead of getting smaller. */
+.ar-stage.gesture-tutorial-stage{padding:0;gap:0;overflow:hidden;background:#020916}
+.gesture-tutorial-page{position:relative;flex:1;width:100%;min-height:0;overflow:hidden;background:#020916}
+.gesture-tutorial-page .gesture-tutorial-background{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;display:block}
+/* Dark translucent overlay: the artwork's middle band is already deep blue, and
+   this keeps the instruction legible over the parts that are not (the grid
+   glow at the bottom, the circuitry at the top) without dimming the mascot
+   into the background. */
+.gesture-tutorial-page .gesture-tutorial-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,9,22,.5) 0%,rgba(2,9,22,.72) 40%,rgba(2,9,22,.78) 72%,rgba(2,9,22,.5) 100%);pointer-events:none}
+.gesture-tutorial-page .gesture-tutorial-content{position:absolute;top:25%;bottom:7%;left:4%;width:92%;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.6vh,18px);text-align:center;color:#fff}
+.gesture-tutorial-page .gesture-tutorial-heading{margin:0;color:rgba(217,239,255,.92);font-size:clamp(15px,min(5vw,4vh),22px);font-weight:700;line-height:1.2;letter-spacing:.16em;text-shadow:0 2px 12px rgba(0,0,0,.85)}
+/* The two steps, side by side in the direction each one teaches: the left
+   step is the left-hand panel and the right step the right-hand one, so the
+   panel a player reaches for is already on the side they have to wave to.
+
+   Each panel is a real <button>, which is what makes the same step completable
+   by touch on a phone and by mouse on a desktop as well as by a wave on the
+   glasses. It is sized as a target first: the pair fills the band, so a finger
+   on a 320px-wide phone has half the width and the full height of the band to
+   land in. */
+.gesture-tutorial-page .gesture-tutorial-steps{display:flex;align-items:stretch;justify-content:center;gap:clamp(8px,min(2.6vw,2.2vh),18px);width:100%}
+.gesture-tutorial-page .gesture-tutorial-step{flex:1 1 0;min-width:0;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:clamp(3px,min(1vw,.9vh),8px);padding:clamp(8px,min(2.4vw,1.9vh),18px) clamp(5px,min(1.8vw,1.4vh),12px);box-sizing:border-box;border:2px solid rgba(148,196,232,.34);border-radius:clamp(10px,min(3vw,2.4vh),20px);background:rgba(4,16,34,.5);color:#fff;font:inherit;text-align:center;-webkit-tap-highlight-color:transparent;transition:border-color .18s ease,background-color .18s ease,opacity .18s ease}
+/* The step the player is on. Both inputs are aimed at this one panel, so it is
+   the only one that reads as pressable. */
+.gesture-tutorial-page .gesture-tutorial-step.is-active{border-color:#4ad9ff;background:rgba(12,44,74,.62);box-shadow:0 0 26px rgba(74,217,255,.28)}
+/* A step already behind the player: still legible, no longer a target. */
+.gesture-tutorial-page .gesture-tutorial-step.is-done{border-color:rgba(61,220,132,.72);background:rgba(8,34,26,.55);opacity:.82}
+.gesture-tutorial-page .gesture-tutorial-step:disabled{cursor:default}
+.gesture-tutorial-page .gesture-tutorial-step:not(:disabled){cursor:pointer}
+.gesture-tutorial-page .gesture-tutorial-step-title{display:block;font-size:clamp(16px,min(5.4vw,4.2vh),24px);font-weight:800;line-height:1.2;letter-spacing:.02em;text-shadow:0 3px 18px rgba(0,0,0,.9)}
+.gesture-tutorial-page .gesture-tutorial-step-instruction{display:block;color:rgba(226,242,255,.94);font-size:clamp(11px,min(3.1vw,2.5vh),15px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
+/* What the wave picks once the run starts. Separated from the instruction
+   above it by a hairline rather than a gap: the two say different kinds of
+   thing (how to move, and what it does) and must not read as one paragraph. */
+.gesture-tutorial-page .gesture-tutorial-step-rule{display:block;margin-top:clamp(3px,min(1vw,.9vh),7px);padding-top:clamp(3px,min(1vw,.9vh),7px);border-top:1px solid rgba(148,196,232,.28);color:rgba(180,220,250,.94);font-size:clamp(10px,min(2.8vw,2.3vh),14px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
+.gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-step-rule{border-top-color:rgba(74,217,255,.55);color:#cdeeff}
+/* The direction cue. In the app's own cyan, so "which way" is readable from
+   across a room even if the words are not. */
+.gesture-tutorial-page .gesture-tutorial-arrow{display:block;font-size:clamp(20px,min(6.8vw,5.4vh),34px);line-height:1;color:#4ad9ff;text-shadow:0 0 22px rgba(74,217,255,.6)}
+.gesture-tutorial-page .gesture-tutorial-step.is-done .gesture-tutorial-arrow{color:#3ddc84;text-shadow:0 0 22px rgba(61,220,132,.55)}
+/* The three standing lines, fixed for the whole tutorial - none of them is a
+   state and nothing switches any of them off. Three weights, because they are
+   three different kinds of thing: the one-option rule finishes the mapping the
+   panels teach (same cyan as the panels' own rule lines), the slow-down
+   reminder is the one thing that makes a real wave miss (amber, loudest), and
+   the tap hint is the quiet reassurance that a finger works too. */
+.gesture-tutorial-page .gesture-tutorial-notes{display:flex;flex-direction:column;align-items:center;gap:clamp(3px,min(1.2vw,1vh),9px);width:100%}
+.gesture-tutorial-page .gesture-tutorial-notes p{margin:0;line-height:1.4;line-break:strict;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+.gesture-tutorial-page .gesture-tutorial-single-rule{color:rgba(180,220,250,.96);font-size:clamp(11px,min(3.2vw,2.6vh),16px);font-weight:700}
+.gesture-tutorial-page .gesture-tutorial-reminder{color:rgba(255,214,138,.96);font-size:clamp(11px,min(3.3vw,2.7vh),17px);font-weight:700}
+.gesture-tutorial-page .gesture-tutorial-pointer-hint{color:rgba(214,232,248,.88);font-size:clamp(10px,min(2.9vw,2.4vh),14px);font-weight:600}
+/* The completion line. It holds its row while it is empty so finishing the
+   second step does not shift the panels above it. */
+.gesture-tutorial-page .gesture-tutorial-status{margin:0;min-height:1.4em;color:#3ddc84;font-size:clamp(13px,min(4vw,3.2vh),19px);font-weight:800;line-height:1.4;text-shadow:0 2px 14px rgba(0,0,0,.9)}
+.gesture-tutorial-page .gesture-tutorial-dots{display:flex;align-items:center;justify-content:center;gap:clamp(10px,min(3vw,2.5vh),20px)}
+.gesture-tutorial-page .gesture-tutorial-dot{width:clamp(10px,min(3vw,2.5vh),16px);height:clamp(10px,min(3vw,2.5vh),16px);flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.88);background:transparent;box-shadow:0 2px 10px rgba(0,0,0,.65)}
+.gesture-tutorial-page .gesture-tutorial-dot.is-done{background:#fff}

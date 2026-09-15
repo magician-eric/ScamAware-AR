@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "note": "Public administrative-division reference data (county/city centroids + a representative sample of districts per county). Centroids are approximate county-hall coordinates, used only for offline nearest-match county resolution - not survey-grade geocoding.",
+  "counties": [
+    { "county": "臺北市", "areaCode": "02", "displayPrefix": "臺北市", "lat": 25.0330, "lng": 121.5654,
+      "districts": [
+        { "district": "信義區", "lat": 25.0308, "lng": 121.5645 },
+        { "district": "大安區", "lat": 25.0264, "lng": 121.5437 },
+        { "district": "中山區", "lat": 25.0637, "lng": 121.5262 }
+      ] },
+    { "county": "新北市", "areaCode": "02", "displayPrefix": "新北市", "lat": 25.0170, "lng": 121.4628,
+      "districts": [
+        { "district": "板橋區", "lat": 25.0114, "lng": 121.4618 },
+        { "district": "三重區", "lat": 25.0616, "lng": 121.4870 },
+        { "district": "新莊區", "lat": 25.0359, "lng": 121.4326 }
+      ] },
+    { "county": "桃園市", "areaCode": "03", "displayPrefix": "桃園市", "lat": 24.9936, "lng": 121.3010,
+      "districts": [
+        { "district": "桃園區", "lat": 24.9937, "lng": 121.3010 },
+        { "district": "中壢區", "lat": 24.9535, "lng": 121.2258 }
+      ] },
+    { "county": "臺中市", "areaCode": "04", "displayPrefix": "臺中市", "lat": 24.1477, "lng": 120.6736,
+      "districts": [
+        { "district": "西屯區", "lat": 24.1657, "lng": 120.6398 },
+        { "district": "北屯區", "lat": 24.1804, "lng": 120.7148 },
+        { "district": "中區", "lat": 24.1372, "lng": 120.6847 }
+      ] },
+    { "county": "臺南市", "areaCode": "06", "displayPrefix": "臺南市", "lat": 22.9997, "lng": 120.2270,
+      "districts": [
+        { "district": "東區", "lat": 22.9834, "lng": 120.2223 },
+        { "district": "永康區", "lat": 23.0264, "lng": 120.2566 }
+      ] },
+    { "county": "高雄市", "areaCode": "07", "displayPrefix": "高雄市", "lat": 22.6273, "lng": 120.3014,
+      "districts": [
+        { "district": "苓雅區", "lat": 22.6222, "lng": 120.3200 },
+        { "district": "三民區", "lat": 22.6534, "lng": 120.3126 }
+      ] },
+    { "county": "基隆市", "areaCode": "02", "displayPrefix": "基隆市", "lat": 25.1276, "lng": 121.7392,
+      "districts": [ { "district": "仁愛區", "lat": 25.1307, "lng": 121.7401 } ] },
+    { "county": "新竹市", "areaCode": "03", "displayPrefix": "新竹市", "lat": 24.8036, "lng": 120.9686,
+      "districts": [ { "district": "東區", "lat": 24.8034, "lng": 120.9787 } ] },
+    { "county": "嘉義市", "areaCode": "05", "displayPrefix": "嘉義市", "lat": 23.4800, "lng": 120.4491,
+      "districts": [ { "district": "東區", "lat": 23.4780, "lng": 120.4611 } ] },
+    { "county": "新竹縣", "areaCode": "03", "displayPrefix": "新竹縣", "lat": 24.8386, "lng": 121.0178,
+      "districts": [ { "district": "竹北市", "lat": 24.8385, "lng": 121.0060 } ] },
+    { "county": "苗栗縣", "areaCode": "037", "displayPrefix": "苗栗縣", "lat": 24.5602, "lng": 120.8214,
+      "districts": [ { "district": "苗栗市", "lat": 24.5646, "lng": 120.8210 } ] },
+    { "county": "彰化縣", "areaCode": "04", "displayPrefix": "彰化縣", "lat": 24.0518, "lng": 120.5161,
+      "districts": [ { "district": "彰化市", "lat": 24.0836, "lng": 120.5273 } ] },
+    { "county": "南投縣", "areaCode": "049", "displayPrefix": "南投縣", "lat": 23.9157, "lng": 120.6869,
+      "districts": [ { "district": "南投市", "lat": 23.9157, "lng": 120.6869 } ] },
+    { "county": "雲林縣", "areaCode": "05", "displayPrefix": "雲林縣", "lat": 23.7092, "lng": 120.4313,
+      "districts": [ { "district": "斗六市", "lat": 23.7092, "lng": 120.5432 } ] },
+    { "county": "嘉義縣", "areaCode": "05", "displayPrefix": "嘉義縣", "lat": 23.4518, "lng": 120.2555,
+      "districts": [ { "district": "太保市", "lat": 23.4614, "lng": 120.3320 } ] },
+    { "county": "屏東縣", "areaCode": "08", "displayPrefix": "屏東縣", "lat": 22.5519, "lng": 120.5487,
+      "districts": [ { "district": "屏東市", "lat": 22.6764, "lng": 120.4893 } ] },
+    { "county": "宜蘭縣", "areaCode": "03", "displayPrefix": "宜蘭縣", "lat": 24.7021, "lng": 121.7378,
+      "districts": [ { "district": "宜蘭市", "lat": 24.7570, "lng": 121.7532 } ] },
+    { "county": "花蓮縣", "areaCode": "03", "displayPrefix": "花蓮縣", "lat": 23.9871, "lng": 121.6015,
+      "districts": [ { "district": "花蓮市", "lat": 23.9871, "lng": 121.6015 } ] },
+    { "county": "臺東縣", "areaCode": "089", "displayPrefix": "臺東縣", "lat": 22.7583, "lng": 121.1444,
+      "districts": [ { "district": "臺東市", "lat": 22.7583, "lng": 121.1444 } ] },
+    { "county": "澎湖縣", "areaCode": "06", "displayPrefix": "澎湖縣", "lat": 23.5711, "lng": 119.5793,
+      "districts": [ { "district": "馬公市", "lat": 23.5657, "lng": 119.5642 } ] },
+    { "county": "金門縣", "areaCode": "082", "displayPrefix": "金門縣", "lat": 24.4361, "lng": 118.3171,
+      "districts": [ { "district": "金城鎮", "lat": 24.4327, "lng": 118.3172 } ] },
+    { "county": "連江縣", "areaCode": "0836", "displayPrefix": "連江縣", "lat": 26.1608, "lng": 119.9297,
+      "districts": [ { "district": "南竿鄉", "lat": 26.1499, "lng": 119.9308 } ] }
+  ]
+}

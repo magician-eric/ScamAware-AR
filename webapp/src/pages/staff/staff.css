@@ -1,0 +1,98 @@
+/* Staff-only location-init management mode. Imported by the three screens
+   that render it (StaffSetupScreen.jsx, StaffHandoffConfirm.jsx,
+   StaffLocationSummary.jsx) rather than by main.jsx, so this hidden operator
+   mode carries its own styling instead of the app-wide stylesheet doing it.
+
+   `.staff-*` rules that qualify a shared primitive (`.staff-btn-row .btn`,
+   `.staff-card h2`) still resolve exactly as before: styles/global.css
+   defines those primitives and is loaded first. */
+
+/* ---- The mode scrolls as ONE page ---------------------------------
+   The stage box every screen renders into is a fixed 100dvh with
+   `overflow:hidden` (styles/global.css `.ar-stage`) - right for the
+   scenario screens, which are all designed to fit one viewport, and wrong
+   for this one: the summary card, the manual-correction card and the
+   five-button grid are taller than a phone screen the moment 手動修正所在地
+   is opened, and that overflow was simply being clipped. On a real Android
+   device the last buttons ended up under the system navigation bar with no
+   way to scroll them into reach.
+
+   So this mode claims its own stage variant (StaffSetupScreen.jsx calls
+   useStageClassName('staff-stage')), the same mechanism .scroll-stage,
+   .scenario-menu-stage and .ar-scan-stage already use. The scroller is the
+   STAGE - i.e. the whole page - not any individual card: no `.staff-card`
+   gets a scrollbar of its own, so expanding 手動修正所在地 just makes the
+   page longer and the page keeps scrolling from the top bar right through
+   to the last button. No fixed height and no `overflow:hidden` is
+   introduced anywhere inside it.
+
+   `align-items/justify-content` are left alone deliberately - the flex
+   column and its 14px gap are what already lays these cards out. */
+.ar-stage.staff-stage{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+
+/* Android's navigation bar (and the iOS home indicator) sits OVER the
+   bottom of the viewport: the app is `display:standalone` with
+   `viewport-fit=cover` (see webapp/index.html), so 100dvh includes the strip
+   the three-button/gesture bar is drawn on. `.app`'s own
+   `max(22px, env(safe-area-inset-bottom))` padding reserves that strip -
+   but end padding on a scroll container is not somewhere content can be
+   scrolled *past*, so on its own it does not guarantee the last button
+   clears the bar.
+
+   This spacer is real content at the end of the page instead, so the
+   scroll range genuinely extends beyond the final button: 72px of ordinary
+   breathing room (enough on its own for a ~48dp three-button bar on a
+   device that reports no inset at all, e.g. an APK WebView that never
+   surfaces one) plus whatever the platform does report on top. Nothing is
+   drawn here and it is aria-hidden, so it adds no UI and nothing for a
+   screen reader to announce. */
+.staff-bottom-spacer{height:calc(72px + env(safe-area-inset-bottom,0px))}
+
+/* ---- Staff-only location-init management mode (hidden entry, never
+   reachable from player-facing navigation) --------------------------- */
+.staff-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;backdrop-filter:blur(10px);margin-bottom:12px}
+.staff-card h2{font-size:16px;margin:0 0 10px}
+.staff-summary{display:grid;gap:0}
+.staff-summary-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.staff-summary-row:last-child{border-bottom:0}
+.staff-summary-row span{color:var(--muted)}
+.staff-summary-row strong{color:#fff;text-align:right}
+.staff-draft-note{color:var(--warn);margin-top:8px}
+.staff-status-msg{margin-top:8px;color:var(--accent);font-size:13px}
+.staff-clock-warning{background:rgba(255,209,102,.14);border:1px solid var(--warn);color:#ffd166;border-radius:14px;padding:10px 14px;margin-bottom:12px;font-size:13px}
+.staff-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;font-size:13px;color:var(--muted)}
+.staff-field select{padding:10px;border-radius:10px;border:1px solid var(--line);background:#0c1a30;color:#fff;font-size:14px}
+.staff-btn-row{display:flex;gap:10px}
+.staff-btn-row .btn{flex:1}
+.staff-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.staff-btn-grid .btn{font-size:13px;padding:12px 8px}
+.staff-handoff{text-align:left}
+.staff-handoff .btn{width:100%;margin-top:14px}
+
+/* ---- 系統版本與更新 (StaffVersionPanel.jsx) -----------------------
+   Staff-only, like everything else in this file: the section exists
+   inside 工作人員管理模式 and is not reachable from any player-facing
+   screen. The rules below only style what that panel adds on top of
+   `.staff-card` / `.staff-summary`, which it reuses as-is so the
+   version rows line up with the location rows above them. */
+.staff-ota-status{margin:12px 0 0;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.staff-ota-status strong{color:#fff}
+.staff-ota-ok strong{color:var(--ok,#4ade80)}
+.staff-ota-attention strong{color:var(--warn,#ffd166)}
+.staff-ota-error strong{color:var(--danger,#ff6b6b)}
+
+/* The spinner is the honest half of "正在下載". The OTA downloader reports which phase it is in
+   but not how many bytes have arrived, and a progress bar filled from a guess is worse than no
+   bar at all - it is the one part of an update a person will believe without checking. */
+.staff-ota-spinner{width:13px;height:13px;border-radius:50%;border:2px solid var(--line);border-top-color:#fff;display:inline-block;animation:staff-ota-spin .9s linear infinite}
+@keyframes staff-ota-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.staff-ota-spinner{animation-duration:3s}}
+
+.staff-ota-pending{margin:8px 0 0;font-size:13px;color:var(--ok,#4ade80)}
+.staff-ota-error{margin:8px 0 0;font-size:12px;color:var(--danger,#ff6b6b);word-break:break-word}
+.staff-ota-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.staff-ota-actions{margin-top:12px}
+.staff-ota-diagnostics{margin-top:12px;font-size:12px;color:var(--muted)}
+.staff-ota-diagnostics summary{cursor:pointer;padding:6px 0}
+.staff-ota-diagnostics .staff-summary-row{font-size:12px}
+.staff-ota-diagnostics .staff-summary-row strong{word-break:break-all;font-weight:500}

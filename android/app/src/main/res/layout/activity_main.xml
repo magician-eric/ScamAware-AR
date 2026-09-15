@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 正式流程的唯一畫面：CIBAR 佔滿整個視窗。
+     這裡曾經有一整層工程診斷面板（版本、最後手勢、手勢次數、ToF 深度網格、模擬掃描、
+     切換啟動模式、開啟測試頁…）以及疊在 WebView 上方的工具列（返回診斷／網址／重新載入）。
+     全部已移除：使用者一開 App 看到的就是 CIBAR，不必按任何按鈕。
+
+     SurfaceView 仍然留著，而且不可以被設成 GONE 或移除。JJSDK 的 CameraManager 是把眼鏡
+     的 RGB 影像畫進這個 holder 的；surface 一旦被銷毀，相機就失去它正在繪製的目標，
+     WebView 讀的 MJPEG 也跟著沒有畫面。它只是被上面那層不透明的 WebView 蓋住而已。
+
+     webLayer 是 root 的最後一個子節點，所以會畫在 SurfaceView 的挖洞區之上。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#080A0F">
+
+    <SurfaceView
+        android:id="@+id/cameraSurface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true" />
+
+    <!-- 不透明背景：蓋住底下的相機預覽，而不是把它藏起來。 -->
+    <FrameLayout
+        android:id="@+id/webLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#080A0F">
+
+        <WebView
+            android:id="@+id/cibarWebView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+</FrameLayout>

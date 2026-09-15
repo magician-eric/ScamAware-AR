@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The launcher icon on the phone is the same artwork the browser shows for the CIBAR PWA:
+  webapp/public/icons/icon-512-maskable.png, copied byte for byte into
+  mipmap-xxxhdpi/ic_launcher_maskable.png. Nothing here redraws it and there is no second,
+  Android-only brand version to keep in step - AppIconTest fails the build the moment the two
+  files differ.
+
+  A maskable PWA icon is exactly what an adaptive icon's foreground wants: it already carries
+  its own full-bleed background, so a launcher may crop it to any shape without exposing a
+  transparent corner. The one thing it does not carry is Android's proportions, which is what
+  drawable/ic_launcher_foreground.xml corrects.
+
+  minSdk is 27, so every device this APK can install on reads this file rather than the legacy
+  bitmap in mipmap-xxxhdpi/ic_launcher.png. That bitmap is the PWA's plain 192px icon and only
+  exists as the resource's default configuration.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

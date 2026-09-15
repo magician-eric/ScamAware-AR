@@ -1,0 +1,104 @@
+/* GuGo Invest (股購投資) - the App module's own stylesheet.
+ *
+ * This is gugo-invest/src/index.css, moved in with the rest of the app and
+ * changed in exactly one way: everything it emits is confined to the
+ * `.gugo-app` subtree, so mounting GuGo inside the shared CIBAR webapp
+ * cannot restyle any other scenario or App module. Three separate things
+ * had to be contained, because Tailwind is global by default:
+ *
+ * 1. Preflight. Tailwind's reset targets `html`, `*`, `button`, `img`, ...
+ *    site-wide - it would have flattened every other App's headings, lists
+ *    and buttons. It is re-emitted with every selector nested under
+ *    `.gugo-app` by the cibar-scope-gugo-preflight plugin in
+ *    ../../../../../vite.config.js, which reads the installed
+ *    tailwindcss/preflight.css at build start so this never drifts from the
+ *    version in package.json.
+ *
+ * 2. Utilities. Restricted to the classes this module actually uses via
+ *    `source(none)` + the `@source` below, so no other App's markup can
+ *    generate a utility, and emitted into the `utilities` cascade layer.
+ *    The rest of webapp's CSS is unlayered, and unlayered rules beat
+ *    layered ones no matter their specificity, so an accidental name
+ *    collision resolves in the other App's favour every time.
+ *
+ * 3. The three html/body/#root rules the standalone app used to set. Those
+ *    became `.gugo-app` rules - the module paints its own surface instead
+ *    of the document's.
+ *
+ * The @theme tokens, the .no-scrollbar helper and the Hot Stocks marquee
+ * below are unchanged from the standalone app.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "./preflight.generated.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "../";
+
+@theme {
+  /* CIS color system */
+  --color-brand-bg: #0d1221;
+  --color-brand-navy: #1a2238;
+  --color-brand-gold: #d4af37;
+  --color-brand-green: #00b37e;
+  --color-brand-red: #ef4d4d;
+  --color-brand-gray: #8a94a6;
+  --color-brand-white: #ffffff;
+
+  --font-zh: "Noto Sans TC", "Inter", sans-serif;
+  --font-en: "Inter", "Noto Sans TC", sans-serif;
+  --font-jp: "Noto Sans JP", "Inter", sans-serif;
+}
+
+/* Was `html, body, #root { height: 100% }` + the `body` paint rules. The
+   module owns a mount element instead of the document. */
+.gugo-app {
+  /* width, not just height: webapp's body is a centering grid
+     (`place-items:center` in styles/global.css), so a grid item is sized to
+     its content unless it says otherwise - which shrink-wrapped the app to
+     narrower than the viewport and left bars down both sides. Standalone,
+     this element was the document body and had the full width for free. */
+  width: 100%;
+  height: 100%;
+  background: var(--color-brand-bg);
+  color: var(--color-brand-white);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+.gugo-app,
+.gugo-app *,
+.gugo-app *::before,
+.gugo-app *::after {
+  box-sizing: border-box;
+}
+
+/* Hide scrollbars on the mobile-frame scroll areas while keeping them scrollable */
+.gugo-app .no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.gugo-app .no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Home's Hot Stocks list auto-scrolls upward like a ticker tape instead of
+   requiring a manual swipe - the track renders its rows twice back to back
+   and loops the animation at the halfway point (-50%) so it reads as an
+   endless scroll with no visible seam. */
+@keyframes gugoMarqueeScrollY {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+.gugo-app .marquee-track {
+  animation: gugoMarqueeScrollY 40s linear infinite;
+}
+.gugo-app .marquee-viewport {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+}

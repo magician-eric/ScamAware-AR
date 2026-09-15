@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "note": "Public police-department names by county/city, compiled from official agency naming conventions. Precinct (分局) lookup is intentionally out of scope for phase 1 - see README note in RegionAgencyResolver.js - a county's nearest precinct is not necessarily the correct case jurisdiction, so this is left as a manual field for staff to fill in rather than guessed from GPS proximity.",
+  "byCounty": {
+    "臺北市": "臺北市政府警察局",
+    "新北市": "新北市政府警察局",
+    "桃園市": "桃園市政府警察局",
+    "臺中市": "臺中市政府警察局",
+    "臺南市": "臺南市政府警察局",
+    "高雄市": "高雄市政府警察局",
+    "基隆市": "基隆市警察局",
+    "新竹市": "新竹市警察局",
+    "嘉義市": "嘉義市警察局",
+    "新竹縣": "新竹縣政府警察局",
+    "苗栗縣": "苗栗縣政府警察局",
+    "彰化縣": "彰化縣政府警察局",
+    "南投縣": "南投縣政府警察局",
+    "雲林縣": "雲林縣政府警察局",
+    "嘉義縣": "嘉義縣警察局",
+    "屏東縣": "屏東縣政府警察局",
+    "宜蘭縣": "宜蘭縣政府警察局",
+    "花蓮縣": "花蓮縣警察局",
+    "臺東縣": "臺東縣警察局",
+    "澎湖縣": "澎湖縣警察局",
+    "金門縣": "金門縣警察局",
+    "連江縣": "連江縣警察局"
+  }
+}

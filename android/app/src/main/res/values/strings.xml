@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 桌面／App Drawer 上的名稱。
+
+         這裡放的是產品名本身，沿用 CIBAR PWA 的正式中文名稱（見 repo 根目錄的 manifest.json
+         與 webapp/public/manifest.json）：測試者手機上的 App 名稱要跟他在瀏覽器裡看到的同一個
+         產品對得起來，不另取工程用代號。
+
+         兩個 flavor 各自在 src/online/res/values/strings.xml 與 src/offline/res/values/strings.xml
+         覆寫這個字串，加上「線上版」／「線下版」。用的是 Android 原本就有的 resource 覆寫機制
+         —— flavor 的 res/ 優先於 main 的 res/ —— 所以名稱在 APK 打包時就決定了，執行期沒有任何
+         判斷，也不經過 WebView 或 JavaScript。
+
+         這一行本身只有在某個 variant 沒有落入 distribution dimension 時才會被用到（實務上不會
+         發生）。真正裝到手機上的兩支都會拿到 flavor 的覆寫值。AppIdentityTest 會把三個字串跟
+         PWA manifest 綁在一起，任何一邊改名而其他邊沒跟上就會讓建置失敗。 -->
+    <string name="app_name">反詐AR體驗</string>
+
+</resources>

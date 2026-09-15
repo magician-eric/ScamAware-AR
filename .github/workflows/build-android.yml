@@ -1,0 +1,509 @@
+name: Build Android APK
+
+# One APK. 反詐AR體驗.
+#
+# There used to be two - an "online" one whose WebView loaded GitHub Pages and an "offline" one
+# that carried a copy of the same build inside itself. They were indistinguishable in use right up
+# to the moment the network was taken away, which is the moment they were demonstrated in, and the
+# choice between them was made on a phone screen by reading two nearly identical names. The one
+# that ships now is the offline one's mechanism - a complete web build served over a local https
+# origin - with the online one's property of never going stale, obtained by fetching new bundles in
+# the background and swapping them in at the next launch.
+#
+# The webapp is in scope for this workflow because the APK *contains* it: the baseline bundle is
+# webapp/dist, staged into assets by app/build.gradle, and an APK a commit behind the webapp is
+# exactly the silent drift this arrangement exists to prevent. The Pages deploy's own [skip ci]
+# root commits still never reach here: they touch the repository root, not webapp/.
+on:
+  push:
+    paths:
+      - "android/**"
+      - "webapp/**"
+      - ".github/workflows/build-android.yml"
+  pull_request:
+    paths:
+      - "android/**"
+      - "webapp/**"
+      - ".github/workflows/build-android.yml"
+  workflow_dispatch:
+
+# Every push to a branch publishes over that branch's single rolling release tag, so two runs on
+# the same branch are two writers to one artifact - and the winner is whichever finishes last, not
+# whichever built the newer commit. That is not hypothetical: a run for the tip of main once sat
+# six minutes waiting for a runner, finished six seconds after the run for the commit that
+# superseded it, and republished debug-latest from the older tree.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The publish guard below asks the remote what the branch tip is and what tags exist,
+          # and the release notes quote the commit. The baseline bundle's version needs none of
+          # it - it is release/versions.json plus a zeroed date, on purpose, so a shallow clone
+          # and a laptop produce what CI produces.
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+      - name: Install webapp dependencies
+        working-directory: webapp
+        run: npm ci
+      - name: Test the offline asset audit
+        working-directory: webapp
+        run: npm run test:offline-web-assets
+      - name: Test the OTA publisher
+        working-directory: webapp
+        run: npm run test:ota-release
+      - name: Test the opening animation
+        working-directory: webapp
+        run: npm run test:opening-animation
+      # The staff mode's 系統版本與更新 section is the web face of the native OTA bridge in this
+      # same module, so the two halves are checked in the same run: a shell that changes the
+      # contract without the page, or a page that stops offering the restart when a bundle is
+      # staged, fails here rather than at a venue.
+      - name: Test the staff version and update section
+        working-directory: webapp
+        run: npm run test:staff-version-panel
+      - name: Materialize JJSDK from repository history
+        run: git cat-file blob ca510d9dc8680423da77be49aeb89eaa788e1bea > app/libs/jjsdk.aar
+      - name: Verify bundled JJSDK
+        run: |
+          echo "95847781d88ebe35cd54da5e427a2fce4071208800f42401c7378762f4c0cdea  app/libs/jjsdk.aar" | sha256sum --check --strict
+          unzip -t app/libs/jjsdk.aar
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+      - name: Build APKs
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./gradlew assembleDebug assembleRelease
+      - name: Name the APKs after the delivery, and nothing else
+        id: apks
+        run: |
+          set -eu
+          AAPT2="$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | tail -1)"
+          APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)"
+          echo "AAPT2=$AAPT2" >> "$GITHUB_ENV"
+          echo "APKSIGNER=$APKSIGNER" >> "$GITHUB_ENV"
+          # dist/ carries the delivery under its own name; dist/upload/ carries an ASCII copy
+          # for the GitHub Release. Two directories rather than two names in one, so the
+          # "exactly one delivery" check below counts what a person would download.
+          mkdir -p dist/upload
+          # The name on disk and in the Actions artifact is the product's own name, because that is
+          # what a person is holding when they hand a phone to somebody. The GitHub Release copy is
+          # named in ASCII: the release-assets API replaces every character outside
+          # [A-Za-z0-9.+_-] with a dot, so an asset uploaded as CIBAR-反詐AR體驗.apk arrives as
+          # CIBAR-...........apk and the download links in the notes stop resolving. The Chinese
+          # name travels as the asset's label instead, which is what the release page displays.
+          DELIVERY="CIBAR-反詐AR體驗"
+          echo "delivery=$DELIVERY" >> "$GITHUB_OUTPUT"
+          for type in release debug; do
+            APK="$(find app/build/outputs/apk -name "app-${type}.apk" | head -1)"
+            if [ -z "$APK" ]; then
+              echo "::error::找不到 ${type} 的 APK"
+              find app/build/outputs/apk -name "*.apk" || true
+              exit 1
+            fi
+            SUFFIX=""
+            [ "$type" = "debug" ] && SUFFIX="-debug"
+            cp "$APK" "dist/${DELIVERY}${SUFFIX}.apk"
+            cp "$APK" "dist/upload/CIBAR${SUFFIX}.apk"
+            BADGING="$("$AAPT2" dump badging "$APK")"
+            echo "${type}: $(basename "$APK") -> ${DELIVERY}${SUFFIX}.apk"
+            if [ "$type" = "release" ]; then
+              {
+                echo "apk=${DELIVERY}.apk"
+                echo "package=$(echo "$BADGING" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+                echo "version_name=$(echo "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")"
+                echo "version_code=$(echo "$BADGING" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")"
+                echo "label=$(echo "$BADGING" | sed -n "s/^application-label:'\([^']*\)'.*/\1/p")"
+              } >> "$GITHUB_OUTPUT"
+            fi
+          done
+          UNEXPECTED="$(ls dist | grep -vxE "$(printf '%s' "$DELIVERY")\.apk|$(printf '%s' "$DELIVERY")-debug\.apk|upload" || true)"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "::error::dist/ 出現了預期外的檔名：$UNEXPECTED"
+            exit 1
+          fi
+          ls -l dist dist/upload
+      - name: Assert there is exactly one delivery
+        run: |
+          set -eu
+          # The old split is gone, not merely unused: two APKs on one phone was two names to choose
+          # between under pressure, and this is what keeps a "just for testing" second one from
+          # coming back without anybody deciding to bring it back.
+          if find app/build/outputs/apk -name "*online*" -o -name "*offline*" | grep -q .; then
+            echo "::error::建置產生了 online / offline variant —— 正式版只有一支 APK"
+            find app/build/outputs/apk -name "*.apk"
+            exit 1
+          fi
+          COUNT="$(ls dist/*.apk | wc -l)"
+          [ "$COUNT" = "2" ] || { echo "::error::dist/ 應該只有正式版與 debug 版兩支，實際 $COUNT"; exit 1; }
+      - name: Verify the published APKs
+        run: |
+          set -eu
+          for apk in dist/*.apk; do
+            echo "=============== $apk"
+            unzip -t "$apk" > /dev/null && echo "unzip -t: OK"
+            "$APKSIGNER" verify --verbose --print-certs "$apk" \
+              | grep -Ei "verified using|Signer #1 certificate (DN|SHA-256)"
+            "$AAPT2" dump badging "$apk" > badging.txt
+            grep -E "^(package|sdkVersion|targetSdkVersion|native-code|application-label)" badging.txt
+            grep -E "^(uses-feature|uses-permission)" badging.txt || echo "(no uses-feature/uses-permission)"
+          done
+      - name: Assert the merged manifests stay installable
+        run: |
+          set -eu
+          for apk in dist/*.apk; do
+            "$AAPT2" dump badging "$apk" > badging.txt
+            for banned in \
+              "android.hardware.opengles.aep" \
+              "com.android.hardware.camera2.full" \
+              "android.permission.RECORD_AUDIO" \
+              "android.permission.WRITE_EXTERNAL_STORAGE" \
+              "android.permission.READ_EXTERNAL_STORAGE"; do
+              if grep -q "$banned" badging.txt; then
+                echo "::error::$apk: $banned leaked back into the merged manifest from the vendor AAR"
+                exit 1
+              fi
+            done
+            if grep -E "^uses-feature:" badging.txt; then
+              echo "::error::$apk: a required uses-feature would block installation on some phones"
+              exit 1
+            fi
+            grep -q "uses-permission: name='android.permission.CAMERA'" badging.txt
+            # INTERNET is required now, and only for the update check. The experience itself never
+            # loads anything over it - see the offline audit below, and WebContentSource.
+            grep -q "uses-permission: name='android.permission.INTERNET'" badging.txt
+            grep -q "targetSdkVersion:'30'" badging.txt
+            echo "$apk: targetSdk 30, CAMERA + INTERNET present, no install-blocking requirement"
+          done
+      - name: Assert the APK carries a complete offline CIBAR build
+        run: |
+          set -eu
+          APK="dist/${{ steps.apks.outputs.apk }}"
+          unzip -l "$APK" > entries.txt
+          require() {
+            if ! grep -qE "$1" entries.txt; then
+              echo "::error::APK 缺少 $2（$1）"
+              exit 1
+            fi
+            echo "  OK: $2"
+          }
+          require "assets/cibar/index.html" "SPA 進入點 index.html"
+          require "assets/cibar/manifest.json" "PWA manifest"
+          require "assets/cibar/assets/.*\.js" "應用程式 JavaScript"
+          require "assets/cibar/assets/.*\.css" "應用程式 CSS"
+          require "assets/cibar/assets/.*\.mind" "圖像辨識 target 資料集（.mind）"
+          require "assets/cibar/assets/.*\.mp4" "情境影片"
+          require "assets/cibar/assets/.*\.mp3" "情境語音"
+          require "assets/cibar/assets/.*\.webp" "情境圖片"
+          # The baseline's manifest is what tells the shell which version it shipped with, and it
+          # sits OUTSIDE assets/cibar/ on purpose: only /CIBAR/ is mounted, and only cibar/ is
+          # behind it, so the page's own origin cannot read it.
+          require "assets/cibar-baseline-manifest.json" "內建 bundle 的 manifest"
+          if grep -qE "assets/cibar/cibar-baseline-manifest.json" entries.txt; then
+            echo "::error::baseline manifest 不該放在 assets/cibar/ 裡（會被頁面讀到）"
+            exit 1
+          fi
+          unzip -p "$APK" assets/cibar/index.html > index.html
+          grep -q 'src="/CIBAR/assets/' index.html || {
+            echo "::error::內建的 index.html 不是以 /CIBAR/ 為 base 建置的，"
+            echo "::error::而 App 把它掛在 https://appassets.androidplatform.net/CIBAR/"
+            exit 1
+          }
+          echo "OK: 內建網頁的 base 與 App 的本機 origin 一致"
+          echo "內建網頁內容檔案數：$(grep -c 'assets/cibar/' entries.txt)"
+      - name: Assert the baseline manifest is a real OTA manifest
+        run: |
+          set -eu
+          APK="dist/${{ steps.apks.outputs.apk }}"
+          unzip -p "$APK" assets/cibar-baseline-manifest.json > baseline.json
+          node -e '
+            const manifest = JSON.parse(require("fs").readFileSync("baseline.json", "utf8"));
+            // MAJOR.MINOR.PATCH-YYYYMMDD.NNN - docs/RELEASE_VERSIONING.md §3.
+            const pattern = /^\d+\.\d+\.\d+-\d{8}\.\d{3,}$/;
+            if (!pattern.test(manifest.version)) {
+              console.error(`::error::baseline 版本不是發布格式：${manifest.version}`);
+              process.exit(1);
+            }
+            // ...and the date and sequence are zero, because this is not a release. A Release ID
+            // is minted by ota-release.yml after the merge that builds this APK, so a baseline
+            // claiming one would be claiming to be a release that does not exist.
+            if (!/-00000000\.000$/.test(manifest.version)) {
+              console.error(`::error::APK 內建的 bundle 不是正式發布，不該帶 Release ID：${manifest.version}`);
+              process.exit(1);
+            }
+            if (!/^\d+\.\d+\.\d+$/.test(manifest.minShellVersion || "")) {
+              console.error(`::error::baseline 的 minShellVersion 不是 x.y.z：${manifest.minShellVersion}`);
+              process.exit(1);
+            }
+            if (manifest.entry !== "index.html") {
+              console.error(`::error::baseline 的進入點不是 index.html：${manifest.entry}`);
+              process.exit(1);
+            }
+            if (!Array.isArray(manifest.files) || manifest.files.length < 10) {
+              console.error("::error::baseline manifest 沒有列出檔案");
+              process.exit(1);
+            }
+            console.log(`baseline web bundle ${manifest.version}: ${manifest.fileCount} files`);
+          '
+          # The semantic half is what the phone actually compares (BundleVersion.compareSemantic),
+          # so it has to be the webBundleVersion this commit declares. If it drifted, a freshly
+          # installed phone would spend 80 MiB downloading the bytes it was installed with - or,
+          # worse, would refuse a genuinely newer release as a downgrade.
+          EXPECTED="$(cd ../webapp && node scripts/ota-version.mjs)"
+          ACTUAL="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync("baseline.json","utf8")).version)')"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::APK 內建版本 $ACTUAL 與這個 commit 應有的 $EXPECTED 不一致"
+            exit 1
+          fi
+          DECLARED="$(jq -r .webBundleVersion ../release/versions.json)"
+          if [ "${ACTUAL%%-*}" != "$DECLARED" ]; then
+            echo "::error::APK 內建 bundle 的版本 ${ACTUAL%%-*} 與 release/versions.json 的 $DECLARED 不符"
+            exit 1
+          fi
+          echo "OK: APK 內建 web bundle $ACTUAL（Web Bundle $DECLARED）"
+      - name: Audit the packaged web assets for external URLs
+        run: |
+          set -eu
+          rm -rf /tmp/apk-bundle && mkdir -p /tmp/apk-bundle
+          unzip -q "dist/${{ steps.apks.outputs.apk }}" 'assets/cibar/*' -d /tmp/apk-bundle
+          node ../webapp/scripts/audit-offline-web-assets.mjs /tmp/apk-bundle/assets/cibar
+      - name: Assert the APKs carry the fixed test signing certificate
+        run: |
+          set -eu
+          EXPECTED=36f730171eeed725b2128f92fc379f008e3fd6cf3fbaa8e21aa5c41afac93dff
+          for apk in dist/*.apk; do
+            ACTUAL="$("$APKSIGNER" verify --print-certs "$apk" \
+              | sed -n 's/.*certificate SHA-256 digest: *//p' | head -1)"
+            if [ "$ACTUAL" != "$EXPECTED" ]; then
+              echo "::error::$apk 的簽章憑證不是 repo 內的固定測試金鑰"
+              echo "  expected $EXPECTED"
+              echo "  actual   $ACTUAL"
+              exit 1
+            fi
+            echo "$apk: signing certificate OK ($ACTUAL)"
+          done
+          echo "OK: 兩支 APK 使用同一把固定金鑰，日後可直接覆蓋安裝"
+      - name: Assert the launcher name is the product's name
+        run: |
+          set -eu
+          EXPECTED='反詐AR體驗'
+          for apk in dist/*.apk; do
+            "$AAPT2" dump badging "$apk" > badging.txt
+            grep -q "application-label:'${EXPECTED}'" badging.txt || {
+              echo "::error::$apk 的桌面名稱不是 ${EXPECTED}"
+              grep "application-label" badging.txt || true
+              exit 1
+            }
+            # The delivery split is gone from the phone as well as from the build.
+            for banned in 線上版 線下版 離線版 online offline; do
+              if grep -q "application-label:'.*${banned}" badging.txt; then
+                echo "::error::$apk 的桌面名稱還帶著版本別：$banned"
+                exit 1
+              fi
+            done
+          done
+          echo "OK: 兩支的桌面名稱都是 ${EXPECTED}"
+      - name: Assert the launcher icon is the PWA's adaptive icon
+        run: |
+          set -eu
+          RELEASE="dist/${{ steps.apks.outputs.apk }}"
+          DEBUG="dist/${{ steps.apks.outputs.delivery }}-debug.apk"
+          "$AAPT2" dump badging "$RELEASE" > badging.txt
+          grep -E "^application: " badging.txt
+          ICON="$(sed -n "s/^application: .*icon='\([^']*\)'.*/\1/p" badging.txt)"
+          if [ -z "$ICON" ]; then
+            echo "::error::$RELEASE 沒有宣告 launcher icon（桌面會顯示 Android 預設圖示）"
+            exit 1
+          fi
+          if ! "$AAPT2" dump xmltree "$RELEASE" --file "$ICON" | grep -q "adaptive-icon"; then
+            echo "::error::launcher icon（$ICON）不是 adaptive icon"
+            "$AAPT2" dump xmltree "$RELEASE" --file "$ICON" || true
+            exit 1
+          fi
+          if ! "$AAPT2" dump xmltree "$RELEASE" --file AndroidManifest.xml | grep -q "roundIcon"; then
+            echo "::error::合併後的 manifest 沒有 android:roundIcon，要求圓形圖示的 launcher 會拿不到"
+            exit 1
+          fi
+          for entry in \
+            "res/mipmap-anydpi-v26/ic_launcher.xml" \
+            "res/mipmap-anydpi-v26/ic_launcher_round.xml" \
+            "ic_launcher_maskable.png"; do
+            unzip -l "$DEBUG" | grep -q "$entry" || {
+              echo "::error::$DEBUG 內找不到 $entry"
+              unzip -l "$DEBUG" | grep -i mipmap || true
+              exit 1
+            }
+          done
+          unzip -p "$DEBUG" 'res/mipmap-*/ic_launcher_maskable.png' > icon.png
+          python3 - <<'PY'
+          import struct, sys
+          data = open("icon.png", "rb").read()
+          assert data[:8] == b"\x89PNG\r\n\x1a\n", "APK 內的 icon 不是 PNG"
+          width, height = struct.unpack(">II", data[16:24])
+          print("packaged maskable icon: %dx%d" % (width, height))
+          if (width, height) != (512, 512):
+              sys.exit("::error::APK 內的 maskable icon 是 %dx%d，不是 PWA 的 512x512" % (width, height))
+          PY
+          echo "OK: 桌面圖示是 CIBAR PWA 的 adaptive icon"
+      # A delivered APK has to be identifiable months later, when the only thing anybody still
+      # has is the file itself: the version inside it says what it claims to be, the hash says
+      # whether it is that exact build. docs/DELIVERY_HISTORY.md keeps the hash of every APK
+      # actually handed over (docs/RELEASE_VERSIONING.md §14) - computed here so whoever fills
+      # that row can copy it out of the release page instead of hashing by hand and hoping they
+      # hashed the same file that was delivered.
+      - name: Hash the APK for the delivery record
+        id: hashes
+        run: |
+          set -eu
+          for apk in dist/*.apk; do
+            sha256sum "$apk"
+          done
+          {
+            echo "apk_sha256=$(sha256sum "dist/${{ steps.apks.outputs.apk }}" | cut -d' ' -f1)"
+            echo "shell_version=$(jq -r .shellVersion ../release/versions.json)"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CIBAR-AR-apk
+          path: android/dist/*.apk
+          if-no-files-found: error
+      - name: Compose the release notes
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          set -eu
+          LABEL='${{ steps.apks.outputs.label }}'
+          PACKAGE='${{ steps.apks.outputs.package }}'
+          # The product version, as opposed to versionName's "product version + build metadata".
+          # It is what docs/DELIVERY_HISTORY.md's "APK Shell" column records.
+          SHELL_VERSION='${{ steps.hashes.outputs.shell_version }}'
+          APK_SHA256='${{ steps.hashes.outputs.apk_sha256 }}'
+          VERSION_NAME='${{ steps.apks.outputs.version_name }}'
+          VERSION_CODE='${{ steps.apks.outputs.version_code }}'
+          DELIVERY='${{ steps.apks.outputs.delivery }}'
+          SIZE="$(du -h "dist/${DELIVERY}.apk" | cut -f1)"
+          BUNDLE_VERSION="$(cd ../webapp && node scripts/ota-version.mjs)"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            RELEASE_TAG=debug-latest
+          else
+            RELEASE_TAG="debug-$(echo "${GITHUB_REF#refs/heads/}" | tr '/' '-')"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          DL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG"
+          {
+            printf '# 手機安裝：就這一支\n\n'
+            printf '**[⬇️ 下載 `CIBAR.apk`](%s/CIBAR.apk)** —— 桌面名稱 **%s**\n\n' "$DL" "$LABEL"
+            printf '用手機直接點上面的連結就會下載，不必捲到下面的 Assets。\n\n'
+            printf '> `CIBAR-debug.apk` 只給 adb、Android Studio 偵錯用（它是 debuggable，'
+            printf '部分 ROM 會直接拒裝）。手機安裝請認上面那一個連結。\n\n'
+            printf '> 檔名是 ASCII 的 `CIBAR.apk`：GitHub 的 release asset 會把非 ASCII 字元換成點，'
+            printf '下載連結就會失效。下載後的桌面名稱仍然是 **%s**，' "$LABEL"
+            printf 'Actions artifact 內的檔名也是 `%s.apk`。\n\n' "$DELIVERY"
+            printf -- '---\n\n'
+            printf '## ⚠️ 安裝前請先看這一段\n\n'
+            printf '這一版把先前的**線上版／線下版兩支 APK 合併成一支**。\n'
+            printf '舊的兩支 applicationId 不同（`…jorjinverifier.online` / `…jorjinverifier.offline`），'
+            printf '跟這一支不是同一個 App，會各自留在桌面上。確定不再需要就可以移除：\n\n'
+            printf '```\nadb uninstall com.bigxreality.jorjinverifier.online\n'
+            printf 'adb uninstall com.bigxreality.jorjinverifier.offline\n```\n\n'
+            printf '> 本支與之後的版本都用 repo 內同一把固定測試金鑰簽章'
+            printf '（憑證 SHA-256 `36f7…3dff`，CI 每次建置都會驗證），\n'
+            printf '> **之後的版本可以直接覆蓋安裝，不必解除安裝。**\n\n'
+            printf -- '---\n\n'
+            printf '## 這一支是什麼\n\n'
+            printf '| | |\n|---|---|\n'
+            printf '| 桌面名稱 | **%s** |\n' "$LABEL"
+            printf '| Shell Version | `%s` |\n' "$SHELL_VERSION"
+            printf '| SHA-256 | `%s` |\n' "$APK_SHA256"
+            printf '| applicationId | `%s` |\n' "$PACKAGE"
+            printf '| versionName | `%s` |\n' "$VERSION_NAME"
+            printf '| versionCode | `%s` |\n' "$VERSION_CODE"
+            printf '| 內建 web bundle | `%s` |\n' "$BUNDLE_VERSION"
+            printf '| 檔案大小 | %s |\n' "$SIZE"
+            printf '| commit | `%s` |\n' "$GITHUB_SHA"
+            printf '| minSdk / targetSdk | 27 / 30 |\n\n'
+            printf '交付這支 APK 時，請把上面的 Shell Version 與 SHA-256 記進 '
+            printf '`docs/DELIVERY_HISTORY.md`（規則見 `docs/RELEASE_VERSIONING.md`）。\n\n'
+            printf '### 網頁內容從哪裡來\n\n'
+            printf -- '- **APK 內建一份完整的 CIBAR**，由本機 `https://appassets.androidplatform.net/CIBAR/` 提供。'
+            printf '第一次安裝後即使完全沒有網路，五個情境、影片、音效、圖片、圖像辨識都能完整跑完。\n'
+            printf -- '- **有網路時**會在背景檢查 <https://ericingptt.github.io/CIBAR/ota/latest.json>，'
+            printf '有新版就在背景下載、驗證 SHA-256、解壓縮並完整檢查。\n'
+            printf -- '- **不會在體驗途中換版**：驗證通過的新版會等到**下一次啟動** App 才生效。\n'
+            printf -- '- 下載失敗、中斷或檔案損毀都不影響目前這一份，App 照常使用。\n'
+            printf -- '- 新版啟動失敗會自動退回上一版；上一版也不能用就退回 APK 內建版本。\n\n'
+            printf '### 實機測試步驟\n\n'
+            printf '1. 手機用 USB 接上佐臻眼鏡（建議先接好再開 App）。\n'
+            printf '2. 開啟「%s」，允許相機權限與 USB 裝置存取。\n' "$LABEL"
+            printf '3. `adb logcat -s JorjinVerifier JorjinToF JorjinOta` 確認：'
+            printf 'RGB Camera 有畫面、ToF 深度幀在跳、ToF State 為 Ready，'
+            printf '以及 `JorjinOta` 印出的 active／bundled 版本。\n'
+            printf '4. 選語言 → 手勢教學 → `/ar-scan`，對準情境一的圖片測辨識。\n'
+            printf '5. **把手機切成飛航模式**（Wi-Fi 與行動數據都關），重複第 4 步並一路走完 '
+            printf 'Scenario 01 的 LEFT / RIGHT、Outcome、Analysis、Quiz，再回到 `/ar-scan`。\n'
+            printf '   **全程不應該出現任何網路錯誤畫面。**\n\n'
+            printf '眼鏡串流失敗時會顯示錯誤，不會改用手機鏡頭 —— 這是刻意的，看到錯誤就是眼鏡那一段有問題。\n\n'
+            printf '### 更新狀態怎麼看\n\n'
+            printf '```\nadb logcat -s JorjinOta\n'
+            printf 'adb shell run-as %s cat /sdcard/Android/data/%s/files/ota-diagnostics.json\n```\n' \
+                "$PACKAGE" "$PACKAGE"
+          } > release-notes.md
+          head -6 release-notes.md
+          grep -q "CIBAR.apk" release-notes.md
+          echo "release notes: $(wc -l < release-notes.md) lines"
+      - name: Publish rolling debug release
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          TIP="$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)"
+          if [ -n "$TIP" ] && [ "$TIP" != "$GITHUB_SHA" ]; then
+            echo "::notice::${GITHUB_SHA:0:7} is no longer the tip of $BRANCH (${TIP:0:7}); not publishing a superseded APK"
+            exit 0
+          fi
+          if [ -z "${RELEASE_TAG:-}" ]; then
+            echo "::error::RELEASE_TAG 沒有設定 —— 撰寫 Release 說明的步驟應該要設定它"
+            exit 1
+          fi
+          DELIVERY='${{ steps.apks.outputs.delivery }}'
+          VERSION_NAME='${{ steps.apks.outputs.version_name }}'
+          gh release delete "$RELEASE_TAG" --yes --cleanup-tag || true
+          gh release create "$RELEASE_TAG" \
+            "dist/upload/CIBAR.apk#${DELIVERY}.apk（手機安裝用這一個）" \
+            "dist/upload/CIBAR-debug.apk#${DELIVERY}-debug.apk（adb 偵錯用）" \
+            --title "反詐AR體驗 ${VERSION_NAME%%+*}" \
+            --notes-file release-notes.md \
+            --prerelease
+      - name: Android Lint (report only)
+        continue-on-error: true
+        run: ./gradlew lintDebug
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: android/app/build/reports/lint-results-*.html
+          if-no-files-found: ignore

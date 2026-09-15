@@ -1,0 +1,72 @@
+.fraud-warning-layer {
+  position: fixed;
+  z-index: 1200;
+  top: calc(env(safe-area-inset-top, 0px) + 52px);
+  left: 50%;
+  width: min(calc(100% - 24px), 456px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.fraud-warning-banner {
+  --fw-accent: #c9292c;
+  --fw-ink: #18243a;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 14px 12px;
+  color: var(--fw-ink);
+  background: color-mix(in srgb, #fff 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  backdrop-filter: blur(14px) saturate(125%);
+  border: 1px solid color-mix(in srgb, var(--fw-accent) 42%, white);
+  border-left: 5px solid var(--fw-accent);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgb(15 23 42 / 22%);
+  animation: fraud-warning-in 280ms ease-out both;
+}
+.fraud-warning-copy { display: grid; min-width: 0; gap: 8px; }
+.fraud-warning-copy strong { padding-bottom: 7px; border-bottom: 1px solid color-mix(in srgb, var(--fw-accent) 28%, transparent); font-size: 16px; line-height: 1.3; }
+.fraud-warning-body { font-size: 14px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.fraud-warning-icon { display: grid; place-items: center; width: 30px; height: 30px; color: #fff; background: var(--fw-accent); border-radius: 50%; }
+.fraud-warning-theme-chat { --fw-accent: #e64b72; --fw-ink: #3d2330; }
+.fraud-warning-theme-invest { --fw-accent: #cf252d; --fw-ink: #18243a; }
+.fraud-warning-theme-shopping { --fw-accent: #df3b32; --fw-ink: #292525; }
+.fraud-warning-theme-banking { --fw-accent: #c8212d; --fw-ink: #152c51; }
+.fraud-warning-theme-phone { --fw-accent: #d62b2b; --fw-ink: #17284b; }
+.fraud-warning-severity-high, .fraud-warning-severity-block { border-left-width: 7px; }
+.fraud-warning-placement-app-header { top: calc(env(safe-area-inset-top, 0px) + 70px); }
+/* Bottom-anchored variant for scenes whose primary CTA sits in-flow near the
+   top of the screen (e.g. BankSite's confirm stage) rather than behind a
+   fixed header - a top-anchored banner can grow tall enough on narrow/short
+   viewports (long wrapped body copy) to cover that CTA. Anchored above
+   whatever footer clearance the host container declares via
+   --phone-shell-home-indicator-height (declared on :root in
+   styles/global.css; also read by Scenario 03's
+   pages/scenario03/components/PhoneShell.css) -
+   a generic custom property, not a dependency on any specific consumer's
+   class name, with a literal 16px fallback for containers that don't
+   define it at all (e.g. a plain page with no phone-shell ancestor). */
+.fraud-warning-placement-above-footer {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--phone-shell-home-indicator-height, 16px) + 12px);
+}
+.fraud-warning-placement-above-footer .fraud-warning-banner { animation: fraud-warning-in-bottom 280ms ease-out both; }
+@keyframes fraud-warning-in-bottom { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+.fraud-warning-collapsed { display: inline-grid; grid-template-columns: 24px auto; align-items: center; width: auto; max-width: 100%; padding: 8px 12px; border-left-width: 4px; border-radius: 999px; }
+.fraud-warning-collapsed .fraud-warning-icon { width: 24px; height: 24px; }
+.fraud-warning-collapsed .fraud-warning-copy { display: block; }
+.fraud-warning-collapsed .fraud-warning-copy strong { padding: 0; border: 0; font-size: 13px; }
+@keyframes fraud-warning-in { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 380px) { .fraud-warning-layer { width: calc(100% - 16px); } .fraud-warning-banner { padding-inline: 10px; } }
+@media (prefers-reduced-motion: reduce) { .fraud-warning-banner { animation: none; } }
+/* In-flow variant (`inline`): no fixed layer, no portal - the banner is a
+   normal block in the caller's layout, so it takes up space above/below the
+   scene's own controls instead of floating over them. Used where the primary
+   action sits high on the screen and any floating placement (top- or
+   bottom-anchored) would cover it - see scenario03's LINE add-friend screen,
+   whose one 加入好友 button used to disappear under the top-anchored banner. */
+.fraud-warning-inline { width: 100%; }
+.fraud-warning-inline .fraud-warning-banner { animation: fraud-warning-fade-in 280ms ease-out both; box-shadow: 0 4px 14px rgb(15 23 42 / 12%); }
+@keyframes fraud-warning-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fraud-warning-inline .fraud-warning-banner { animation: none; } }

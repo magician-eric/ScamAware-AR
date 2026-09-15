@@ -1,0 +1,56 @@
+/* Styling for the shared scenario entry screen (ScenarioEntryBriefing.jsx,
+   which imports this file itself) and the key visual it renders through
+   ScenarioEntryHero.jsx. All five scenarios' Briefing screens go through it,
+   so it has a component owner rather than a scenario one.
+
+   The card, heading, body copy and button styling these rules sit inside are
+   the app-wide .hero / h1 / p / .btns primitives in styles/global.css, which
+   is loaded first - this file only adds the vertical distribution and the
+   image framing. */
+
+/* Scenario entry key visual (components/ui/ScenarioEntryHero.jsx), used by
+   the shared ScenarioEntryBriefing (components/ui/ScenarioEntryBriefing.jsx)
+   that all five scenarios' entry screens render - scenario01's original
+   .topbar + .hero layout, now shared rather than copied. The image keeps
+   its own aspect ratio and is bounded on both axes, so it is never
+   stretched and never cropped: these are full-bleed compositions (the set
+   is not one ratio either - scenario01's master is 2:3, the other four
+   9:16), so a fixed-ratio crop would cut a subject. Sits inside the
+   existing .hero card, above the heading/description/button already
+   defined by the app-wide .hero/h1/p/.btns rules - no separate card,
+   radius, spacing or button style for this screen. The image itself has no
+   radius/border/background of its own either, so the only visible frame on
+   this screen is the outer .hero card - the artwork never gets a second,
+   nested frame around it. */
+.scenario-entry-hero{display:flex;justify-content:center;align-items:center;width:100%;max-height:46vh;margin:0 auto 4px;flex-shrink:1;min-height:0}
+.scenario-entry-hero-img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+
+/* Scenario entry screen vertical layout (ScenarioEntryBriefing.jsx).
+   `.app` (see above) already pads for the safe area and stacks its children
+   top-down with no vertical distribution, which is exactly what left the
+   header hugging the very top of the screen and the .hero card sitting
+   right under it with the rest of the viewport empty below. This stage
+   class opts the screen out of `.app`'s own padding/gap so
+   `.scenario-entry-page` can own the vertical distribution instead:
+   - the header (`.topbar`) stays a fixed-height block pinned inside the
+     safe area at the top, never touching the notch/Dynamic Island/Safari
+     chrome (`max(22px, env(safe-area-inset-*))`, the same formula `.app`
+     already uses - no device-specific px);
+   - `.scenario-entry-main` is the flexible remainder of the height and
+     bottom-aligns its content, so the `.hero` card sits near the bottom of
+     the visible viewport instead of stacking directly under the header;
+   - the height this is distributed across is `.ar-stage`'s own box, which
+     is already declared `100vh` with a `100dvh` override (see `.ar-stage`
+     above) - the same dvh-with-fallback iOS Safari toolbar handling every
+     other screen in the app already gets, not a separate viewport unit
+     here;
+   - `overflow-y:auto` on the stage itself (replacing `.app`'s default
+     `overflow:hidden`) means a viewport too short for both the header and
+     the full card scrolls instead of clipping - the same pattern
+     `.scroll-stage`/`.scenario-menu-stage` already use elsewhere in this
+     file - so nothing is ever forced to shrink below its natural size to
+     fit in one screen. */
+.ar-stage.scenario-entry-stage{padding:0;overflow-y:auto}
+.scenario-entry-page{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:max(22px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+.scenario-entry-page>.topbar{flex:0 0 auto;margin-bottom:0}
+.scenario-entry-main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-end}

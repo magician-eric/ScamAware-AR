@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The PWA's maskable icon, sized for Android's adaptive-icon geometry.
+
+  An adaptive icon layer is 108dp, of which a launcher mask shows at most the middle 72dp; the
+  outer 18dp on each side is there to be cropped and to give the launcher room to parallax. The
+  artwork in icon-512-maskable.png is a rounded-square badge that occupies the middle 71.3% of
+  its own canvas (measured: content spans 365 of 512 px, on a border of one flat colour).
+
+  Drawn full-bleed - which is what a maskable icon nominally allows, and what the tooling that
+  turns a PWA into an APK does by default - that badge lands at 0.713 x 108dp = 77.0dp, wider
+  than the 72dp a mask is allowed to show, and a round launcher mask cuts through the
+  ANTI-FRAUD line under the bear. Inset by 4% the badge is 0.713 x 99.4dp = 70.8dp: it fits
+  inside the mask viewport, so a circle can only ever take the badge's own rounded corners, and
+  the bear, 反詐騙 and ANTI-FRAUD stay whole under every mask shape. AppIconTest measures the
+  artwork and re-derives that bound, so redrawing the PWA icon wider forces the inset to be
+  revisited instead of silently clipping the new art.
+
+  The 4% of margin this leaves is filled by @color/ic_launcher_background, which is the flat
+  colour the artwork's own border already is - so the seam is invisible and a mask that shows
+  more than 72dp shows more of the same navy.
+
+  android:inset takes a fraction from API 26, and this drawable is only ever reached through
+  mipmap-anydpi-v26, so the fraction is always understood.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/ic_launcher_maskable"
+    android:inset="4%" />

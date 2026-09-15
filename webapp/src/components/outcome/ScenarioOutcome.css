@@ -1,0 +1,49 @@
+/* The Outcome System's own shell (ScenarioOutcome.jsx, which imports this file
+   itself - the AD-06 shape every shared component here follows).
+
+   One visual system for all ten outcomes. The background is CIBAR's dark navy
+   in every scenario and in both tones: a success ending is not a different
+   page, it is the same page with positive accents. Nothing in this file is
+   per-scenario, and there is no hook for a scenario to add one - the
+   `-theme-*` modifiers that used to live here (romance / authority / package /
+   order) are gone along with the `theme` prop that produced them. */
+
+.cibar-outcome{
+  height:100%;min-height:0;display:flex;flex-direction:column;box-sizing:border-box;
+  background:radial-gradient(circle at 50% 0,rgba(37,208,255,.14),transparent 42%),#06162d;
+  color:#f6fbff;overflow:hidden;
+  --cibar-outcome-accent:#ff7d91;
+  --cibar-outcome-accent-soft:rgba(255,77,109,.11);
+  --cibar-outcome-accent-line:rgba(255,125,145,.45);
+}
+/* Failure: red / danger accent. Success: cyan-teal positive accent. The shell,
+   the card and the type scale are identical either way. */
+.cibar-outcome-success{
+  --cibar-outcome-accent:#4fe0b4;
+  --cibar-outcome-accent-soft:rgba(57,217,138,.1);
+  --cibar-outcome-accent-line:rgba(97,223,160,.42);
+}
+.cibar-outcome-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(12px,2.4vh,20px);scrollbar-width:none}
+.cibar-outcome-scroll::-webkit-scrollbar{display:none}
+.cibar-outcome-card{width:min(100%,430px);margin:0 auto;display:flex;flex-direction:column;gap:clamp(8px,1.6vh,14px);padding:clamp(14px,2.4vh,22px);border:1px solid rgba(255,255,255,.14);border-radius:22px;background:rgba(9,28,54,.94);box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.cibar-outcome-mascot{height:clamp(140px,22vh,220px);display:flex;align-items:center;justify-content:center;border-radius:16px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025))}
+.cibar-outcome-mascot img{width:100%;height:100%;object-fit:contain}
+.cibar-outcome .cibar-outcome-status{margin:0;align-self:flex-start;padding:5px 12px;border-radius:999px;border:1px solid var(--cibar-outcome-accent-line);background:var(--cibar-outcome-accent-soft);color:var(--cibar-outcome-accent);font-size:13px;font-weight:900;letter-spacing:.08em}
+.cibar-outcome .cibar-outcome-title{margin:0;font-size:clamp(24px,6.4vw,32px);line-height:1.25;overflow-wrap:anywhere}
+.cibar-outcome .cibar-outcome-consequence{margin:0;font-size:clamp(17px,4.6vw,22px);line-height:1.3;font-weight:800;color:var(--cibar-outcome-accent);overflow-wrap:anywhere}
+.cibar-outcome-amounts{margin:0;display:grid;gap:6px}
+.cibar-outcome-amounts div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.045);font-size:13px}
+.cibar-outcome-amounts dt{color:#b9c7d9}
+.cibar-outcome-amounts dd{margin:0;text-align:right;font-weight:800;overflow-wrap:anywhere}
+.cibar-outcome-amounts .is-emphasis{border:1px solid var(--cibar-outcome-accent-line);background:var(--cibar-outcome-accent-soft);font-size:15px}
+.cibar-outcome .cibar-outcome-explanation{margin:0;color:#c5d2e3;font-size:13px;line-height:1.55}
+.cibar-outcome-takeaway{display:grid;gap:4px;padding:10px 12px;border-left:4px solid #ffd166;border-radius:9px;background:rgba(255,209,102,.1);font-size:13px;line-height:1.45}
+.cibar-outcome-takeaway strong{color:#ffd166}
+.cibar-outcome-cta-bar{flex:none;padding:clamp(8px,1.4vh,12px) clamp(12px,2.4vh,20px) calc(clamp(12px,2.4vh,20px) + env(safe-area-inset-bottom))}
+.cibar-outcome-cta{display:flex;align-items:center;justify-content:center;width:min(100%,430px);min-height:52px;margin:0 auto;padding:12px 18px;box-sizing:border-box;border:0;border-radius:14px;background:linear-gradient(135deg,#25d0ff,#2f7cf6);color:#06162d;font-size:16px;font-weight:900;line-height:1.3;text-align:center;text-decoration:none;cursor:pointer}
+@media (max-height:760px){
+  .cibar-outcome-mascot{height:clamp(110px,18vh,170px)}
+  .cibar-outcome-card{gap:7px}
+  .cibar-outcome .cibar-outcome-explanation{font-size:12px}
+  .cibar-outcome-cta{min-height:48px}
+}

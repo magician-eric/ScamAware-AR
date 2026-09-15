@@ -1,0 +1,404 @@
+data/police-agencies.json:3:  "note": "Public police-department names by county/city, compiled from official agency naming conventions. Precinct (分局) lookup is intentionally out of scope for phase 1 - see README note in RegionAgencyResolver.js - a county's nearest precinct is not necessarily the correct case jurisdiction, so this is left as a manual field for staff to fill in rather than guessed from GPS proximity.",
+data/police-agencies.json:5:    "臺北市": "臺北市政府警察局",
+data/police-agencies.json:6:    "新北市": "新北市政府警察局",
+data/police-agencies.json:7:    "桃園市": "桃園市政府警察局",
+data/police-agencies.json:8:    "臺中市": "臺中市政府警察局",
+data/police-agencies.json:9:    "臺南市": "臺南市政府警察局",
+data/police-agencies.json:10:    "高雄市": "高雄市政府警察局",
+data/police-agencies.json:11:    "基隆市": "基隆市警察局",
+data/police-agencies.json:12:    "新竹市": "新竹市警察局",
+data/police-agencies.json:13:    "嘉義市": "嘉義市警察局",
+data/police-agencies.json:14:    "新竹縣": "新竹縣政府警察局",
+data/police-agencies.json:15:    "苗栗縣": "苗栗縣政府警察局",
+data/police-agencies.json:16:    "彰化縣": "彰化縣政府警察局",
+data/police-agencies.json:17:    "南投縣": "南投縣政府警察局",
+data/police-agencies.json:18:    "雲林縣": "雲林縣政府警察局",
+data/police-agencies.json:19:    "嘉義縣": "嘉義縣警察局",
+data/police-agencies.json:20:    "屏東縣": "屏東縣政府警察局",
+data/police-agencies.json:21:    "宜蘭縣": "宜蘭縣政府警察局",
+data/police-agencies.json:22:    "花蓮縣": "花蓮縣警察局",
+data/police-agencies.json:23:    "臺東縣": "臺東縣警察局",
+data/police-agencies.json:24:    "澎湖縣": "澎湖縣警察局",
+data/police-agencies.json:25:    "金門縣": "金門縣警察局",
+data/police-agencies.json:26:    "連江縣": "連江縣警察局"
+data/prosecutors-offices.json:3:  "note": "Public district-prosecutors'-office names by county/city. Several neighboring counties share one office's jurisdiction (e.g. 新竹縣 -> 臺灣新竹地方檢察署), matching Taiwan's actual judicial-district map.",
+data/prosecutors-offices.json:5:    "臺北市": "臺灣臺北地方檢察署",
+data/prosecutors-offices.json:6:    "新北市": "臺灣新北地方檢察署",
+data/prosecutors-offices.json:7:    "桃園市": "臺灣桃園地方檢察署",
+data/prosecutors-offices.json:8:    "臺中市": "臺灣臺中地方檢察署",
+data/prosecutors-offices.json:9:    "臺南市": "臺灣臺南地方檢察署",
+data/prosecutors-offices.json:10:    "高雄市": "臺灣高雄地方檢察署",
+data/prosecutors-offices.json:11:    "基隆市": "臺灣基隆地方檢察署",
+data/prosecutors-offices.json:12:    "新竹市": "臺灣新竹地方檢察署",
+data/prosecutors-offices.json:13:    "嘉義市": "臺灣嘉義地方檢察署",
+data/prosecutors-offices.json:14:    "新竹縣": "臺灣新竹地方檢察署",
+data/prosecutors-offices.json:15:    "苗栗縣": "臺灣苗栗地方檢察署",
+data/prosecutors-offices.json:16:    "彰化縣": "臺灣彰化地方檢察署",
+data/prosecutors-offices.json:17:    "南投縣": "臺灣南投地方檢察署",
+data/prosecutors-offices.json:18:    "雲林縣": "臺灣雲林地方檢察署",
+data/prosecutors-offices.json:19:    "嘉義縣": "臺灣嘉義地方檢察署",
+data/prosecutors-offices.json:20:    "屏東縣": "臺灣屏東地方檢察署",
+data/prosecutors-offices.json:21:    "宜蘭縣": "臺灣宜蘭地方檢察署",
+data/prosecutors-offices.json:22:    "花蓮縣": "臺灣花蓮地方檢察署",
+data/prosecutors-offices.json:23:    "臺東縣": "臺灣臺東地方檢察署",
+data/prosecutors-offices.json:24:    "澎湖縣": "臺灣澎湖地方檢察署",
+data/prosecutors-offices.json:25:    "金門縣": "福建金門地方檢察署",
+data/prosecutors-offices.json:26:    "連江縣": "福建連江地方檢察署"
+data/district-courts.json:3:  "note": "Public district-court names by county/city, mirroring the same shared-jurisdiction map as prosecutors-offices.json (each county's court and prosecutors' office cover the same judicial district in Taiwan).",
+data/district-courts.json:5:    "臺北市": "臺灣臺北地方法院",
+data/district-courts.json:6:    "新北市": "臺灣新北地方法院",
+data/district-courts.json:7:    "桃園市": "臺灣桃園地方法院",
+data/district-courts.json:8:    "臺中市": "臺灣臺中地方法院",
+data/district-courts.json:9:    "臺南市": "臺灣臺南地方法院",
+data/district-courts.json:10:    "高雄市": "臺灣高雄地方法院",
+data/district-courts.json:11:    "基隆市": "臺灣基隆地方法院",
+data/district-courts.json:12:    "新竹市": "臺灣新竹地方法院",
+data/district-courts.json:13:    "嘉義市": "臺灣嘉義地方法院",
+data/district-courts.json:14:    "新竹縣": "臺灣新竹地方法院",
+data/district-courts.json:15:    "苗栗縣": "臺灣苗栗地方法院",
+data/district-courts.json:16:    "彰化縣": "臺灣彰化地方法院",
+data/district-courts.json:17:    "南投縣": "臺灣南投地方法院",
+data/district-courts.json:18:    "雲林縣": "臺灣雲林地方法院",
+data/district-courts.json:19:    "嘉義縣": "臺灣嘉義地方法院",
+data/district-courts.json:20:    "屏東縣": "臺灣屏東地方法院",
+data/district-courts.json:21:    "宜蘭縣": "臺灣宜蘭地方法院",
+data/district-courts.json:22:    "花蓮縣": "臺灣花蓮地方法院",
+data/district-courts.json:23:    "臺東縣": "臺灣臺東地方法院",
+data/district-courts.json:24:    "澎湖縣": "臺灣澎湖地方法院",
+data/district-courts.json:25:    "金門縣": "福建金門地方法院",
+data/district-courts.json:26:    "連江縣": "福建連江地方法院"
+data/taiwan-regions.json:3:  "note": "Public administrative-division reference data (county/city centroids + a representative sample of districts per county). Centroids are approximate county-hall coordinates, used only for offline nearest-match county resolution - not survey-grade geocoding.",
+data/taiwan-regions.json:5:    { "county": "臺北市", "areaCode": "02", "displayPrefix": "臺北市", "lat": 25.0330, "lng": 121.5654,
+data/taiwan-regions.json:6:      "districts": [
+data/taiwan-regions.json:7:        { "district": "信義區", "lat": 25.0308, "lng": 121.5645 },
+data/taiwan-regions.json:8:        { "district": "大安區", "lat": 25.0264, "lng": 121.5437 },
+data/taiwan-regions.json:9:        { "district": "中山區", "lat": 25.0637, "lng": 121.5262 }
+data/taiwan-regions.json:11:    { "county": "新北市", "areaCode": "02", "displayPrefix": "新北市", "lat": 25.0170, "lng": 121.4628,
+data/taiwan-regions.json:12:      "districts": [
+data/taiwan-regions.json:13:        { "district": "板橋區", "lat": 25.0114, "lng": 121.4618 },
+data/taiwan-regions.json:14:        { "district": "三重區", "lat": 25.0616, "lng": 121.4870 },
+data/taiwan-regions.json:15:        { "district": "新莊區", "lat": 25.0359, "lng": 121.4326 }
+data/taiwan-regions.json:17:    { "county": "桃園市", "areaCode": "03", "displayPrefix": "桃園市", "lat": 24.9936, "lng": 121.3010,
+data/taiwan-regions.json:18:      "districts": [
+data/taiwan-regions.json:19:        { "district": "桃園區", "lat": 24.9937, "lng": 121.3010 },
+data/taiwan-regions.json:20:        { "district": "中壢區", "lat": 24.9535, "lng": 121.2258 }
+data/taiwan-regions.json:22:    { "county": "臺中市", "areaCode": "04", "displayPrefix": "臺中市", "lat": 24.1477, "lng": 120.6736,
+data/taiwan-regions.json:23:      "districts": [
+data/taiwan-regions.json:24:        { "district": "西屯區", "lat": 24.1657, "lng": 120.6398 },
+data/taiwan-regions.json:25:        { "district": "北屯區", "lat": 24.1804, "lng": 120.7148 },
+data/taiwan-regions.json:26:        { "district": "中區", "lat": 24.1372, "lng": 120.6847 }
+data/taiwan-regions.json:28:    { "county": "臺南市", "areaCode": "06", "displayPrefix": "臺南市", "lat": 22.9997, "lng": 120.2270,
+data/taiwan-regions.json:29:      "districts": [
+data/taiwan-regions.json:30:        { "district": "東區", "lat": 22.9834, "lng": 120.2223 },
+data/taiwan-regions.json:31:        { "district": "永康區", "lat": 23.0264, "lng": 120.2566 }
+data/taiwan-regions.json:33:    { "county": "高雄市", "areaCode": "07", "displayPrefix": "高雄市", "lat": 22.6273, "lng": 120.3014,
+data/taiwan-regions.json:34:      "districts": [
+data/taiwan-regions.json:35:        { "district": "苓雅區", "lat": 22.6222, "lng": 120.3200 },
+data/taiwan-regions.json:36:        { "district": "三民區", "lat": 22.6534, "lng": 120.3126 }
+data/taiwan-regions.json:38:    { "county": "基隆市", "areaCode": "02", "displayPrefix": "基隆市", "lat": 25.1276, "lng": 121.7392,
+data/taiwan-regions.json:39:      "districts": [ { "district": "仁愛區", "lat": 25.1307, "lng": 121.7401 } ] },
+data/taiwan-regions.json:40:    { "county": "新竹市", "areaCode": "03", "displayPrefix": "新竹市", "lat": 24.8036, "lng": 120.9686,
+data/taiwan-regions.json:41:      "districts": [ { "district": "東區", "lat": 24.8034, "lng": 120.9787 } ] },
+data/taiwan-regions.json:42:    { "county": "嘉義市", "areaCode": "05", "displayPrefix": "嘉義市", "lat": 23.4800, "lng": 120.4491,
+data/taiwan-regions.json:43:      "districts": [ { "district": "東區", "lat": 23.4780, "lng": 120.4611 } ] },
+data/taiwan-regions.json:44:    { "county": "新竹縣", "areaCode": "03", "displayPrefix": "新竹縣", "lat": 24.8386, "lng": 121.0178,
+data/taiwan-regions.json:45:      "districts": [ { "district": "竹北市", "lat": 24.8385, "lng": 121.0060 } ] },
+data/taiwan-regions.json:46:    { "county": "苗栗縣", "areaCode": "037", "displayPrefix": "苗栗縣", "lat": 24.5602, "lng": 120.8214,
+data/taiwan-regions.json:47:      "districts": [ { "district": "苗栗市", "lat": 24.5646, "lng": 120.8210 } ] },
+data/taiwan-regions.json:48:    { "county": "彰化縣", "areaCode": "04", "displayPrefix": "彰化縣", "lat": 24.0518, "lng": 120.5161,
+data/taiwan-regions.json:49:      "districts": [ { "district": "彰化市", "lat": 24.0836, "lng": 120.5273 } ] },
+data/taiwan-regions.json:50:    { "county": "南投縣", "areaCode": "049", "displayPrefix": "南投縣", "lat": 23.9157, "lng": 120.6869,
+data/taiwan-regions.json:51:      "districts": [ { "district": "南投市", "lat": 23.9157, "lng": 120.6869 } ] },
+data/taiwan-regions.json:52:    { "county": "雲林縣", "areaCode": "05", "displayPrefix": "雲林縣", "lat": 23.7092, "lng": 120.4313,
+data/taiwan-regions.json:53:      "districts": [ { "district": "斗六市", "lat": 23.7092, "lng": 120.5432 } ] },
+data/taiwan-regions.json:54:    { "county": "嘉義縣", "areaCode": "05", "displayPrefix": "嘉義縣", "lat": 23.4518, "lng": 120.2555,
+data/taiwan-regions.json:55:      "districts": [ { "district": "太保市", "lat": 23.4614, "lng": 120.3320 } ] },
+data/taiwan-regions.json:56:    { "county": "屏東縣", "areaCode": "08", "displayPrefix": "屏東縣", "lat": 22.5519, "lng": 120.5487,
+data/taiwan-regions.json:57:      "districts": [ { "district": "屏東市", "lat": 22.6764, "lng": 120.4893 } ] },
+data/taiwan-regions.json:58:    { "county": "宜蘭縣", "areaCode": "03", "displayPrefix": "宜蘭縣", "lat": 24.7021, "lng": 121.7378,
+data/taiwan-regions.json:59:      "districts": [ { "district": "宜蘭市", "lat": 24.7570, "lng": 121.7532 } ] },
+data/taiwan-regions.json:60:    { "county": "花蓮縣", "areaCode": "03", "displayPrefix": "花蓮縣", "lat": 23.9871, "lng": 121.6015,
+data/taiwan-regions.json:61:      "districts": [ { "district": "花蓮市", "lat": 23.9871, "lng": 121.6015 } ] },
+data/taiwan-regions.json:62:    { "county": "臺東縣", "areaCode": "089", "displayPrefix": "臺東縣", "lat": 22.7583, "lng": 121.1444,
+data/taiwan-regions.json:63:      "districts": [ { "district": "臺東市", "lat": 22.7583, "lng": 121.1444 } ] },
+data/taiwan-regions.json:64:    { "county": "澎湖縣", "areaCode": "06", "displayPrefix": "澎湖縣", "lat": 23.5711, "lng": 119.5793,
+data/taiwan-regions.json:65:      "districts": [ { "district": "馬公市", "lat": 23.5657, "lng": 119.5642 } ] },
+data/taiwan-regions.json:66:    { "county": "金門縣", "areaCode": "082", "displayPrefix": "金門縣", "lat": 24.4361, "lng": 118.3171,
+data/taiwan-regions.json:67:      "districts": [ { "district": "金城鎮", "lat": 24.4327, "lng": 118.3172 } ] },
+data/taiwan-regions.json:68:    { "county": "連江縣", "areaCode": "0836", "displayPrefix": "連江縣", "lat": 26.1608, "lng": 119.9297,
+data/taiwan-regions.json:69:      "districts": [ { "district": "南竿鄉", "lat": 26.1499, "lng": 119.9308 } ] }
+README.md:1:# CIBAR - 刑事警察局 AR 反詐騙教育館
+README.md:7:- [刑事警察局 AR 詐騙互動體驗系統技術規格書](docs/CIBAR-Technical-Specification.md)
+docs/translations/scenario2-romance-text-zh.md:165:- 遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。
+docs/translations/scenario2-romance-text-en.md:84:- Chill at home → Same here~\nSometimes I just wanna lie there scrolling my phone.
+docs/translations/scenario2-romance-text-en.md:302:- Oops, fell asleep by accident → Knew it.\nI was sitting there holding my phone like an idiot.
+docs/translations/scenario2-romance-text-en.md:364:- Thinking about me again? → Kinda.\nWondering when we stop only talking through phones, honestly.
+docs/translations/scenario2-romance-text-en.md:464:- Kept thinking...\nby now we'd finally stop just talking through phones.
+webapp/src/styles/scenario03.css:3:   inside a dedicated .ar-stage.police-stage: ONE HTC U23-shaped phone
+webapp/src/styles/scenario03.css:22:/* ---- phone frame -------------------------------------------------- */
+webapp/src/styles/scenario03.css:23:.pol-phone{width:100%;height:100%;font-family:var(--pol-font);position:relative;display:flex;flex-direction:column;background:#f4f5f7;color:#16181d;overflow:hidden}
+webapp/src/styles/scenario03.css:24:.pol-phone-dark{background:var(--pol-bg);color:#fff}
+webapp/src/styles/scenario03.css:28:   indicator below, which are just cosmetic phone-chrome UI. */
+webapp/src/styles/scenario03.css:30:.pol-phone-dark .pol-statusbar{color:#fff}
+webapp/src/styles/scenario03.css:32:.pol-phone-body{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+webapp/src/styles/scenario03.css:35:.pol-phone-dark .pol-home-indicator::after{background:rgba(255,255,255,.35)}
+webapp/src/styles/scenario03.css:59:   .pol-phone-body's overflow:hidden. A recorded block's full transcript
+webapp/src/styles/scenario03.css:82:/* ---- scene 01: phone home ------------------------------------------ */
+webapp/src/styles/scenario03.css:105:.pol-phone-165{font-weight:900;font-size:1.3em;letter-spacing:.01em}
+webapp/src/styles/scenario03.css:130:   over the phone's home screen; stage `add` is a plain white LINE
+webapp/src/styles/scenario03.css:171:   inside PoliceFrame's .pol-phone-body instead, which is already the full
+webapp/src/styles/scenario03.css:172:   HTC U23-shaped phone frame (see .pol-phone above) - so here .line-app
+webapp/src/styles/scenario03.css:175:.pol-phone-body .line-app{width:100%;height:100%;max-width:100%;max-height:100%;border-radius:0;box-shadow:none;animation:none}
+webapp/src/styles/scenario03.css:305:/* Redesigned as a 刑事警察局反詐騙教育總結, not a "game over" screen:
+docs/translations/scenario3-shopping-text-en.md:41:- Interactive Educational Simulation • No real transaction or phone call will occur.
+docs/translations/scenario3-shopping-text-en.md:189:- Interactive Educational Simulation • This isn't a real phone call.
+docs/translations/scenario3-shopping-text-en.md:204:- Interactive Educational Simulation • No real phone call will occur.
+docs/translations/scenario3-shopping-text-en.md:497:- An unbranded plastic phone stand
+docs/translations/scenario3-shopping-text-en.md:636:- That phone stand's from one of our partner lifestyle brands — it just comes in simple packaging, so there's no logo on it.
+webapp/src/styles/global.css:2:/* Real phone viewports (below the tablet/desktop breakpoint) always render
+webapp/src/styles/global.css:5:   renders letterbox-free on a phone that happens to match 9:20 exactly;
+webapp/src/styles/global.css:6:   real phones vary widely (iPhones run closer to 9:19.5, Android even more
+webapp/src/styles/global.css:9:   screen actually allows. On tablet/desktop windows (no longer "a phone"
+webapp/src/styles/global.css:11:   it still reads as "a phone simulator" rather than stretching edge to edge
+webapp/src/styles/global.css:20:   readable when tested on a plain phone/browser with nothing behind it -
+webapp/src/styles/global.css:29:   wrong. Elements that deliberately want to flex/shrink (.chat, .phone-frame)
+webapp/src/styles/global.css:96:   wrapped in bition's fixed-height .bition-app phone-frame - it stays
+webapp/src/styles/global.css:271:   "phone app" width/height described for this scenario is measured against
+webapp/src/styles/global.css:289:/* Same "phone-frame centered in the stage" treatment as .meetu-stage, for
+webapp/src/styles/global.css:396:/* scenario02 briefing - centered phone-shaped intro, not the wide admin-style
+webapp/src/styles/global.css:521:/* scenario01's LineTeacher/VipGroup used to render as a rounded "phone card"
+webapp/src/styles/global.css:636:/* Embedded variant: the card sits inside a scenario's own phone frame
+webapp/src/styles/global.css:642:/* Scenario 03 (假檢警) - the ending page is a light 刑事警察局 document, so
+webapp/src/styles/global.css:889:   inside the same narrow phone frame as everything else. */
+docs/CIBAR-Technical-Specification.md:1:# 刑事警察局 AR 詐騙互動體驗系統技術規格書
+docs/CIBAR-Technical-Specification.md:5:| 文件名稱 | 刑事警察局 AR 詐騙互動體驗系統技術規格書 |
+docs/CIBAR-Technical-Specification.md:10:| 文件用途 | 刑事警察局專案驗收、系統維護及後續擴充依據 |
+docs/CIBAR-Technical-Specification.md:141:語言頁可由定位圖示或隱藏長按入口進入工作人員設定。工作人員可要求高精確度 GPS、使用本機資料做最近縣市／行政區比對，或手動選擇；確認警察局、地檢署、地方法院及區碼後儲存並鎖定，再交付玩家。若未設定，玩家端採臺北市信義區系統預設資料，不會在情境中要求玩家定位。
+docs/CIBAR-Technical-Specification.md:165:npm run validate:fake-phone
+docs/CIBAR-Technical-Specification.md:311:**動態內容**：讀取工作人員鎖定的縣市、警察局、分局、地檢署、法院與區碼，產生本次案件編號、時間與帶有連續 `165` 數字的模擬市話；沒有設定時使用臺北市信義區預設 profile。分局目前不是由 GPS 資料自動解析，需工作人員處理；其輸入方式與正式驗收值應確認。
+docs/CIBAR-Technical-Specification.md:401:- 本機 JSON 提供縣市／部分行政區、縣市層級警察局、地檢署、地方法院。分局不由 resolver 推測。
+docs/CIBAR-Technical-Specification.md:514:   - `validate:fake-phone`：檢查全臺縣市區碼、號碼格式、每個號碼包含連續 165、fallback 與隨機性。
+docs/CIBAR-Technical-Specification.md:594:5. **所在地資料**：同步維護 `webapp/public/data/`；root `data/` 為發布產物，來源與同步責任應遵循 workflow。新增分局解析前需有權責可靠的管轄資料，不能以最近距離猜測。
+docs/CIBAR-Technical-Specification.md:606:| L-04 | 已確認限制 | 本機行政區資料註明是樣本且非完整；分局不自動解析。 |
+docs/CIBAR-Technical-Specification.md:614:| L-12 | 待確認 | 工作人員分局欄位的正式輸入／確認作業與地區資料更新責任。 |
+webapp/src/styles/blackpi.css:5:   dedicated .ar-stage.blackpi-stage that centers a phone-shaped frame.
+webapp/src/styles/blackpi.css:118:   cart line item. Capped so a 2048px source never blows the phone frame's
+webapp/src/styles/blackpi.css:205:   active CN/EN/JP dictionary. Photos stack on a narrow phone and sit side
+webapp/src/styles/blackpi.css:317:/* ---- 165 phone-call screen (kept inside the blackpi phone frame, clearly
+docs/design/CIB-Warning-Design-System.md:136:- **Brand token**：引用 Scenario 03 `scenario03.css` 的 phone/navy/surface/ink tokens；danger 僅用既有 danger value。
+docs/design/CIB-Warning-Implementation-Gaps.md:19:| 缺少完整 variant mapping | 共用元件有 `chat/invest/shopping/banking/phone` theme，但只用單一通用 layout/簡單顏色切換 | 各 Variant 的 placement、container、border、brand token、collapse、pill 明確跟隨平台 | 仍像跨平台貼上的通用 banner |
+docs/design/CIB-Warning-Implementation-Gaps.md:20:| Brand token 硬編碼 | 共用 CSS theme 直接宣告 accent/ink hex | 引用 Scenario 現有 MeetU/BITION/BlackPi/bank/phone tokens | 品牌 token 變更時會漂移 |
+docs/design/CIB-Warning-Implementation-Gaps.md:46:- `BankApp` 的 S03-W2 已使用 banking/phone banner，但仍只有 title/body；`severity="block"` 名稱容易被誤解為行為阻擋。
+docs/scenario03-audio-transcript-current.md:18:- **zh**：您好，這裡是轄區警察局偵查隊，我是本案承辦員警。／我們目前正在調查一件電信詐騙及*洗錢*案件。／案件資料中，出現一支使用相關身分資料申辦的涉案門號。／這支門號近期有多筆異常通聯紀錄。／我們現在需要先確認，您是否知道這支門號或相關帳戶的來源。
+docs/scenario03-audio-transcript-current.md:19:- **en**：This is the Criminal Investigation Division. / I'm the detective handling your case. / We're investigating a fraud case. / A phone number linked to your identity has come up. / I need to verify a few things with you.
+docs/scenario03-audio-transcript-current.md:24:- **en**：Answer directly. / Did you register this phone number? / Has anyone else ever used your ID?
+docs/scenario03-audio-transcript-current.md:34:- **en**：Stolen personal information is often used to open phone lines or bank accounts. / We'll check that as well.
+docs/scenario03-audio-transcript-current.md:44:- **en**：Your case has been registered. / The case number has been sent to your phone. / Do not discuss this case with anyone. / The investigation is still ongoing.
+docs/scenario03-audio-transcript-current.md:58:- **zh**：帳戶清查今天就要完成，不能再拖。／你要現在使用手機完成線上清查，還是親自到警察局處理？
+docs/scenario03-audio-transcript-current.md:64:- **en**：Good. / Put on your earphones. / Make sure no one is nearby, then answer my questions.
+docs/scenario03-audio-transcript-current.md:68:- **zh**：不行，今天案件就可能進入*帳戶凍結*程序，明天就來不及了。／你到警察局之後，還是要重新排案，中間帳戶一樣可能先被凍結。／而且臨櫃人員一定會問你資金用途。／本案*偵查不公開*，你不能把案件內容告訴他們。／現在使用手機處理最單純，我會陪著你一起完成。
+webapp/src/pages/scenario02/PhoneDesktop.jsx:9:// A plain phone home screen with exactly one app on it - so the player's
+webapp/src/pages/scenario02/Briefing.jsx:5:const START_ROUTE = '/scenario02-romance/phone-desktop';
+webapp/src/pages/scenario02/i18nJp.js:223:  '遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。':
+webapp/src/pages/scenario02/DatingBrowse.jsx:36:// Emily's bio, keyed by the same county names the location-init system
+webapp/src/pages/scenario02/DatingBrowse.jsx:68:// location profile instead of a hardcoded "台北" - same county the 165
+webapp/src/pages/scenario02/DatingBrowse.jsx:73:  const county = readLocationProfile()?.region?.county;
+webapp/src/pages/scenario02/DatingBrowse.jsx:74:  const city = (CITY_NAMES[county] ?? CITY_NAMES['臺北市'])[lang] ?? CITY_NAMES['臺北市'].zh;
+webapp/src/pages/scenario02/EndingPage.jsx:38:        <p className="bition-ending-note">{t('遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。')}</p>
+webapp/src/pages/scenario02/PlatformRegister.jsx:8:// Keeping the phone's own keyboard from ever popping up matters here, so
+docs/architecture-modularization-audit.md:43:**Entry and flow.** `/scenario02-romance` renders `Briefing.jsx`, followed by simulated phone/MeetU browse-match-chat, LINE `PrivateChat`, fake trading pages, deposit/withdraw/top-up warnings, risk analysis, quiz, and endings. Routes are explicit and navigation remains page-owned.
+docs/architecture-modularization-audit.md:59:**State.** `ScenarioSessionFactory.js` creates one session snapshot containing location-derived agencies, fictional officer/prosecutor names, phone/account/case numbers and deadlines, and persists it in `sessionStorage`. `scenario03Store.js` manages the current session and decision/choice history. `scenario03Dialogues.js`, `scenario03Choices.js`, and `scenario03Config.js` are substantial data/build-function layers. `useScriptPlayer` and `useScenarioAudio` coordinate timed dialogue/audio.
+docs/architecture-modularization-audit.md:96:| Chat brands | LINE | MeetU + LINE | LINE-like + phone/call | BlackPi + support/165 | MyDonDon + fake website |
+docs/architecture-modularization-audit.md:319:4. **`lib/session/ScenarioSessionFactory.js`, location stores/resolver, Scenario03 dialogue/config builders:** generated names, agencies, phone/case/account/deadline data must remain stable for one run and consistent in all documents, calls and chats.
+docs/architecture-modularization-audit.md:348:| Time display | `lib/chatTime.js`; Scenario03 session deadlines/countdowns; Scenario04 phone/order/call timers; generated IDs | preserve anchor/storage key/timezone/format and refresh behavior |
+docs/architecture-modularization-audit.md:389:- Scenario03 begins directly on a simulated phone and has no equivalent quiz route; education is integrated into decision/hotline/ending.
+docs/architecture-modularization-audit.md:534:- [ ] `npm run lint`, dialogue/fake-phone validators, and `npm run build` pass in `webapp`.
+docs/architecture-modularization-audit.md:573:- [ ] one session retains fictional identity/case/phone/account/deadline; restart creates a new coherent session.
+webapp/src/pages/scenario02/RiskAnalysis.jsx:31:// Same phone-frame width as LINE and 幣勝客 - this page previously rendered
+webapp/src/pages/scenario02/i18nEn.js:146:  '我也是～\n有時候下班只想躺著滑手機。': "Same here~\nSometimes I just wanna lie there scrolling my phone.",
+webapp/src/pages/scenario02/i18nEn.js:222:  '遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。':
+webapp/src/pages/scenario02/i18nEn.js:335:  '我就知道。\n害我還抱著手機等了一下。': "Knew it.\nI was sitting there holding my phone like an idiot.",
+webapp/src/pages/scenario02/i18nEn.js:405:  '對啊。\n而且是在想，我們到底什麼時候才不用隔著手機聊天。': "Kinda.\nWondering when we stop only talking through phones, honestly.",
+webapp/src/pages/scenario02/i18nEn.js:563:  '我一直以為到時候，我們終於不用只在手機裡面聊天了。': "Kept thinking...\nby now we'd finally stop just talking through phones.",
+webapp/src/pages/scenario02/i18nEn.js:794:  "回房間以後手機都關靜音，只陪對方。": "Once we’re back in the room, phones on silent. Just us.",
+webapp/src/pages/LanguageSelect.jsx:58:        <p className="scenario-selection-category">刑事警察局 AR 反詐騙教育館</p>
+webapp/src/pages/scenario05/ShopCreate.jsx:14:// phone's browser, so it shows the browser chrome and 速取便's own masthead,
+webapp/src/pages/scenario05/ShopCreate.jsx:19:// the scenario never asks for a real name, phone, address or bank account.
+webapp/src/components/ghostorder/BrowserChrome.jsx:4:// The phone browser the player is looking at whenever they leave MyDonDon for
+webapp/src/components/ghostorder/CsChatSurface.jsx:6:// The fake 速取便安全中心 support desk. It is a WEBSITE widget, not a phone
+webapp/src/pages/scenarioMenuI18n.js:17:    categoryLabel: '刑事警察局 AR 反詐騙教育館',
+webapp/src/pages/scenarioMenuI18n.js:29:    categoryLabel: '刑事警察局 AR 詐欺対策教育',
+webapp/src/components/warnings/FraudWarningBanner.jsx:6:const THEMES = new Set(['chat', 'invest', 'shopping', 'banking', 'phone']);
+webapp/src/components/warnings/FraudWarningBanner.css:36:.fraud-warning-theme-phone { --fw-accent: #d62b2b; --fw-ink: #17284b; }
+webapp/src/pages/scenario04/SimPhoneHome.jsx:6:// Screen 00 - 模擬手機桌面. A plain simulated phone lock/home screen so the
+webapp/src/components/results/FraudOutcomeResult.jsx:83:  // already renders its own phone frame (scenario03's PoliceFrame,
+webapp/src/pages/scenario04/Hotline165Call.jsx:20:// Screen 24 - 165 模擬通話, presented as an actual phone call (dial-style
+webapp/src/pages/scenario04/ReturnEvidence.jsx:15:  luckyBag: ['luckybag-actual', 'luckybag-phone-holder', 'luckybag-gift-selection', 'luckybag-unboxed'],
+webapp/src/pages/scenario04/Checkout.jsx:19:  const maskedAddress = `${region.county}${region.district || ''}○○路＊＊號`;
+webapp/src/components/blackpi/PhoneShell.jsx:7:// as MeetU/BITION), then a phone-shaped frame with optional bottom nav.
+webapp/src/pages/scenario04/i18nEn.js:443:  '一個沒有品牌標示的塑膠手機架': 'An unbranded plastic phone stand',
+webapp/src/pages/scenario04/i18nEn.js:544:    "That phone stand's from one of our partner lifestyle brands — it just comes in simple packaging, so there's no logo on it.",
+webapp/src/pages/scenario04/i18nEn.js:972:  '手機架、襪子、杯子、鑰匙圈': 'A phone stand, socks, a mug, a keyring',
+webapp/src/components/blackpi/ClaimVsActual.jsx:11://   narrow phone  - claim photo above, actual photo below, arrow between
+webapp/src/pages/scenario04/Unboxing.jsx:31:    { key: 'luckybag-phone-holder', text: '手機架' },
+webapp/src/pages/staff/StaffHandoffConfirm.jsx:9:  const { region, agencies, telephoneAreaCode } = profile;
+webapp/src/pages/staff/StaffHandoffConfirm.jsx:14:        <div className="staff-summary-row"><span>使用地區</span><strong>{region.county}{region.district ? region.district : ''}</strong></div>
+webapp/src/pages/staff/StaffHandoffConfirm.jsx:17:        <div className="staff-summary-row"><span>對應法院</span><strong>{agencies.districtCourt}</strong></div>
+webapp/src/pages/staff/StaffHandoffConfirm.jsx:18:        <div className="staff-summary-row"><span>地區電話區碼</span><strong>{telephoneAreaCode}</strong></div>
+webapp/src/pages/staff/StaffLocationSummary.jsx:17:  const { region, coordinates, agencies, source, updatedAt, locked, telephoneAreaCode } = profile;
+webapp/src/pages/staff/StaffLocationSummary.jsx:20:    ['縣市', region?.county ?? '－'],
+webapp/src/pages/staff/StaffLocationSummary.jsx:21:    ['行政區', region?.district ?? '（未指定，可手動修正）'],
+webapp/src/pages/staff/StaffLocationSummary.jsx:27:    ['對應分局', agencies?.policePrecinct ?? '（請手動填寫）'],
+webapp/src/pages/staff/StaffLocationSummary.jsx:29:    ['對應法院', agencies?.districtCourt ?? '－'],
+webapp/src/pages/staff/StaffLocationSummary.jsx:30:    ['地區電話區碼', telephoneAreaCode ?? '－'],
+webapp/src/pages/staff/StaffSetupScreen.jsx:15:  getTelephoneAreaCode,
+webapp/src/pages/staff/StaffSetupScreen.jsx:31:  const agencies = resolveAgenciesForCounty(regionData, resolved.county);
+webapp/src/pages/staff/StaffSetupScreen.jsx:37:    region: { county: resolved.county, district: resolved.district },
+webapp/src/pages/staff/StaffSetupScreen.jsx:39:    telephoneAreaCode: getTelephoneAreaCode(regionData, resolved.county),
+webapp/src/pages/staff/StaffSetupScreen.jsx:102:    setManualCounty(base?.region?.county ?? listCounties(regionData)[0] ?? '');
+webapp/src/pages/staff/StaffSetupScreen.jsx:103:    setManualDistrict(base?.region?.district ?? '');
+webapp/src/pages/staff/StaffSetupScreen.jsx:115:      region: { county: manualCounty, district: manualDistrict || null },
+webapp/src/pages/staff/StaffSetupScreen.jsx:117:      telephoneAreaCode: getTelephoneAreaCode(regionData, manualCounty),
+webapp/src/pages/scenario01/i18nJp.js:9:// notation and LINE/VIP/165/刑事警察局 stay as-is, since the scam is set on
+webapp/src/pages/scenario01/i18nJp.js:215:  '刑事警察局提醒': '刑事警察局からの注意喚起',
+webapp/src/pages/scenario01/i18nJp.js:222:  '遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。':
+webapp/src/pages/scenario01/Page165.jsx:10:      <h1>{t('刑事警察局提醒')}</h1>
+webapp/src/pages/scenario01/Page165.jsx:16:      <p>{t('遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。')}</p>
+webapp/src/pages/scenario01/i18nEn.js:223:  '刑事警察局提醒': "A Reminder from Taiwan's Criminal Investigation Bureau",
+webapp/src/pages/scenario01/i18nEn.js:230:  '遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。':
+webapp/src/lib/location/RegionAgencyResolver.js:3:// prosecutors-offices.json + district-courts.json) and resolves a
+webapp/src/lib/location/RegionAgencyResolver.js:4:// coordinate down to a county/district and its matching agencies.
+webapp/src/lib/location/RegionAgencyResolver.js:6:// Phase-1 scope, as specced: county/district -> police department /
+webapp/src/lib/location/RegionAgencyResolver.js:7:// prosecutors' office / district court. Precinct-level (分局) lookup is
+webapp/src/lib/location/RegionAgencyResolver.js:14:// "Reverse geocoding" here means nearest-county-centroid matching against
+webapp/src/lib/location/RegionAgencyResolver.js:20:// result should still be resolved down to one of this file's county names
+webapp/src/lib/location/RegionAgencyResolver.js:40:    loadJson('district-courts.json'),
+webapp/src/lib/location/RegionAgencyResolver.js:47:  return regionData.regions.counties.map((c) => c.county);
+webapp/src/lib/location/RegionAgencyResolver.js:50:export function listDistricts(regionData, county) {
+webapp/src/lib/location/RegionAgencyResolver.js:51:  const entry = regionData.regions.counties.find((c) => c.county === county);
+webapp/src/lib/location/RegionAgencyResolver.js:52:  return entry ? entry.districts.map((d) => d.district) : [];
+webapp/src/lib/location/RegionAgencyResolver.js:65:// Nearest-centroid match: county first (against every county's own
+webapp/src/lib/location/RegionAgencyResolver.js:66:// centroid), then that county's nearest listed district (against its
+webapp/src/lib/location/RegionAgencyResolver.js:67:// sample district list - not exhaustive, see taiwan-regions.json's own
+webapp/src/lib/location/RegionAgencyResolver.js:68:// note). If the matched county has no districts close enough to be
+webapp/src/lib/location/RegionAgencyResolver.js:69:// confident about, callers should treat district as "unknown, ask staff"
+webapp/src/lib/location/RegionAgencyResolver.js:86:  for (const d of best.districts) {
+webapp/src/lib/location/RegionAgencyResolver.js:95:    county: best.county,
+webapp/src/lib/location/RegionAgencyResolver.js:96:    // Only offer the matched district as a confident guess when it's
+webapp/src/lib/location/RegionAgencyResolver.js:98:    // pick one instead of silently offering a district that could be on
+webapp/src/lib/location/RegionAgencyResolver.js:99:    // the other side of the county.
+webapp/src/lib/location/RegionAgencyResolver.js:100:    district: bestDistrictKm <= 15 ? bestDistrict?.district ?? null : null,
+webapp/src/lib/location/RegionAgencyResolver.js:101:    areaCode: best.areaCode,
+webapp/src/lib/location/RegionAgencyResolver.js:107:export function resolveAgenciesForCounty(regionData, county) {
+webapp/src/lib/location/RegionAgencyResolver.js:109:    policeDepartment: regionData.police.byCounty[county] ?? null,
+webapp/src/lib/location/RegionAgencyResolver.js:111:    prosecutorsOffice: regionData.prosecutors.byCounty[county] ?? null,
+webapp/src/lib/location/RegionAgencyResolver.js:112:    districtCourt: regionData.courts.byCounty[county] ?? null,
+webapp/src/lib/location/RegionAgencyResolver.js:116:export function getTelephoneAreaCode(regionData, county) {
+webapp/src/lib/location/RegionAgencyResolver.js:117:  const entry = regionData.regions.counties.find((c) => c.county === county);
+webapp/src/lib/location/RegionAgencyResolver.js:118:  return entry?.areaCode ?? null;
+webapp/src/lib/location/LocationProfileStore.js:33:  region: { county: '臺北市', district: '信義區' },
+webapp/src/lib/location/LocationProfileStore.js:35:    policeDepartment: '臺北市政府警察局',
+webapp/src/lib/location/LocationProfileStore.js:36:    policePrecinct: '臺北市政府警察局信義分局',
+webapp/src/lib/location/LocationProfileStore.js:37:    prosecutorsOffice: '臺灣臺北地方檢察署',
+webapp/src/lib/location/LocationProfileStore.js:38:    districtCourt: '臺灣臺北地方法院',
+webapp/src/lib/location/LocationProfileStore.js:40:  telephoneAreaCode: '02',
+webapp/src/pages/scenario03/CaseSite.jsx:27:  const police = session.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/pages/scenario03/CaseSite.jsx:28:  const prosecutors = session.locationProfile?.agencies?.prosecutorsOffice ?? '地方檢察署';
+webapp/src/pages/scenario03/Ending.jsx:18:// Scene 11c - 結局. Redesigned as a 刑事警察局反詐騙教育總結, not a "game
+webapp/src/pages/scenario03/IncomingCall.jsx:54:  const org = session.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/lib/session/ScenarioSessionFactory.js:7:// format, never a real name/phone/account.
+webapp/src/lib/session/ScenarioSessionFactory.js:31:// county name (first two "meaningful" characters minus 市/縣) - just enough
+webapp/src/lib/session/ScenarioSessionFactory.js:33:// lookup table since pinyin-izing Chinese county names algorithmically
+webapp/src/lib/session/ScenarioSessionFactory.js:46:// into locationProfile.telephoneAreaCode - this file already treats
+webapp/src/lib/session/ScenarioSessionFactory.js:47:// locationProfile.region.county as the one signal it reads for every piece
+webapp/src/lib/session/ScenarioSessionFactory.js:64:// Used only when locationProfile/county is unavailable (staff setup never
+webapp/src/lib/session/ScenarioSessionFactory.js:74:// XXX-XXX. Keyed by area code (not county) since several counties share one.
+webapp/src/lib/session/ScenarioSessionFactory.js:93:// numbers, phone numbers, LINE IDs, and bank accounts inside the scenario
+webapp/src/lib/session/ScenarioSessionFactory.js:150:function fakeCaseNumber(county) {
+webapp/src/lib/session/ScenarioSessionFactory.js:151:  const prefix = REGION_PREFIXES[county] ?? 'SIM';
+webapp/src/lib/session/ScenarioSessionFactory.js:167:// police/prosecutor phone. `county` drives the area code (see
+webapp/src/lib/session/ScenarioSessionFactory.js:174:export function fakePhoneNumber(county) {
+webapp/src/lib/session/ScenarioSessionFactory.js:175:  const areaCode = AREA_CODE_TABLE[county] ?? FALLBACK_AREA_CODE;
+webapp/src/lib/session/ScenarioSessionFactory.js:176:  const groups = SUBSCRIBER_GROUPS[areaCode] ?? SUBSCRIBER_GROUPS[FALLBACK_AREA_CODE];
+webapp/src/lib/session/ScenarioSessionFactory.js:180:  return `${areaCode}-${parts.join('-')}`;
+webapp/src/lib/session/ScenarioSessionFactory.js:187:function documentSerial(county, index) {
+webapp/src/lib/session/ScenarioSessionFactory.js:188:  const prefix = REGION_PREFIXES[county] ?? 'SIM';
+webapp/src/lib/session/ScenarioSessionFactory.js:205:// holding the phone before the scenario starts, so it never invents one -
+webapp/src/lib/session/ScenarioSessionFactory.js:210:  const county = locationProfile?.region?.county ?? null;
+webapp/src/lib/session/ScenarioSessionFactory.js:229:    caseNumber: county ? fakeCaseNumber(county) : `SIM-${formatCompactDate()}-${randomDigits(4)}`,
+webapp/src/lib/session/ScenarioSessionFactory.js:236:    fakePhoneNumber: fakePhoneNumber(county),
+webapp/src/lib/session/ScenarioSessionFactory.js:251:    documentSerials: [1, 2, 3, 4].map((i) => documentSerial(county, i)),
+webapp/src/lib/constants.js:2:// player-facing phone number that exists purely for the simulation (order
+webapp/src/lib/feedback.js:3:// very short and quiet - this runs on a public demo kiosk, not headphones.
+webapp/src/pages/scenario03/components/PhoneNumberDisplay.jsx:15:      <b className="pol-phone-165">165</b>
+webapp/src/lib/scenario03Store.js:16:  reachedSteps: ['phone-home'],
+webapp/src/pages/scenario03/components/PoliceFrame.jsx:12:// The player-facing frame: one HTC U23-shaped phone screen filling the
+webapp/src/pages/scenario03/components/PoliceFrame.jsx:46:    <div className={`pol-phone${dark ? ' pol-phone-dark' : ''} ${className}`}>
+webapp/src/pages/scenario03/components/PoliceFrame.jsx:52:      <div className="pol-phone-body">{children}</div>
+webapp/src/pages/scenario03/PhoneHome.jsx:11:    { key: 'phone', label: t.phoneHome.apps.phone, glyph: '📞', color: 'linear-gradient(135deg,#34d058,#178a3a)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:12:    { key: 'sms', label: t.phoneHome.apps.sms, glyph: '💬', color: 'linear-gradient(135deg,#5ac8fa,#2b7de9)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:13:    { key: 'line', label: t.phoneHome.apps.line, glyph: 'L', color: 'linear-gradient(135deg,#06c755,#04933f)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:14:    { key: 'camera', label: t.phoneHome.apps.camera, glyph: '📷', color: 'linear-gradient(135deg,#8e98a8,#5b6472)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:15:    { key: 'bank', label: t.phoneHome.apps.bank, glyph: lang === 'zh' || lang === 'jp' ? '銀' : '$', color: 'linear-gradient(135deg,#1a72c0,#0a3560)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:16:    { key: 'photos', label: t.phoneHome.apps.photos, glyph: '🖼', color: 'linear-gradient(135deg,#ffb84d,#e07b1a)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:17:    { key: 'browser', label: t.phoneHome.apps.browser, glyph: '🌐', color: 'linear-gradient(135deg,#6f7cff,#3a45c9)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:18:    { key: 'settings', label: t.phoneHome.apps.settings, glyph: '⚙', color: 'linear-gradient(135deg,#9aa4b2,#5d6674)' },
+webapp/src/pages/scenario03/PhoneHome.jsx:22:// Scene 01 - 手機桌面. The run starts on an ordinary phone home screen doing
+webapp/src/pages/scenario03/PhoneHome.jsx:52:    <PoliceFrame stepKey="phone-home" dark statusTitle={t.phoneHome.statusTitle}>
+webapp/src/pages/scenario03/PhoneHome.jsx:69:          {t.phoneHome.hint}
+webapp/src/pages/scenario03/BankApp.jsx:44:  const police = session.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/pages/scenario03/BankApp.jsx:117:      <FraudWarningBanner active={stage === 'confirm'} theme="phone" severity="block" title="刑事警察局風險提醒" body={t.bank.warnBox} duration={7000} />
+webapp/src/pages/scenario03/ProsecutorCall.jsx:17:// Scene 07 - 假檢察官來電. A plain Android phone call, not a video call: no
+webapp/src/pages/scenario03/ProsecutorCall.jsx:34:  const prosecutorsOffice = session.locationProfile?.agencies?.prosecutorsOffice ?? '地方檢察署';
+webapp/src/pages/scenario03/CallStage1.jsx:52:            {session.locationProfile?.agencies?.policeDepartment ?? '警察局'}
+webapp/src/pages/scenario03/LineAdd.jsx:12:// that stays on screen for the rest of the phone scenes. Keeping the caller
+webapp/src/pages/scenario03/LineAdd.jsx:13:// "on the line" while the victim does things on their own phone is the
+webapp/src/pages/scenario03/LineAdd.jsx:62:          "still on the phone" indicator, shown throughout this scene) so
+webapp/src/pages/scenario03/i18n.js:48:    phoneHome: {
+webapp/src/pages/scenario03/i18n.js:51:        phone: '電話',
+webapp/src/pages/scenario03/i18n.js:331:    phoneHome: {
+webapp/src/pages/scenario03/i18n.js:334:        phone: 'Phone',
+webapp/src/pages/scenario03/i18n.js:343:      hint: 'This is a phone. In a moment, a call will come in.',
+webapp/src/pages/scenario03/i18n.js:552:      truthHeader: 'Real police officers and prosecutors will never ask you by phone to:',
+webapp/src/pages/scenario03/i18n.js:562:          explanation: 'You followed the caller’s instructions and moved your funds into a so-called "custody account." Real police and prosecutors never phone the public to have money transferred to a designated account, and no procedure exists that clears your name by making a transfer.',
+webapp/src/pages/scenario03/i18n.js:569:          explanation: 'You did not handle your money the way an unknown caller told you to. You stopped and verified through official channels instead. Real police and prosecutors never phone the public to have money transferred to a designated account, and no procedure exists that clears your name by making a transfer.',
+webapp/src/pages/scenario03/i18n.js:611:    phoneHome: {
+webapp/src/pages/scenario03/i18n.js:614:        phone: '電話',
+webapp/src/data/scenario03Config.js:19:  { key: 'phone-home', route: '/scenario03-police' },
+webapp/src/data/scenario03Config.js:52:// instead of every LINE message showing the same minute. (The phone status
+webapp/src/data/scenario03Config.js:55:  'phone-home': 0,
+webapp/src/data/scenario03Config.js:254:  const police = session?.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/data/scenario03Config.js:255:  const prosecutors = session?.locationProfile?.agencies?.prosecutorsOffice ?? '地方檢察署';
+webapp/src/data/scenario03Config.js:256:  const court = session?.locationProfile?.agencies?.districtCourt ?? '地方法院';
+webapp/src/data/scenario03Config.js:336:  const police = session?.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/data/scenario03Config.js:337:  const prosecutors = session?.locationProfile?.agencies?.prosecutorsOffice ?? '地方檢察署';
+webapp/src/data/scenario03Config.js:338:  const court = session?.locationProfile?.agencies?.districtCourt ?? '地方法院';
+webapp/src/data/scenario03Config.js:418:  const police = session?.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/data/scenario03Config.js:419:  const prosecutors = session?.locationProfile?.agencies?.prosecutorsOffice ?? '地方檢察署';
+webapp/src/data/scenario03Config.js:420:  const court = session?.locationProfile?.agencies?.districtCourt ?? '地方法院';
+webapp/src/data/scenario03Config.js:506:// prosecutor's phone call.
+webapp/src/data/scenario03Dialogues.js:53:// player location or by session: no city/county name, no full police
+webapp/src/data/scenario03Dialogues.js:60:// fixed role terms (轄區警察局／偵查隊／承辦員警／地方檢察署／檢察官／
+webapp/src/data/scenario03Dialogues.js:148:  return session?.locationProfile?.agencies?.policeDepartment ?? '警察局';
+webapp/src/data/scenario03Dialogues.js:152:  return session?.locationProfile?.agencies?.prosecutorsOffice ?? '地方檢察署';
+webapp/src/data/scenario03Dialogues.js:164:        '您好，這裡是轄區警察局偵查隊，我是本案承辦員警。',
+webapp/src/data/scenario03Dialogues.js:174:        'A phone number linked to your identity has come up.',
+webapp/src/data/scenario03Dialogues.js:196:        'Did you register this phone number?',
+webapp/src/data/scenario03Dialogues.js:236:        'Stolen personal information is often used to open phone lines or bank accounts.',
+webapp/src/data/scenario03Dialogues.js:282:        'The case number has been sent to your phone.',
+webapp/src/data/scenario03Dialogues.js:329:        (s) => `Hi, this is Investigating Officer ${s.officerNameEn ?? s.officerName} — we just spoke on the phone.`,
+webapp/src/data/scenario03Dialogues.js:595:        '你要現在使用手機完成線上清查，還是親自到警察局處理？',
+webapp/src/data/scenario03Dialogues.js:619:        'Put on your earphones.',
+webapp/src/data/scenario03Dialogues.js:635:        '你到警察局之後，還是要重新排案，中間帳戶一樣可能先被凍結。',
+webapp/src/data/scenario03Dialogues.js:738:        '請您保留通話紀錄、LINE 對話和網站截圖，之後就近到派出所做筆錄。',
+webapp/src/data/scenario03Dialogues.js:744:        (s) => `Let me confirm a few things first: ${police(s)} never notifies you of a case by phone,`,
+webapp/src/data/scenario03Dialogues.js:746:        'A prosecutor never interviews you by phone or video call, and no court issues a "fund custody order" —',
+webapp/src/data/assetMap.js:53:  'luckybag-phone-holder': photo('luckybag-phone-holder', '無品牌塑膠手機架'),
+webapp/src/data/scenario03Choices.js:85:    question: '你要現在完成線上清查，還是親自到警察局處理？',
+webapp/src/data/scenario03Choices.js:96:        text: '我明天親自到警察局',
+webapp/src/data/scenario03Choices.js:97:        playerLine: '我想明天親自到警察局處理，這樣比較安心。',
+webapp/src/data/scenario03Choices.js:108:    question: 'Did you ever register the phone number we just mentioned, or give your ID to someone else to use?',
+webapp/src/data/scenario03Choices.js:175:        text: 'Do it now on my phone',
+webapp/src/data/scenario03Choices.js:176:        playerLine: "Okay, I'll do it now on my phone.",
+webapp/src/data/warnings/warningRegistry.js:90:    id: 'S03-W1', scenario: 'S03', scene: '假檢警通話', variant: 'phone-authority', severity: 'high', duration: 6000,
+webapp/src/routes.jsx:142:      { path: 'scenario02-romance/phone-desktop', element: <RomancePhoneDesktop /> },

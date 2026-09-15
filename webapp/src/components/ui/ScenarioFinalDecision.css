@@ -1,0 +1,62 @@
+/* Styling for the shared 反詐小測驗 (ScenarioFinalDecision.jsx), which imports
+   this file itself. All five scenarios' Quiz screens render through that one
+   component, so these rules have no scenario owner - but they do have a
+   component owner, which is why they no longer sit in styles/global.css.
+
+   `.quiz-option` is declared twice, exactly as it was in global.css: the base
+   rule first and the tap-target override after it. Both are copied verbatim
+   and in the original order, so the resolved styling is unchanged. */
+
+.quiz-option{display:block;width:100%;text-align:left;background:rgba(255,255,255,.08)!important;color:#f4f8ff!important;border:1px solid rgba(255,255,255,.22)!important}
+.quiz-option.correct{background:linear-gradient(135deg,#31b77a,#1f8f5c)!important;color:#fff!important}
+.quiz-option.wrong{background:linear-gradient(135deg,#ff4d6d,#a9183c)!important;color:#fff!important}
+.quiz-explain{margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#eef3fb}
+.quiz-explain p{color:#eef3fb}
+
+/* AntiFraudQuiz (反詐小測驗) shared layout - see components/ui/
+   ScenarioFinalDecision.jsx for why colors here are hardcoded instead of
+   pulled from --card/--text/--muted.
+   .antifraud-quiz-shell is a flex column with two items: the scroll region
+   and the back button below it. flex:1;min-height:0 lets it shrink to
+   whatever space its host's flex-column stage actually has left instead of
+   forcing that ancestor taller.
+   .antifraud-quiz-scroll owns overflow-y:auto so the card scrolls on its
+   own if a short/narrow viewport can't fit question + options + feedback
+   at once - the back button lives outside this region, so it is never
+   what gets pushed off-screen or scrolled under.
+   .antifraud-quiz-back stays close to the shell's full width (matching the
+   scroll region's own side padding) so it reads as a full-width action bar
+   under the card, never as a small button lost inside it. */
+.antifraud-quiz-shell{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;box-sizing:border-box;background:#050b18}
+.antifraud-quiz-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:16px 16px 12px}
+.antifraud-quiz-card{background:#111b30;color:#f4f8ff;border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:clamp(16px,3.5vh,22px);box-shadow:0 18px 60px rgba(0,0,0,.35)}
+.antifraud-quiz-card h2{color:#fff;margin:0 0 10px}
+.antifraud-quiz-card>p{color:#c3cfe0}
+.antifraud-quiz-back{flex:none;width:calc(100% - 32px);margin:0 16px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box}
+
+/* ---- Gesture-only UX pass: no checkboxes, big buttons, 165 hotline,
+   auto-playing media, brand landing, mobile-portrait everywhere. All that is
+   left of it here is the return-to-platform pill; the pass's Coin Winner half
+   (brand landing, registration display fields, platform buttons) moved to
+   apps/coin-winner/styles/index.css and its Scenario 02 half (the red-warning
+   buttons and the 165 overlay they open) to styles/scenario02.css ---------- */
+
+/* Quiz/disclosure buttons need to stay large, tap-friendly targets even
+   inside the same narrow phone frame as everything else. */
+.quiz-option{min-height:56px;display:flex;align-items:center}
+
+/* The two answers are a fixed [ LEFT | RIGHT ] pair: LEFT is always the
+   safe/correct answer, RIGHT always the risky one. `.btns` from global.css
+   is a one-column grid, so this override is what puts them side by side -
+   and it deliberately carries no media query. The pair must NOT restack
+   vertically anywhere in this app's portrait range (320px-430px): the
+   left-is-safe / right-is-risky geometry is the thing being taught, and a
+   width where the two answers become "top" and "bottom" instead teaches
+   the wrong shape.
+   1fr 1fr keeps the columns equal regardless of how long either label is;
+   min-width:0 on the options stops the longer label from widening its own
+   column past its share, and the centered flex/text-align undoes
+   .quiz-option's left-aligned single-column styling, which reads as
+   lopsided once the buttons are half-width and several lines tall. */
+.antifraud-quiz-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+.antifraud-quiz-choices .quiz-option{width:100%;min-width:0;text-align:center;justify-content:center;padding-left:12px;padding-right:12px;overflow-wrap:anywhere}

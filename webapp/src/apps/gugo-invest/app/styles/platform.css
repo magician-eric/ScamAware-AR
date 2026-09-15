@@ -1,0 +1,88 @@
+/* GuGo Invest's platform screens, as scenario01 places them in its own pages
+ * (ProfitOverview, WithdrawalResult).
+ *
+ * These rules were in webapp/src/styles/global.css, next to scenario01's own
+ * page styling, because the screens they dress used to be scenario01 pages.
+ * They are GuGo's CIS - gold hairline cards, the gold/red/green candles, the
+ * brand lockup - so they moved here with the screens.
+ *
+ * Deliberately NOT scoped under .gugo-app like the rest of this module's CSS
+ * (see ./index.css): these screens render straight into scenario01's page
+ * flow, whose .app flex column lays their children out directly. A wrapper
+ * element to hang the scope on would change that layout, and the whole point
+ * of the move is that nothing about the rendering changes. The selectors are
+ * GuGo-specific names instead, which is what keeps them from reaching
+ * anything else.
+ *
+ * Two renames: scenario01's chart grid was a bare `.grid`, which collides with
+ * the Tailwind utility of the same name that this module now emits; and
+ * `.candlestick-chart` is Coin Winner's too, so that rule stayed shared in
+ * global.css and this module's chart carries its own class.
+ */
+
+/* Icon + wordmark, in place of a plain-text brand, on the platform screens
+   that follow the embedded app step - so the brand carries through instead
+   of reverting to generic styling once the player leaves the app itself. */
+.gugo-platform-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.gugo-brand{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.gugo-brand-subtitle{color:#8a94a6;font-size:11px;font-weight:600;letter-spacing:.04em}
+
+/* ---- Profit / asset overview (資產總覽). Dark navy cards with a gold
+   hairline border, gold as the sole accent/glow colour, and the Taiwan
+   market's red-up/green-down convention for every profit figure and candle.
+   Keeps its own class names (.profit-*) rather than reusing .bition-*, since
+   it isn't wrapped in bition's fixed-height .bition-app phone-frame - it
+   stays inside the normal .app flow so the whole page can scroll (see
+   .scroll-stage in global.css), which is unchanged. */
+.profit-card{background:linear-gradient(165deg,rgba(26,34,56,.75),rgba(13,18,33,.85));border:1px solid rgba(212,175,55,.18);border-radius:22px;padding:18px;backdrop-filter:blur(14px);box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.profit-asset-card{position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(212,175,55,.14),rgba(13,18,33,.5) 60%);border:1px solid rgba(212,175,55,.32)}
+.profit-asset-card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0 35%,rgba(212,175,55,.14) 48%,transparent 62%);animation:chartSweep 6s ease-out infinite;pointer-events:none}
+.profit-asset-label{color:#8a94a6;font-size:13px}
+.profit-asset-value{font-size:clamp(28px,9vw,34px);font-weight:900;color:#fff;margin-top:6px;letter-spacing:.01em}
+.profit-badge{margin-top:14px;padding:8px 14px;border-radius:999px;background:rgba(239,77,77,.14);border:1px solid rgba(239,77,77,.55);color:#ff8080;font-size:clamp(18px,5vw,22px);font-weight:900;box-shadow:0 0 24px rgba(239,77,77,.22);display:inline-block}
+.profit-badge.is-loss{background:rgba(0,179,126,.14);border-color:rgba(0,179,126,.55);color:#4fe0ad;box-shadow:0 0 24px rgba(0,179,126,.22)}
+.profit-live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#d4af37;margin-right:8px;box-shadow:0 0 6px rgba(212,175,55,.8);animation:bitionBlink 1.4s ease-in-out infinite}
+
+/* Quick-actions footer is fixed to the bottom of the stage (not the real
+   viewport - .ar-stage has its own transform from useFitStage, which makes
+   it the containing block for any `position:fixed` descendant, the same
+   mechanism .line-image-lightbox etc. already rely on) so it stays put
+   while the rest of the page's content scrolls underneath it.
+   Matches this app's own BottomNav look exactly (icon-over-label, flex-1
+   evenly spaced, gold icons, no per-item card/border), so it reads as the
+   same bottom-nav UI the player already saw on the Home screen. */
+.profit-quick-actions-footer{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:stretch;justify-content:space-between;padding:0 4px calc(0px + env(safe-area-inset-bottom));background:rgba(13,18,33,.95);backdrop-filter:blur(16px);border-top:1px solid rgba(212,175,55,.15)}
+.profit-quick-action{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 4px;color:#8a94a6}
+.profit-quick-action svg{color:#d4af37}
+.profit-quick-action span{font-size:11px;font-weight:500}
+
+.profit-return-breakdown{margin-top:16px;display:flex;flex-direction:column}
+.profit-return-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:12px 0;border-top:1px solid rgba(212,175,55,.14)}
+.profit-return-row:first-child{border-top:1px solid rgba(212,175,55,.14)}
+.profit-return-label{color:#fff;font-size:13px;font-weight:700}
+.profit-return-date{color:#8a94a6;font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
+.profit-return-value{text-align:right}
+.profit-return-value strong{display:block;color:#ff8080;font-weight:800;font-size:17px}
+.profit-return-value span{display:block;color:#ff8080;font-size:12px;font-weight:600;margin-top:2px}
+.profit-return-value.is-loss strong,.profit-return-value.is-loss span{color:#4fe0ad}
+
+.chart-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#8a94a6;font-size:14px;letter-spacing:.08em}
+.chart-top strong{color:#d4af37;text-shadow:0 0 12px rgba(212,175,55,.75)}
+.gugo-candlestick-chart{width:100%;height:auto;display:block;margin:8px 0;min-height:160px}
+.gugo-chart-grid path{stroke:rgba(212,175,55,.08);stroke-width:1}
+.trend-line{fill:none;stroke:url(#chartGlow);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px rgba(212,175,55,.75))}
+.candle{opacity:0;transform-box:fill-box;transform-origin:center bottom;animation:popCandle .34s ease-out forwards;animation-delay:calc(.25s + var(--i)*.38s)}
+.candle line{stroke:#ff8080;stroke-width:2;stroke-linecap:round}
+.candle rect{fill:#ef4d4d;rx:2;filter:drop-shadow(0 0 5px rgba(239,77,77,.55))}
+.candle-down line{stroke:#4fe0ad}
+.candle-down rect{fill:#00b37e}
+@keyframes popCandle{0%{opacity:0;transform:scaleY(.18) translateY(12px)}100%{opacity:1;transform:scaleY(1) translateY(0)}}
+
+.withdraw-btn{margin-top:8px;width:100%;animation:withdrawReveal .45s ease-out}
+.withdraw-btn[hidden]{display:none}
+@keyframes withdrawReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}

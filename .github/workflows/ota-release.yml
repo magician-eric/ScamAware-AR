@@ -1,0 +1,558 @@
+name: OTA Web Bundle Release
+
+# Every formal CIBAR Web Bundle release, produced by machine.
+#
+# The rules this workflow enforces are written down in docs/RELEASE_VERSIONING.md; this file is
+# the half of them that cannot be forgotten. Two things happen here and nowhere else:
+#
+#   on a pull request  the Web Bundle version is checked. A PR that changes what ends up in
+#                      webapp/dist without raising release/versions.json's webBundleVersion is
+#                      refused, because the alternative is discovering months later that three
+#                      different builds all called themselves 1.0.0.
+#
+#   on a push to main  a real release is cut: build, package, SHA-256, Release ID, GitHub
+#                      Release, manifest, latest.json, and a row in docs/RELEASE_HISTORY.md.
+#                      Nobody has to remember to do any of it.
+#
+# What this workflow deliberately does NOT do is release anything from a branch. A PR can decide
+# its intended version; only a merged commit on main can become a Release ID, and only a real
+# Release ID may be written into latest.json (RELEASE_VERSIONING.md §8).
+
+on:
+  push:
+    branches: [main]
+    # What actually ends up inside a Web Bundle. webapp/scripts and webapp's own test files are
+    # in the tree but not in dist/, so a test-only change is not a release.
+    paths:
+      - "webapp/src/**"
+      - "webapp/public/**"
+      - "webapp/index.html"
+      - "webapp/vite.config.js"
+      - "webapp/package.json"
+      - "webapp/package-lock.json"
+      - "release/versions.json"
+      - ".github/workflows/ota-release.yml"
+  pull_request:
+    paths:
+      - "webapp/src/**"
+      - "webapp/public/**"
+      - "webapp/index.html"
+      - "webapp/vite.config.js"
+      - "webapp/package.json"
+      - "webapp/package-lock.json"
+      - "release/versions.json"
+      - ".github/workflows/ota-release.yml"
+  workflow_dispatch:
+
+# A release reads the existing tags to work out today's sequence number and then writes one more.
+# Two releases running at once would both read N and both publish N+1, and the second would
+# overwrite the first's latest.json with an identical Release ID pointing at different bytes.
+# Never cancelled: a superseded release is still a release that was published.
+concurrency:
+  group: ota-release
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------------------------
+  # PR gate. Cheap, and it runs on every PR that touches web content.
+  # ---------------------------------------------------------------------------------------------
+  version-bump-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: The version file itself is well-formed
+        run: |
+          set -eu
+          FILE=release/versions.json
+          SHELL_VERSION="$(jq -r .shellVersion "$FILE")"
+          SHELL_CODE="$(jq -r .shellVersionCode "$FILE")"
+          WEB_VERSION="$(jq -r .webBundleVersion "$FILE")"
+          MIN_SHELL="$(jq -r .minShellVersion "$FILE")"
+
+          for pair in "shellVersion=$SHELL_VERSION" "webBundleVersion=$WEB_VERSION" \
+                      "minShellVersion=$MIN_SHELL"; do
+            name="${pair%%=*}"; value="${pair#*=}"
+            case "$value" in
+              [0-9]*.[0-9]*.[0-9]*) ;;
+              *)
+                echo "::error file=$FILE::$name（$value）不是 MAJOR.MINOR.PATCH"
+                exit 1
+                ;;
+            esac
+          done
+
+          # The same rule android/app/build.gradle asserts at build time and ShellVersionTest
+          # asserts from the test source set: MAJOR*10000 + MINOR*100 + PATCH.
+          EXPECTED="$(echo "$SHELL_VERSION" | awk -F. '{print ($1*10000)+($2*100)+$3}')"
+          if [ "$SHELL_CODE" != "$EXPECTED" ]; then
+            echo "::error file=$FILE::shellVersionCode（$SHELL_CODE）與 shellVersion（$SHELL_VERSION）不符，應為 $EXPECTED"
+            exit 1
+          fi
+          echo "OK: shell $SHELL_VERSION（code $SHELL_CODE）／web bundle $WEB_VERSION／min shell $MIN_SHELL"
+
+      - name: A web-content change must raise the Web Bundle version
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -eu
+          git fetch --no-tags origin "$BASE"
+
+          # Only the paths that end up inside webapp/dist. A change to webapp/scripts (validators,
+          # tests) produces a byte-identical bundle and is not a release.
+          CHANGED="$(git diff --name-only "origin/$BASE...HEAD" -- \
+            webapp/src webapp/public webapp/index.html webapp/vite.config.js \
+            webapp/package.json webapp/package-lock.json || true)"
+          if [ -z "$CHANGED" ]; then
+            echo "這個 PR 沒有改到 Web Bundle 的內容，不需要遞增 webBundleVersion。"
+            exit 0
+          fi
+          echo "改到的 Web Bundle 內容："
+          echo "$CHANGED" | sed 's/^/  /'
+
+          # Absent on the base branch only for the PR that introduces the version file itself;
+          # there is nothing to compare against, and refusing that PR would make the rule
+          # impossible to adopt.
+          BASE_JSON="$(git show "origin/$BASE:release/versions.json" 2>/dev/null || true)"
+          if [ -z "$BASE_JSON" ]; then
+            echo "$BASE 上還沒有 release/versions.json（這是導入版本規範的 PR），沒有可比較的版本。"
+            exit 0
+          fi
+          BASE_VERSION="$(printf '%s' "$BASE_JSON" | jq -r .webBundleVersion)"
+          HEAD_VERSION="$(jq -r .webBundleVersion release/versions.json)"
+          echo "base=$BASE_VERSION head=$HEAD_VERSION"
+
+          if [ "$BASE_VERSION" = "$HEAD_VERSION" ]; then
+            {
+              echo "::error file=release/versions.json::這個 PR 改到 Web Bundle 內容，但 webBundleVersion 仍是 $HEAD_VERSION"
+              echo "::error::請依 docs/RELEASE_VERSIONING.md 判斷並遞增："
+              echo "::error::  Bug／UI／文案／圖片／影片／情境小修 → PATCH（$BASE_VERSION → $(echo "$BASE_VERSION" | awk -F. '{print $1"."$2"."$3+1}')）"
+              echo "::error::  新增相容的新功能 → MINOR（$BASE_VERSION → $(echo "$BASE_VERSION" | awk -F. '{print $1"."$2+1".0"}')）"
+              echo "::error::  不相容／架構級改版 → MAJOR（$BASE_VERSION → $(echo "$BASE_VERSION" | awk -F. '{print $1+1".0.0"}')）"
+              echo "::error::不要自行從 1.0.0 重新開始，也不要在這裡填日期或序號 —— Release ID 由 merge 後的 CI 產生。"
+            }
+            exit 1
+          fi
+
+          # Strictly newer, and by exactly one step on exactly one component: a jump from 1.0.3 to
+          # 1.4.0 hides three releases that never happened, and a lower number makes the history
+          # unreadable in the one direction anybody ever reads it.
+          NEWEST="$(printf '%s\n%s\n' "$BASE_VERSION" "$HEAD_VERSION" | sort -V | tail -1)"
+          if [ "$NEWEST" != "$HEAD_VERSION" ]; then
+            echo "::error file=release/versions.json::webBundleVersion 從 $BASE_VERSION 退回 $HEAD_VERSION"
+            exit 1
+          fi
+          VALID="$(echo "$BASE_VERSION" | awk -F. '{print $1"."$2"."$3+1; print $1"."$2+1".0"; print $1+1".0.0"}')"
+          if ! echo "$VALID" | grep -qx "$HEAD_VERSION"; then
+            echo "::error file=release/versions.json::從 $BASE_VERSION 只能走到下列其中一個版本，$HEAD_VERSION 不在其中："
+            echo "$VALID" | sed 's/^/::error::  /'
+            exit 1
+          fi
+          echo "OK: webBundleVersion $BASE_VERSION → $HEAD_VERSION"
+
+  # ---------------------------------------------------------------------------------------------
+  # The real thing. Runs on main only.
+  # ---------------------------------------------------------------------------------------------
+  release:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A release is only worth publishing if it is the branch as it stands now. Same reasoning as
+      # build-android.yml's publish guard: cancellation is not instant, and a run that finishes
+      # second would otherwise publish an older tree as the newest Release ID.
+      - name: Refuse to release a superseded commit
+        id: guard
+        run: |
+          set -eu
+          TIP="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ -n "$TIP" ] && [ "$TIP" != "$GITHUB_SHA" ]; then
+            echo "::notice::${GITHUB_SHA:0:7} 已不是 main 的最新 commit（${TIP:0:7}），不發布被取代的 bundle"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # A commit that already carries a release tag is a re-run, not a second release.
+          if git ls-remote --tags origin | grep -q "^$GITHUB_SHA.*refs/tags/web-"; then
+            echo "::notice::這個 commit 已經有正式 OTA Release，略過"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      # The Release ID is decided before anything is built, because the build is stamped with it:
+      # the bundle has to be able to say which release it is (webapp/vite.config.js), and a
+      # version written after the fact is a version that can disagree with the bytes.
+      - name: Decide the Release ID
+        if: steps.guard.outputs.skip == 'false'
+        id: id
+        run: |
+          set -eu
+          VERSION="$(jq -r .webBundleVersion release/versions.json)"
+          MIN_SHELL="$(jq -r .minShellVersion release/versions.json)"
+          SHELL_VERSION="$(jq -r .shellVersion release/versions.json)"
+
+          # Taipei time, because "which version did we hand over on 9/1?" is asked in Taipei and
+          # a UTC runner is seven or eight hours behind that question after 16:00 local.
+          DATE="$(TZ=Asia/Taipei date +%Y%m%d)"
+          RELEASE_DATE="$(TZ=Asia/Taipei date +%Y-%m-%d)"
+
+          # NNN restarts at 001 every day. Counted from the published tags rather than from a file
+          # in the tree, because a tag is what actually exists once a release is out - a counter
+          # in a commit can be lost to a revert or a force-push and then reused.
+          COUNT="$(git ls-remote --tags origin "refs/tags/web-*-${DATE}.*" | wc -l | tr -d ' ')"
+          SEQUENCE=$((COUNT + 1))
+          SEQ="$(printf '%03d' "$SEQUENCE")"
+          RELEASE_ID="${VERSION}-${DATE}.${SEQ}"
+
+          # Which PR this came from. Merge commits carry it in their subject; a direct push to
+          # main has no PR, and says so rather than pretending.
+          SUBJECT="$(git log -1 --pretty=%s "$GITHUB_SHA")"
+          SOURCE_PR="$(echo "$SUBJECT" | sed -n 's/.*Merge pull request #\([0-9]\+\).*/\1/p')"
+          if [ -z "$SOURCE_PR" ]; then
+            SOURCE_PR="$(echo "$SUBJECT" | sed -n 's/.*(#\([0-9]\+\))$/\1/p')"
+          fi
+
+          {
+            echo "release_id=$RELEASE_ID"
+            echo "version=$VERSION"
+            echo "date=$DATE"
+            echo "release_date=$RELEASE_DATE"
+            echo "sequence=$SEQUENCE"
+            echo "min_shell=$MIN_SHELL"
+            echo "shell_version=$SHELL_VERSION"
+            echo "source_pr=$SOURCE_PR"
+            echo "subject=$SUBJECT"
+            echo "tag=web-$RELEASE_ID"
+          } >> "$GITHUB_OUTPUT"
+          echo "Release ID: $RELEASE_ID（今天第 $SEQUENCE 個）"
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip == 'false'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Install dependencies
+        if: steps.guard.outputs.skip == 'false'
+        working-directory: webapp
+        run: npm ci
+
+      # webapp's own prebuild validators run as part of this (i18n, dialogue, boundaries, outcome
+      # reachability), so a bundle can only be released from a webapp that passes its own gates.
+      - name: Build the Web Bundle
+        if: steps.guard.outputs.skip == 'false'
+        working-directory: webapp
+        env:
+          CIBAR_RELEASE_ID: ${{ steps.id.outputs.release_id }}
+        run: npm run build
+
+      # The same audit the offline APK runs on its bundled copy. An OTA bundle that reaches for a
+      # CDN is worse on a device than on a bench: it works in the office and fails at the venue.
+      - name: Audit the bundle for anything that needs the network
+        if: steps.guard.outputs.skip == 'false'
+        working-directory: webapp
+        run: node scripts/audit-offline-web-assets.mjs dist
+
+      - name: Package, hash and describe the bundle
+        if: steps.guard.outputs.skip == 'false'
+        id: bundle
+        env:
+          RELEASE_ID: ${{ steps.id.outputs.release_id }}
+          VERSION: ${{ steps.id.outputs.version }}
+          RELEASE_DATE: ${{ steps.id.outputs.release_date }}
+          SEQUENCE: ${{ steps.id.outputs.sequence }}
+          MIN_SHELL: ${{ steps.id.outputs.min_shell }}
+          SOURCE_PR: ${{ steps.id.outputs.source_pr }}
+          TAG: ${{ steps.id.outputs.tag }}
+        run: |
+          set -eu
+          # The bundle says what it is from the inside as well. A zip that has been extracted onto
+          # a device, or found on a USB stick a year from now, is otherwise identifiable only by
+          # whoever still has the filename. It carries no sha256 - a file cannot contain the hash
+          # of the archive that contains it - so the authoritative manifest is the one published
+          # beside the zip; this is the copy that travels with the content.
+          jq -n \
+            --arg releaseId "$RELEASE_ID" \
+            --arg version "$VERSION" \
+            --arg releaseDate "$RELEASE_DATE" \
+            --argjson sequence "$SEQUENCE" \
+            --arg gitCommit "$GITHUB_SHA" \
+            --arg sourcePR "$SOURCE_PR" \
+            --arg minShellVersion "$MIN_SHELL" \
+            '{
+              releaseId: $releaseId,
+              version: $version,
+              releaseDate: $releaseDate,
+              sequence: $sequence,
+              gitCommit: $gitCommit,
+              sourcePR: (if $sourcePR == "" then null else ($sourcePR | tonumber) end),
+              minShellVersion: $minShellVersion
+            }' > webapp/dist/ota-manifest.json
+
+          # The archive itself is written by webapp/scripts/build-ota-release.mjs and NOT by
+          # `zip -r`, for one reason the shell depends on: it puts cibar-bundle-manifest.json -
+          # a length and a SHA-256 for every file - inside the archive. The archive's own digest
+          # proves the DOWNLOAD arrived intact; only the per-file list proves the EXTRACTION
+          # finished, and a phone that runs out of storage half way through 80 MiB unpacks a tree
+          # that is structurally fine and materially short. BundleInstaller.java refuses a bundle
+          # without that file, so a plain `zip -r` here would publish a release no phone installs.
+          #
+          # It is also deterministic (no timestamps, no uids), so the same tree packs to the same
+          # bytes and the SHA-256 below means "this content" rather than "this run".
+          URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/cibar-web-${RELEASE_ID}.zip"
+          node webapp/scripts/build-ota-release.mjs \
+            --dist webapp/dist \
+            --out ota-build \
+            --version "$RELEASE_ID" \
+            --commit "$GITHUB_SHA" \
+            --min-shell-version "$MIN_SHELL" \
+            --bundle-url "$URL" \
+            ${SOURCE_PR:+--source-pr "$SOURCE_PR"}
+
+          mkdir -p ota-dist
+          ZIP="ota-dist/cibar-web-${RELEASE_ID}.zip"
+          mv ota-build/bundle.zip "$ZIP"
+          SHA256="$(sha256sum "$ZIP" | cut -d' ' -f1)"
+          SIZE="$(stat -c%s "$ZIP")"
+
+          # The digest the publisher computed and the digest of the file that will be uploaded are
+          # the same file read twice. If they ever differ, something rewrote the archive between
+          # the two, and every phone would fail verification after an 80 MiB download.
+          PUBLISHED_SHA="$(cut -d' ' -f1 ota-build/sha256.txt)"
+          if [ "$SHA256" != "$PUBLISHED_SHA" ]; then
+            echo "::error::bundle.zip 的 SHA-256 與 publisher 算出的不一致（$SHA256 vs $PUBLISHED_SHA）"
+            exit 1
+          fi
+
+          # And the archive really does carry the per-file manifest the phone verifies against.
+          if ! unzip -l "$ZIP" | grep -q 'cibar-bundle-manifest.json'; then
+            echo "::error::bundle.zip 裡沒有 cibar-bundle-manifest.json，手機無法驗證解壓縮是否完整"
+            exit 1
+          fi
+
+          {
+            echo "zip=$ZIP"
+            echo "sha256=$SHA256"
+            echo "size=$SIZE"
+            echo "url=$URL"
+          } >> "$GITHUB_OUTPUT"
+          echo "$ZIP  $SIZE bytes  sha256=$SHA256"
+
+      # Everything §10 of RELEASE_VERSIONING.md requires a manifest to carry, so that a bundle
+      # found on a device a year from now can be traced back to the commit that produced it.
+      - name: Write the release manifest and latest.json
+        if: steps.guard.outputs.skip == 'false'
+        env:
+          RELEASE_ID: ${{ steps.id.outputs.release_id }}
+          VERSION: ${{ steps.id.outputs.version }}
+          RELEASE_DATE: ${{ steps.id.outputs.release_date }}
+          SEQUENCE: ${{ steps.id.outputs.sequence }}
+          MIN_SHELL: ${{ steps.id.outputs.min_shell }}
+          SOURCE_PR: ${{ steps.id.outputs.source_pr }}
+          SHA256: ${{ steps.bundle.outputs.sha256 }}
+          SIZE: ${{ steps.bundle.outputs.size }}
+          TAG: ${{ steps.id.outputs.tag }}
+        run: |
+          set -eu
+          mkdir -p release/ota/releases
+          URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/cibar-web-${RELEASE_ID}.zip"
+          jq -n \
+            --arg releaseId "$RELEASE_ID" \
+            --arg version "$VERSION" \
+            --arg releaseDate "$RELEASE_DATE" \
+            --argjson sequence "$SEQUENCE" \
+            --arg gitCommit "$GITHUB_SHA" \
+            --arg sourcePR "$SOURCE_PR" \
+            --arg sha256 "$SHA256" \
+            --argjson size "$SIZE" \
+            --arg minShellVersion "$MIN_SHELL" \
+            --arg url "$URL" \
+            '{
+              releaseId: $releaseId,
+              version: $version,
+              releaseDate: $releaseDate,
+              sequence: $sequence,
+              gitCommit: $gitCommit,
+              sourcePR: (if $sourcePR == "" then null else ($sourcePR | tonumber) end),
+              sha256: $sha256,
+              sizeBytes: $size,
+              minShellVersion: $minShellVersion,
+              url: $url
+            }' > "release/ota/releases/${RELEASE_ID}.json"
+          cp "release/ota/releases/${RELEASE_ID}.json" release/ota/latest.json
+          cat release/ota/latest.json
+
+      # The GitHub Release is published before the repository is updated, and that order is
+      # deliberate: the Release is what the bundle actually *is*, and docs/RELEASE_HISTORY.md is a
+      # record of it. A history row for a release that failed to publish is a lie; a published
+      # release whose row still has to be written is a retry.
+      - name: Publish the OTA release
+        if: steps.guard.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.id.outputs.release_id }}
+          TAG: ${{ steps.id.outputs.tag }}
+          SHA256: ${{ steps.bundle.outputs.sha256 }}
+          MIN_SHELL: ${{ steps.id.outputs.min_shell }}
+          SHELL_VERSION: ${{ steps.id.outputs.shell_version }}
+          SOURCE_PR: ${{ steps.id.outputs.source_pr }}
+          SUBJECT: ${{ steps.id.outputs.subject }}
+          ZIP: ${{ steps.bundle.outputs.zip }}
+        run: |
+          set -eu
+          {
+            printf '# CIBAR Web Bundle `%s`\n\n' "$RELEASE_ID"
+            printf '%s\n\n' "$SUBJECT"
+            printf '| | |\n|---|---|\n'
+            printf '| Release ID | `%s` |\n' "$RELEASE_ID"
+            printf '| Web Bundle | `%s` |\n' "${RELEASE_ID%%-*}"
+            printf '| 建置時的 Shell Version | `%s` |\n' "$SHELL_VERSION"
+            printf '| minShellVersion | `%s` |\n' "$MIN_SHELL"
+            printf '| commit | `%s` |\n' "$GITHUB_SHA"
+            if [ -n "$SOURCE_PR" ]; then
+              printf '| 來源 PR | #%s |\n' "$SOURCE_PR"
+            else
+              printf '| 來源 PR | （直接 push 到 main） |\n'
+            fi
+            printf '| SHA-256 | `%s` |\n\n' "$SHA256"
+            printf '這是一個正式 OTA Web Bundle。交付時請把上面的 Release ID 與 SHA-256 一起記到 '
+            printf '`docs/DELIVERY_HISTORY.md`。\n\n'
+            printf '版本規則見 [`docs/RELEASE_VERSIONING.md`](../blob/main/docs/RELEASE_VERSIONING.md)。\n'
+          } > ota-release-notes.md
+          gh release create "$TAG" \
+            "$ZIP" \
+            "release/ota/releases/${RELEASE_ID}.json" \
+            release/ota/latest.json \
+            --target "$GITHUB_SHA" \
+            --title "CIBAR Web Bundle $RELEASE_ID" \
+            --notes-file ota-release-notes.md
+
+      # Between publishing the archive and pointing production at it: prove the archive is
+      # actually downloadable, from outside, and that it hashes to what the pointer will claim.
+      #
+      # An upload that returns 200 and leaves an asset nobody can fetch is a real state, and it is
+      # invisible from in here - what it produces is every phone downloading a 404 and no phone
+      # updating, silently, until somebody notices the version stopped moving. This catches it
+      # while the PREVIOUS release is still what production points at, which is the only moment at
+      # which catching it costs nothing.
+      - name: Verify the published bundle downloads and matches its digest
+        if: steps.guard.outputs.skip == 'false'
+        env:
+          TAG: ${{ steps.id.outputs.tag }}
+          SHA256: ${{ steps.bundle.outputs.sha256 }}
+          ZIP: ${{ steps.bundle.outputs.zip }}
+        run: |
+          set -eu
+          URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/$(basename "$ZIP")"
+          echo "fetching $URL"
+          # A freshly created release asset is not always servable on the first request. Five tries
+          # over ~40s is generous for propagation and still fails fast for a real problem.
+          for attempt in 1 2 3 4 5; do
+            if curl -sSLf -o /tmp/published-bundle.zip "$URL"; then break; fi
+            echo "attempt $attempt: not downloadable yet, waiting"
+            sleep 10
+          done
+          if [ ! -f /tmp/published-bundle.zip ]; then
+            echo "::error::$URL never became downloadable; production still points at the previous release"
+            exit 1
+          fi
+          echo "$SHA256  /tmp/published-bundle.zip" | sha256sum --check --strict
+          unzip -t /tmp/published-bundle.zip > /dev/null
+          echo "OK: $URL downloads, unzips, and hashes to $SHA256"
+
+      - name: Record it in the repository
+        if: steps.guard.outputs.skip == 'false'
+        env:
+          RELEASE_ID: ${{ steps.id.outputs.release_id }}
+          VERSION: ${{ steps.id.outputs.version }}
+          RELEASE_DATE: ${{ steps.id.outputs.release_date }}
+          SHELL_VERSION: ${{ steps.id.outputs.shell_version }}
+          SOURCE_PR: ${{ steps.id.outputs.source_pr }}
+          SUBJECT: ${{ steps.id.outputs.subject }}
+        run: |
+          set -eu
+
+          # PATCH / MINOR / MAJOR is not asserted by hand here - it is read back out of the two
+          # version numbers, which is the only way the column can never disagree with them.
+          PREVIOUS="$(git show "HEAD:release/ota/latest.json" 2>/dev/null | jq -r '.version // empty' || true)"
+          if [ -z "$PREVIOUS" ]; then
+            TYPE="INITIAL"
+          else
+            PREV_MAJOR="${PREVIOUS%%.*}"; NEW_MAJOR="${VERSION%%.*}"
+            PREV_MINOR="$(echo "$PREVIOUS" | cut -d. -f2)"; NEW_MINOR="$(echo "$VERSION" | cut -d. -f2)"
+            if [ "$PREV_MAJOR" != "$NEW_MAJOR" ]; then TYPE="MAJOR"
+            elif [ "$PREV_MINOR" != "$NEW_MINOR" ]; then TYPE="MINOR"
+            elif [ "$PREVIOUS" != "$VERSION" ]; then TYPE="PATCH"
+            else TYPE="REBUILD"
+            fi
+          fi
+
+          PR_CELL="—"
+          [ -n "$SOURCE_PR" ] && PR_CELL="#$SOURCE_PR"
+          # A pipe in a commit subject would split the row into extra columns.
+          NOTES="$(printf '%s' "$SUBJECT" | sed 's/|/\\|/g')"
+          ROW="| \`$RELEASE_ID\` | $SHELL_VERSION | $VERSION | $RELEASE_DATE | $PR_CELL | \`${GITHUB_SHA:0:7}\` | $TYPE | $NOTES |"
+
+          MARKER="<!-- ota-release-rows -->"
+          if ! grep -q "$MARKER" docs/RELEASE_HISTORY.md; then
+            echo "::error::docs/RELEASE_HISTORY.md 少了 $MARKER，CI 不知道該把新版本寫在哪一行"
+            exit 1
+          fi
+          # Straight under the marker, which sits directly below the table header - so the
+          # newest release is the first row, which is the one anybody opening this file is
+          # looking for.
+          awk -v marker="$MARKER" -v row="$ROW" '
+            { print }
+            $0 ~ marker { print row }
+          ' docs/RELEASE_HISTORY.md > docs/RELEASE_HISTORY.md.new
+          mv docs/RELEASE_HISTORY.md.new docs/RELEASE_HISTORY.md
+
+          # The published site serves latest.json as well, so an online Shell can read it over
+          # https without going through the GitHub API. deploy-pages.yml re-stages it on every
+          # deploy; writing it here too means it is live the moment the release exists.
+          mkdir -p ota
+          cp release/ota/latest.json ota/latest.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add release/ota docs/RELEASE_HISTORY.md ota/latest.json
+          if git diff --cached --quiet; then
+            echo "沒有需要記錄的變更"
+            exit 0
+          fi
+          git commit -m "OTA release $RELEASE_ID [skip ci]"
+          # The web deploy pushes to main too, so a rejected push here is ordinary rather than a
+          # failure. Rebase and retry; only a persistent conflict is worth failing the job over.
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              echo "已記錄 $RELEASE_ID"
+              exit 0
+            fi
+            echo "push 被拒絕（第 $attempt 次），重新 rebase 後再試"
+            git pull --rebase origin main
+            sleep $((attempt * 2))
+          done
+          echo "::error::無法把 $RELEASE_ID 的紀錄推回 main —— GitHub Release 已經發布，請手動補上 docs/RELEASE_HISTORY.md"
+          exit 1
+
+      - name: Summary
+        if: always() && steps.guard.outputs.skip == 'false'
+        env:
+          RELEASE_ID: ${{ steps.id.outputs.release_id }}
+          SHA256: ${{ steps.bundle.outputs.sha256 }}
+        run: |
+          {
+            echo "## OTA Web Bundle"
+            echo ""
+            echo "- Release ID: \`$RELEASE_ID\`"
+            echo "- SHA-256: \`$SHA256\`"
+          } >> "$GITHUB_STEP_SUMMARY"

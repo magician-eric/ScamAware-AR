@@ -1,0 +1,407 @@
+plugins {
+    id "com.android.application"
+}
+
+// SHELL_VERSION - the APK Shell's product version - is not written here. It lives in
+// release/versions.json, which is the one file in the repository anybody (human or agent) is
+// allowed to edit a version number in, and which the OTA release pipeline reads as well. See
+// docs/RELEASE_VERSIONING.md. Hardcoding it here again would give the project two answers to
+// "which Shell is this?", and the one that ships is whichever file was remembered last.
+def releaseVersions = new groovy.json.JsonSlurper().parse(
+        new File(rootProject.projectDir.parentFile, "release/versions.json"))
+def shellVersion = releaseVersions.shellVersion.toString()
+def shellVersionCode = releaseVersions.shellVersionCode as int
+// MAJOR * 10000 + MINOR * 100 + PATCH. Asserted rather than derived so a hand-edited
+// versions.json cannot ship a versionCode that disagrees with its own SHELL_VERSION;
+// ShellVersionTest checks the same relationship from the test source set.
+def expectedShellVersionCode = shellVersion.split("-")[0].split("\\.")
+        .collect { it.toInteger() }
+        .with { (it[0] * 10000) + (it[1] * 100) + it[2] }
+if (shellVersionCode != expectedShellVersionCode) {
+    throw new GradleException("release/versions.json: shellVersionCode ${shellVersionCode} does not"
+            + " match shellVersion ${shellVersion} (expected ${expectedShellVersionCode});"
+            + " see docs/RELEASE_VERSIONING.md")
+}
+
+// Every build used to ship as versionCode 1 / versionName 1.0.0, so neither the phone nor the
+// tester could tell one APK from another and Android had no reason to treat a fresh build as
+// an upgrade. CI supplies its monotonically increasing run number; each published APK
+// therefore outranks the previous one and can never look like a downgrade. A local build gets
+// the base code, which is below every CI build and so never shadows one.
+//
+// The base is SHELL_VERSION's own code, so a Shell bump raises the whole series at once, and
+// the sum stays strictly increasing either way: the base never decreases and the run number
+// always does increase. That is also what keeps the documented relationship true on a phone -
+// SHELL_VERSION 1.0.0 -> versionName 1.0.0+<run>.<sha>, versionCode 10000 + <run>.
+def baseVersionCode = shellVersionCode
+def baseVersionName = shellVersion
+def buildNumber = (System.getenv("BUILD_NUMBER") ?: "").trim()
+def commitSha = (System.getenv("GITHUB_SHA") ?: "").trim()
+
+def resolvedVersionCode = baseVersionCode + (buildNumber.isNumber() ? buildNumber.toInteger() : 0)
+// The build metadata half of the versionName: which CI run produced this APK, and from which
+// commit. Informational only - upgrades are decided by versionCode alone - but it is what lets a
+// tester read the version under App info and say exactly which build they are holding.
+def buildMetadata = buildNumber.isEmpty()
+        ? "+local"
+        : (commitSha.isEmpty() ? "+${buildNumber}" : "+${buildNumber}.${commitSha.take(7)}")
+
+// One APK, so the versionName is SHELL_VERSION plus the build metadata and nothing else. It used
+// to carry a "-online" / "-offline" pre-release field because two APKs behaved identically right
+// up to the moment the network was taken away, and the versionName was the only way to tell them
+// apart on the phone. There is one delivery now - and what a tester needs beyond the Shell version
+// is which WEB BUNDLE is running, which is not a property of the APK at all: it updates without
+// one. That lives in the OTA diagnostics (release/versions.json, OtaDiagnostics).
+def resolvedVersionName = "${baseVersionName}${buildMetadata}".toString()
+
+android {
+    namespace "com.bigxreality.jorjinverifier"
+    compileSdk 35
+
+    // A signing key that lives in the repository, so every APK this project ever publishes
+    // carries the same certificate.
+    //
+    // Before this existed, both variants were signed with Gradle's auto-generated debug
+    // keystore - and that keystore is generated per machine. A CI runner is a fresh machine
+    // every time, so every published APK was signed by a brand new key, and installing one
+    // over the previous one failed with INSTALL_FAILED_UPDATE_INCOMPATIBLE. The tester had to
+    // uninstall before every single build, and the failure gives no hint that a signature is
+    // the reason.
+    //
+    // This is a TEST key, and it is deliberately public: the password is in this file, anyone
+    // reading the repository has it. That is acceptable precisely because this app is never
+    // published to any store and is only ever installed by hand from our own GitHub release -
+    // there is no distribution channel for the key to authenticate. It must never be used to
+    // sign anything that is published, and a store build needs a real key kept out of git.
+    signingConfigs {
+        cibarTest {
+            storeFile file("keystore/cibar-test.jks")
+            storePassword "cibar-test"
+            keyAlias "cibar-test"
+            keyPassword "cibar-test"
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.bigxreality.jorjinverifier"
+        minSdk 27
+        // Pinned to 30 on purpose. JJSDK v1.3.3 (built 2022 against targetSdk 27) calls
+        // PendingIntent.getBroadcast with flags=0 and the two-argument
+        // Context.registerReceiver, both from the d.a helper that CameraManager holds.
+        // Targeting 31+ makes the first throw IllegalArgumentException and targeting 34+
+        // makes the second throw SecurityException, crashing the app the moment USB
+        // permission is granted and the SDK actually proceeds to open the device.
+        // Raising this requires a JJSDK build that passes the modern flags.
+        targetSdk 30
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
+
+        // SHELL_VERSION as the app itself can read it. versionName carries it too, but with the
+        // build metadata attached ("1.0.0+42.abc1234"), so anything that wants the bare product
+        // version would have to parse it back out - and the two halves of the OTA contract
+        // (minShellVersion in a bundle manifest, SHELL_VERSION in the APK) have to be comparable
+        // without string surgery. Published to the page by ShellBridgeScript.
+        buildConfigField "String", "SHELL_VERSION", "\"${shellVersion}\"".toString()
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+    }
+
+    buildFeatures {
+        // BuildConfig.SHELL_VERSION is how the app reads its own Shell version - see the
+        // buildConfigField above, and ShellBridgeScript, which publishes it to the page. AGP 8
+        // stopped generating BuildConfig unless asked, and without it that field does not exist.
+        buildConfig true
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    buildTypes {
+        // Both build types take the same committed key, so each release installs over the last.
+        debug {
+            signingConfig signingConfigs.cibarTest
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            // A test key rather than a store key, on purpose: this build is never published to
+            // a store, it only has to install on a test phone. What matters is that it is NOT
+            // debuggable - several OEM ROMs (MIUI, ColorOS, Funtouch) refuse to install a
+            // debuggable APK that arrived from a browser, which is exactly how the tester
+            // receives it. Keep minifyEnabled false so the vendor SDK's reflection-heavy
+            // classes survive untouched.
+            signingConfig signingConfigs.cibarTest
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation files("libs/jjsdk.aar")
+    // WebViewAssetLoader: the officially supported way to serve app-local content to a WebView
+    // over a real https origin (appassets.androidplatform.net) instead of file:///android_asset.
+    // Every byte the experience shows is served through it - see WebBundleAssetHandler.
+    implementation "androidx.webkit:webkit:1.12.1"
+    testImplementation "junit:junit:4.13.2"
+    // org.json is part of android.jar, and unitTests.returnDefaultValues stubs android.jar out -
+    // so on the JVM test classpath every JSONObject method would silently return null and the OTA
+    // manifest parser would "succeed" on garbage. This puts the real implementation in front of
+    // the stub for tests only; on a device Android's own copy is used and this jar is not shipped.
+    testImplementation "org.json:json:20231013"
+}
+
+// Fail early with a useful message instead of letting a truncated/broken SDK produce
+// confusing Android compiler errors. The repository previously contained a 2-byte AAR.
+tasks.register("verifyJjSdk") {
+    def sdk = layout.projectDirectory.file("libs/jjsdk.aar")
+    inputs.file(sdk)
+    doLast {
+        File aar = sdk.asFile
+        if (!aar.isFile() || aar.length() < 1_000_000L) {
+            throw new GradleException("app/libs/jjsdk.aar is missing or truncated; restore JJSDK v1.3.3")
+        }
+        def zip = new java.util.zip.ZipFile(aar)
+        try {
+            ["classes.jar", "jni/arm64-v8a/libjjsdk.so", "jni/armeabi-v7a/libjjsdk.so"].each { entry ->
+                if (zip.getEntry(entry) == null) {
+                    throw new GradleException("JJSDK AAR is missing required entry: ${entry}")
+                }
+            }
+        } finally {
+            zip.close()
+        }
+    }
+}
+
+tasks.register("verifySigningKey") {
+    def store = layout.projectDirectory.file("keystore/cibar-test.jks")
+    inputs.file(store)
+    doLast {
+        if (!store.asFile.isFile()) {
+            throw new GradleException("app/keystore/cibar-test.jks is missing; without it every "
+                    + "build gets a fresh signature and the phone refuses to upgrade")
+        }
+    }
+}
+
+tasks.named("preBuild").configure { dependsOn("verifyJjSdk", "verifySigningKey") }
+
+// ---------------------------------------------------------------------------------------------
+// The web content packaged into the APK - the baseline bundle.
+//
+// There is exactly one CIBAR webapp, in webapp/, and exactly one build of it. That build is
+// packaged into this APK and served from https://appassets.androidplatform.net/CIBAR/, so a phone
+// that has never had a network runs the whole experience out of the APK it was installed from.
+//
+// Nobody maintains a second copy and nobody copies files by hand: the build below runs webapp's
+// own `npm run build` and stages its dist/ output straight into the APK's assets, every time the
+// APK is assembled. An APK whose baseline is a commit behind the webapp is therefore impossible -
+// the APK cannot be produced without rebuilding it.
+//
+// The baseline is also the *floor* for over-the-air updates, not their replacement. It carries a
+// manifest naming its version (assets/cibar-baseline-manifest.json), and OtaController compares
+// that version against whatever the update server publishes. See webapp/scripts/ota-version.mjs.
+// ---------------------------------------------------------------------------------------------
+
+/** webapp/ - the repository root is one level above android/. */
+def webappRoot = rootProject.projectDir.parentFile.toPath().resolve("webapp").toFile()
+
+/**
+ * Runs webapp's own build. Not a reimplementation of it: `npm run build` also runs webapp's
+ * prebuild validators (i18n, dialogue, boundaries, outcome reachability), so this APK can only be
+ * produced from a webapp that passes its own gates.
+ */
+abstract class BuildCibarWebapp extends DefaultTask {
+    @Internal abstract DirectoryProperty getWebappDir()
+
+    /**
+     * Everything the Vite build reads. node_modules and dist are excluded: the first is derived
+     * from package-lock.json (which is included) and the second is this task's own output.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract ConfigurableFileCollection getWebappSources()
+
+    @OutputDirectory abstract DirectoryProperty getDistDir()
+
+    @javax.inject.Inject abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void buildWebapp() {
+        File dir = webappDir.get().asFile
+        File lock = new File(dir, "package-lock.json")
+        File modules = new File(dir, "node_modules")
+        // `npm ci` wipes and reinstalls, which is slow and needs the registry, so it only runs
+        // when node_modules is absent or older than the lockfile. CI starts from a clean checkout
+        // and so always installs; a developer's second build does not.
+        if (!modules.isDirectory() || modules.lastModified() < lock.lastModified()) {
+            logger.lifecycle("CIBAR：安裝 webapp 相依套件（npm ci）…")
+            npm(dir, "ci", "--no-audit", "--no-fund")
+            modules.setLastModified(System.currentTimeMillis())
+        }
+        logger.lifecycle("CIBAR：建置 webapp（npm run build）…")
+        npm(dir, "run", "build")
+        File index = new File(distDir.get().asFile, "index.html")
+        if (!index.isFile()) {
+            throw new GradleException("webapp build finished but produced no dist/index.html at "
+                    + index + "; the APK has no web content to bundle")
+        }
+    }
+
+    private void npm(File dir, String... args) {
+        boolean windows = System.getProperty("os.name").toLowerCase().contains("win")
+        List<String> command = [windows ? "npm.cmd" : "npm"]
+        command.addAll(args as List)
+        try {
+            execOperations.exec {
+                it.workingDir = dir
+                it.commandLine = command
+            }
+        } catch (Exception failure) {
+            throw new GradleException("This APK packages the CIBAR webapp, so building it needs"
+                    + " Node.js and npm on PATH (`" + command.join(" ") + "` in " + dir
+                    + " failed).", failure)
+        }
+    }
+}
+
+def buildCibarWebapp = tasks.register("buildCibarWebapp", BuildCibarWebapp) {
+    group = "build"
+    description = "Builds webapp/ so the APK can package the current CIBAR web build."
+    it.webappDir.set(webappRoot)
+    it.webappSources.from(fileTree(webappRoot) {
+        exclude "node_modules/**"
+        exclude "dist/**"
+        exclude ".vite/**"
+    })
+    it.distDir.set(new File(webappRoot, "dist"))
+}
+
+/**
+ * Stages the built webapp into the APK's assets, audits it for anything that would need the
+ * network at runtime, and writes the manifest that names the baseline's version.
+ *
+ * <p>The output directory is an <em>assets root</em>. Two things land in it:
+ * <ul>
+ *   <li>{@code cibar/} - the build itself, which is where {@code WebBundlePaths.ASSET_ROOT} says
+ *       to look, and which keeps it from colliding with anything else the APK packages under
+ *       {@code assets/};</li>
+ *   <li>{@code cibar-baseline-manifest.json} - deliberately <em>outside</em> {@code cibar/}, so it
+ *       is not reachable from the page's own origin. Only {@code /CIBAR/} is mounted, and only
+ *       {@code cibar/} is behind it.</li>
+ * </ul>
+ */
+abstract class BundleCibarWebAssets extends DefaultTask {
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract DirectoryProperty getDistDir()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract RegularFileProperty getAuditScript()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract RegularFileProperty getAuditAllowlist()
+
+    /** webapp/scripts/build-ota-release.mjs, run in its --manifest-only mode. */
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract RegularFileProperty getManifestScript()
+
+    /** release/versions.json - where every version number in this repository is decided. */
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract RegularFileProperty getVersionFile()
+
+    @Input abstract Property<String> getAssetRoot()
+
+    @Input abstract Property<String> getManifestName()
+
+    @OutputDirectory abstract DirectoryProperty getOutputDir()
+
+    @javax.inject.Inject abstract FileSystemOperations getFileSystemOperations()
+    @javax.inject.Inject abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void bundle() {
+        File root = outputDir.get().asFile
+        File target = new File(root, assetRoot.get())
+        fileSystemOperations.delete { it.delete(root) }
+        fileSystemOperations.copy {
+            it.from(distDir)
+            it.into(target)
+        }
+        logger.lifecycle("CIBAR：已將 webapp/dist 放入 assets/${assetRoot.get()}/")
+
+        // The audit runs on the exact bytes that are about to be packaged, not on some other copy
+        // of the webapp. A production build that reaches for a CDN fails the APK here rather than
+        // on a phone in aeroplane mode.
+        try {
+            execOperations.exec {
+                it.commandLine = [
+                        "node", auditScript.get().asFile.absolutePath, target.absolutePath]
+            }
+        } catch (Exception failure) {
+            throw new GradleException("The packaged web content did not pass the offline audit"
+                    + " (webapp/scripts/audit-offline-web-assets.mjs). An APK whose page reaches"
+                    + " for the network is worse than no APK at all: it works on the bench and"
+                    + " fails in aeroplane mode.", failure)
+        }
+
+        // The baseline's manifest: the same file an OTA bundle carries, produced by the same
+        // script from the same dist/. It is what lets the shell say which version it shipped with,
+        // and therefore whether anything published is actually newer.
+        File manifest = new File(root, manifestName.get())
+        try {
+            execOperations.exec {
+                it.workingDir = distDir.get().asFile.parentFile
+                it.commandLine = [
+                        "node", manifestScript.get().asFile.absolutePath,
+                        "--dist", target.absolutePath,
+                        "--manifest-only", manifest.absolutePath]
+            }
+        } catch (Exception failure) {
+            throw new GradleException("Could not write the baseline manifest ("
+                    + manifest + "). Without it the shell cannot tell which web bundle it shipped"
+                    + " with, and would treat every published bundle as newer.", failure)
+        }
+        if (!manifest.isFile()) {
+            throw new GradleException("baseline manifest was not produced at " + manifest)
+        }
+        logger.lifecycle("CIBAR：baseline manifest 已寫入 assets/${manifestName.get()}")
+    }
+}
+
+def bundleCibarWebAssets = tasks.register("bundleCibarWebAssets", BundleCibarWebAssets) {
+    group = "build"
+    description = "Stages the built webapp into the APK assets, audits it, and writes its manifest."
+    dependsOn(buildCibarWebapp)
+    it.distDir.set(buildCibarWebapp.flatMap { t -> t.distDir })
+    it.auditScript.set(new File(webappRoot, "scripts/audit-offline-web-assets.mjs"))
+    it.auditAllowlist.set(new File(webappRoot, "scripts/offline-external-url-allowlist.json"))
+    it.manifestScript.set(new File(webappRoot, "scripts/build-ota-release.mjs"))
+    it.versionFile.set(new File(rootProject.projectDir.parentFile, "release/versions.json"))
+    it.assetRoot.set("cibar")
+    it.manifestName.set("cibar-baseline-manifest.json")
+    it.outputDir.set(layout.buildDirectory.dir("generated/cibarWebAssets"))
+}
+
+// Wires the staged directory in as a generated assets source, with the task dependency AGP needs.
+// There is one variant dimension left (debug/release) and both package the same baseline: an APK
+// without its web content is not a thing this project can produce.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(bundleCibarWebAssets,
+                { task -> task.outputDir })
+    }
+}

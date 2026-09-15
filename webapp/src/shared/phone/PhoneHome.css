@@ -1,0 +1,35 @@
+/* Fake phone desktop, geometry copied from the two desktops that already
+   exist: scenario02's .meetu-desktop (styles/global.css) and scenario04's
+   SimPhoneHome. Same padding rhythm, same 44px/300 clock pushed to the top by
+   `margin-bottom:auto`, same 64px icon at radius 18 with an 8px gap to a 12px
+   label. Only the gradient is per-scenario, exactly as it is over there
+   (scenario02 purple, scenario04 teal).
+
+   The device frame itself - width, height, 30px radius, shadow, clipping - is
+   NOT set here: the caller's phone shell already provides it (.go-app for
+   scenario05), matching how .meetu-desktop and .blackpi-app carry it in the
+   other two scenarios. This surface just fills whatever frame it is dropped
+   into, so nothing can spill past the rounded corners. */
+.phone-home{
+  width:100%;flex:1;min-height:0;max-height:100%;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;
+  padding:calc(24px + env(safe-area-inset-top)) 0 80px;
+  color:#fff;
+  background:linear-gradient(160deg,#1D3A64 0%,#2F5C92 55%,#122845 100%);
+}
+.phone-home-clock{margin-top:12px;margin-bottom:auto;text-align:center;display:flex;flex-direction:column;gap:4px}
+.phone-home-clock strong{font-size:44px;font-weight:300;line-height:1}
+.phone-home-clock span{font-size:13px;opacity:.7}
+
+.phone-home-apps{display:flex;flex-wrap:wrap;justify-content:center;gap:18px 24px}
+.phone-home-app{appearance:none;border:0;background:none;padding:0;color:#fff;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;transition:transform .18s ease,opacity .18s ease}
+.phone-home-app:active{transform:scale(.9);opacity:.75}
+.phone-home-app-icon{width:64px;height:64px;flex:none;border-radius:18px;overflow:hidden;display:grid;place-items:center;background:#fff;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.phone-home-app-icon>img{width:100%;height:100%;object-fit:cover}
+/* Icon supplied with an artwork box (see AppIconArt): the wrapper is the
+   artwork's own rectangle, inset in the tile like scenario02 insets MeetU's
+   logo, and the image is scaled/offset inside it so the empty canvas margins
+   fall outside the wrapper. The app item itself is never offset. */
+.phone-home-app-art{position:relative;display:block;height:70%;overflow:hidden}
+.phone-home-app-art>img{position:absolute;max-width:none;object-fit:fill}
+.phone-home-app-label{font-size:12px;font-weight:600}

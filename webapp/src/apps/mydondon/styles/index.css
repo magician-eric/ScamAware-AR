@@ -1,0 +1,386 @@
+/* ---------------------------------------------------------------------
+   幽靈訂單 GHOST ORDER (scenario05 - 假買家騙賣家).
+
+   This scenario is NOT one design system. The player walks through several
+   different worlds and each one owns its chrome, its colour language and its
+   component vocabulary:
+
+     .go-ctx-setup     CIBAR scenario setup       (商品選擇)
+     .go-ctx-mydondon  MyDonDon 買東東 app        blue + white consumer app,
+                       the player's real marketplace
+     .go-ctx-hpefake  SafeDeal (data/scenario05FakeSite.js) - the fake
+                       external "trading site" the buyer links the player
+                       to, with its own independent purple + white identity
+                       (never HPE's yellow/black - the two must stay visually
+                       unmistakable from each other), inside a browser (real
+                       黑皮通 never renders here - it's real logistics only,
+                       rendered through its own native app chrome, HpeShell)
+     .go-ctx-bank      a brief transitional "processing" beat reused before
+                       the fake trading site fails to load, navy, no browser
+     .go-ctx-result    CIBAR result / education   dark CIBAR chrome
+
+   The only thing genuinely shared is the device frame (.go-app), the scroll
+   container and the image placeholder. Everything else is prefixed per
+   context - md- / sq- / bk- / cib- / wb- (browser chrome) - so that "does
+   MyDonDon blue leak into the fake site?" is answerable by grep.
+--------------------------------------------------------------------- */
+:root{
+  /* -- MyDonDon 買東東 (consumer marketplace app) ----------------------- */
+  --md-blue:#2563EB;
+  --md-blue-bright:#4F8CFF;
+  --md-blue-light:#A9C7FF;
+  --md-blue-tint:#EDF3FF;
+  --md-navy:#1F2937;
+  --md-yellow:#FFC83D;         /* accent only - logo heart / small highlights */
+  --md-red:#E5484D;            /* unread / notification / error only */
+  --md-bg:#F5F7FA;
+  --md-surface:#FFFFFF;
+  --md-line:#E6E9EF;
+  --md-text:#151A21;
+  --md-text-2:#5B6472;
+  --md-text-3:#98A0AC;
+  --md-bubble:#EEF0F4;
+
+  /* -- SafeDeal, the fake external trading site (data/scenario05FakeSite.js)
+     Its own purple + white CIS, wholly independent of HPE's yellow/black
+     (apps/hpe-logistics/styles/index.css's --hpe-yellow*) - the two used to
+     share a palette on the theory that impersonating trust means borrowing
+     a real destination's colour, but that made SafeDeal read as "the same
+     brand as 黑皮通" instead of "a plausible third-party trust service",
+     which is the actual trick. Real 黑皮通 never renders in this palette -
+     its one screen (HpeShip.jsx) uses apps/hpe-logistics' own CSS directly. */
+  --sq-purple:#7857FF;         /* lightest tint of the hue that still clears 4.5:1 under the header's white text */
+  --sq-purple-deep:#6B4FE8;    /* text-safe shade for secondary-button labels/links on white (5.4:1) */
+  --sq-purple-tint:#F4F1FF;    /* light fill under the success icon / soft accents */
+  --sq-bg:#FBFAFF;
+  --sq-line:#E8E4F8;
+  --sq-text:#20232B;
+  --sq-text-2:#68707E;
+
+  /* -- brief transitional "processing" beat (see .bk-processing below) -- */
+  --bk-navy:#12305B;
+  --bk-bg:#EEF1F6;
+  --bk-text:#101828;
+
+  /* -- CIBAR system (setup + result + education) ------------------------ */
+  --cib-bg:#0A1A2F;
+  --cib-text:#F2F7FC;
+
+  --go-font:'Noto Sans TC',system-ui,-apple-system,"Microsoft JhengHei",sans-serif;
+}
+
+/* ---- device frame (the ONLY shared shell) ------------------------------
+   Viewport and safe areas only. No simulated phone hardware (no outer
+   card/border-radius/shadow shrinking the app into a centred phone model)
+   - the app fills whatever viewport it's given, edge to edge. No header, no
+   navigation, no brand colour either - those belong to whichever context is
+   mounted inside. */
+.ar-stage.go-stage{padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#dfe1e4}
+.go-app{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:var(--go-font);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  /* 100-200ms context switch: the player should feel the ground change
+     without waiting for a loading screen (spec section 40). */
+  animation:goCtxIn .16s ease-out;
+}
+.go-app *{-webkit-tap-highlight-color:transparent}
+@keyframes goCtxIn{from{opacity:.35}to{opacity:1}}
+
+.go-ctx-mydondon{background:var(--md-bg);color:var(--md-text)}
+.go-ctx-hpefake{background:var(--sq-bg);color:var(--sq-text)}
+.go-ctx-bank{background:var(--bk-bg);color:var(--bk-text)}
+.go-ctx-setup{background:var(--cib-bg);color:var(--cib-text)}
+
+.go-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:22px 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.go-scroll::-webkit-scrollbar{display:none}
+.go-spacer{flex:1}
+
+/* ---- shared image placeholder / avatar ---------------------------------- */
+.go-ph{position:relative;background:#e4e6e9;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8a8f96;overflow:hidden;text-align:center;padding:4px}
+.go-ph-label{font-size:10px;line-height:1.3;padding:0 4px}
+img.go-ph{display:block;padding:0;object-fit:cover}
+.go-avatar{--go-avatar-size:36px;position:relative;display:inline-flex;flex:none;width:var(--go-avatar-size);height:var(--go-avatar-size);border-radius:50%;overflow:hidden;background:#e8d5c4}
+.go-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 24%}
+.go-avatar-fallback{margin:auto;color:#fff}
+
+/* The CIBAR post-simulation styling that used to live here - the result bar,
+   the ending/reveal cards, the quiz and the score ring - is gone. Every
+   post-simulation screen (詐騙成立／成功反詐, 詐騙疑點分析, 反詐小測驗) is now
+   rendered by CIBAR's own shared layer, which owns its own stylesheets:
+   components/outcome/ScenarioOutcome.css, components/outcome/
+   FraudClueAnalysis.css and components/ui/ScenarioFinalDecision.css. A fake
+   marketplace App does not style the screens shown after its own simulation
+   has ended. */
+
+/* =======================================================================
+   MyDonDon 買東東 - the consumer marketplace app.
+   Blue + white, rounded, light. Everything below is scoped to the app: the
+   header, the tab bar, the feed and the one-to-one chat. None of it may be
+   mounted by the 黑皮通 site, the fake support site, the bank screen or the
+   CIBAR result screens (spec sections 5 / 38).
+   ======================================================================= */
+.md-header{flex:none;display:flex;align-items:center;gap:10px;min-height:calc(54px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 14px 8px 16px;background:var(--md-surface);border-bottom:1px solid var(--md-line)}
+.md-header-actions{margin-left:auto;display:flex;align-items:center;gap:2px}
+.md-logo{display:block;width:auto;object-fit:contain}
+/* Temporary label shown only while the supplied PNG is not in the repo yet -
+   plain text, deliberately not styled to imitate the real mark. */
+.md-logo-text{font-weight:800;letter-spacing:-.01em;color:var(--md-blue)}
+.md-icon-btn{width:38px;height:38px;min-width:38px;border:0;background:none;color:var(--md-navy);display:grid;place-items:center;border-radius:999px;cursor:pointer;flex:none;position:relative}
+.md-icon-btn:active{background:var(--md-blue-tint)}
+.md-icon-display{cursor:default;pointer-events:none}
+.md-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--md-red);border:1.5px solid var(--md-surface)}
+
+.md-feed{padding:14px 14px calc(16px + env(safe-area-inset-bottom));gap:0}
+.md-home-feed{padding:14px;gap:14px}
+.md-home-search{flex:none;height:42px;border-radius:12px;background:var(--md-surface);border:1px solid var(--md-line);display:flex;align-items:center;gap:9px;padding:0 12px;color:var(--md-text-3);font-size:13px}
+.md-home-search span{flex:1}
+/* The feed's single call to action. It is one <button>: the whole banner is
+   the tap target, so nothing inside it may look like a separate control - the
+   action line is plain text on the banner's own blue, never a white pill. */
+.md-home-sell{flex:none;width:100%;appearance:none;border:0;font-family:inherit;text-align:left;cursor:pointer;background:linear-gradient(135deg,var(--md-blue),#6e9cff);color:#fff;border-radius:18px;padding:26px 20px 20px;display:flex;flex-direction:column;gap:7px;box-shadow:0 10px 26px rgba(37,99,235,.24);transition:transform .12s ease,box-shadow .12s ease}
+.md-home-sell:active{transform:scale(.99);box-shadow:0 6px 16px rgba(37,99,235,.2)}
+.md-home-sell strong{font-size:24px;font-weight:900;line-height:1.25;letter-spacing:-.01em}
+.md-home-sell-sub{font-size:13px;opacity:.92;line-height:1.5}
+.md-home-sell-action{align-self:flex-end;margin-top:5px;font-size:13.5px;font-weight:800;letter-spacing:.01em}
+
+/* ---- MyDonDon 刊登商品・選擇要出售的商品 (pushed screen, no tab bar) ----
+   A pushed screen inside the app, so it wears the app's back-header, its
+   light surface and its blue - not CIBAR's dark setup chrome.
+
+   Both cards must be interchangeable at a glance: the photo is a fixed
+   square and the padding is on .md-pick itself, so neither card can be
+   taller, wider or differently inset than the other whatever the copy or the
+   photo's aspect ratio. */
+.md-subheader{flex:none;display:flex;align-items:center;gap:4px;min-height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 14px 6px 4px;background:var(--md-surface);border-bottom:1px solid var(--md-line)}
+.md-subheader-title{font-size:16px;font-weight:800;color:var(--md-text)}
+
+.md-pick-page{padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+.md-pick-h1{font-size:20px;font-weight:900;line-height:1.35;margin:0}
+.md-pick-sub{font-size:13px;color:var(--md-text-2);line-height:1.6;margin:6px 0 0}
+.md-pick-list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:16px}
+
+/* MyDonDon's own primary button - e.g. MyDonDonOrders.jsx's explicit
+   "返回對話", which the player must tap themselves (no auto-navigate) once
+   they've actually read "沒有新的訂單". */
+.md-btn{appearance:none;border:0;border-radius:12px;min-height:52px;padding:0 18px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;background:var(--md-blue);color:#fff;margin-top:16px}
+.md-btn:active{filter:brightness(.94)}
+
+.md-pick{width:100%;min-width:0;appearance:none;font-family:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--md-surface);border:1px solid var(--md-line);border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:stretch;gap:10px;box-shadow:0 1px 3px rgba(16,24,40,.05);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;overflow-wrap:anywhere}
+.md-pick:active{transform:scale(.99);background:var(--md-blue-tint);box-shadow:none}
+.md-pick.selected{border-color:var(--md-blue);box-shadow:0 0 0 1px var(--md-blue) inset}
+.md-pick:disabled{opacity:.45;cursor:default}
+.md-pick-img{width:100%;height:auto;aspect-ratio:1;flex:none;border-radius:10px}
+.md-pick-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.md-pick-name{font-size:15px;font-weight:700;line-height:1.4}
+.md-pick-desc{font-size:12px;color:var(--md-text-2);line-height:1.5}
+.md-pick-price{font-size:17px;font-weight:800;color:var(--md-blue);margin-top:2px}
+
+/* The buyer's message as a phone notification (MyDonDonPushNotice), not as
+   feed content. It is absolutely positioned so it floats over the listing
+   without reflowing it, and it is clipped by the device frame (.go-app is
+   position:relative + overflow:hidden), so it can never spill onto the
+   scenario surface outside the phone. It slides down from above the top edge
+   the way an OS notification does, then holds still. */
+.md-push{position:absolute;z-index:60;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;gap:11px;padding:11px 13px;border:0;border-radius:18px;background:rgba(252,253,255,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 14px 34px rgba(16,24,40,.24);color:var(--md-text);font-family:inherit;text-align:left;cursor:pointer;animation:mdPushIn .42s cubic-bezier(.22,.9,.28,1) both}
+@keyframes mdPushIn{from{transform:translateY(-120%)}to{transform:translateY(0)}}
+.md-push:active{background:#F1F5FF}
+.md-push-avatar{flex:none}
+.md-push-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.md-push-meta{display:flex;align-items:baseline;gap:6px;font-size:10.5px;color:var(--md-text-3)}
+.md-push-meta b{font-weight:800;color:var(--md-blue)}
+.md-push-meta span{margin-left:auto}
+.md-push-name{font-size:13.5px;font-weight:800;color:var(--md-navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.md-push-preview{font-size:12.5px;color:var(--md-text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.md-post{border:1px solid var(--md-line);border-radius:14px;overflow:hidden;background:var(--md-surface)}
+.md-post-head{display:flex;gap:10px;align-items:center;padding:12px 14px}
+.md-post-avatar{width:34px;height:34px;border-radius:50%;background:var(--md-blue-tint);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--md-blue);flex:none}
+.md-post-author{font-size:13.5px;font-weight:700}
+.md-post-meta{font-size:11px;color:var(--md-text-3)}
+.md-post-hero{height:190px}
+.md-post-hero .go-ph{border-radius:0;height:100%}
+.md-post-hero img.go-ph{width:100%}
+.md-post-body{padding:12px 14px}
+.md-post-name{font-size:15.5px;font-weight:700}
+.md-post-desc{font-size:12.5px;color:var(--md-text-2);margin:3px 0 6px;line-height:1.5}
+.md-post-price{font-size:18px;font-weight:800;color:var(--md-blue)}
+.md-post-stats{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:11.5px;color:var(--md-text-3);border-top:1px solid var(--md-line);padding-top:10px}
+.md-post-stats span{display:inline-flex;align-items:center;gap:4px}
+
+.md-bottom-nav{flex:none;display:flex;background:var(--md-surface);border-top:1px solid var(--md-line);padding-bottom:env(safe-area-inset-bottom)}
+.md-nav-btn{flex:1;min-width:0;border:0;background:none;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 7px;font-size:10.5px;color:var(--md-text-3)}
+.md-nav-btn.active{color:var(--md-blue);font-weight:700}
+.md-nav-btn[aria-disabled="true"]{cursor:default}
+.md-nav-icon{position:relative;display:inline-flex}
+.md-nav-badge{position:absolute;top:-5px;right:-9px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--md-red);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---- MyDonDon one-to-one chat (no tab bar below it) --------------------- */
+.md-chat-header{flex:none;display:flex;align-items:center;gap:10px;min-height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 6px 4px;background:var(--md-surface);border-bottom:1px solid var(--md-line)}
+.md-chat-identity{min-width:0;flex:1}
+.md-chat-name{font-size:15px;font-weight:700;overflow-wrap:anywhere}
+.md-chat-sub{font-size:11px;color:var(--md-text-3);overflow-wrap:anywhere}
+.md-online-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#12B76A;margin-right:4px;vertical-align:1px}
+.md-chat-brand{flex:none;margin-left:auto;opacity:.95}
+.md-chat-intro{align-self:center;text-align:center;padding:2px 0 4px}
+.md-chat-intro-name{font-size:13.5px;font-weight:700;margin-top:6px}
+.md-chat-intro-meta{font-size:10.5px;color:var(--md-text-3);line-height:1.6}
+
+.md-chat-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;background:var(--md-bg)}
+.md-chat-scroll::-webkit-scrollbar{display:none}
+.md-chat-timestamp{align-self:center;color:var(--md-text-3);font-size:10.5px;line-height:1;padding:4px 8px}
+.md-system-row{align-self:center;text-align:center;font-size:10.5px;color:var(--md-text-2);background:var(--md-bubble);border-radius:10px;padding:3px 10px}
+.md-msg-row{display:flex}
+.md-msg-row.theirs{justify-content:flex-start}
+.md-msg-row.mine{justify-content:flex-end}
+.md-bubble{max-width:80%;padding:10px 13px;font-size:14px;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
+.md-bubble.theirs{background:var(--md-bubble);border-radius:4px 16px 16px 16px;color:var(--md-text)}
+.md-bubble.mine{background:var(--md-blue);color:#fff;border-radius:16px 4px 16px 16px}
+
+.md-typing{align-self:flex-start;display:flex;gap:4px;background:var(--md-bubble);border-radius:4px 16px 16px 16px;padding:12px 16px}
+.md-typing i{width:6px;height:6px;border-radius:999px;background:#BFC5CE;animation:goTypingDot 1s infinite ease-in-out}
+.md-typing i:nth-child(2){animation-delay:.12s}
+.md-typing i:nth-child(3){animation-delay:.24s}
+@keyframes goTypingDot{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-4px);opacity:1}}
+
+/* Outside content quoted inside a MyDonDon conversation - the shop-link
+   preview marketplaceBuyer/the player forward each other. It wears the other
+   party's colours precisely because it is not MyDonDon's own content, while
+   the chat around it stays MyDonDon (spec section 25). */
+.md-link-card{max-width:82%}
+.md-link-card-lead{font-size:14px;line-height:1.55;color:var(--md-text);margin-bottom:6px}
+.md-msg-row.mine .md-link-card-lead{color:var(--md-text);text-align:right}
+.md-link-card-body{background:var(--md-surface);border:1px solid var(--md-line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.md-link-card-icon{width:38px;height:38px;border-radius:9px;background:var(--sq-purple);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.md-link-card-info{min-width:0}
+.md-link-card-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-link-card-url{font-size:11px;color:var(--md-text-2)}
+
+/* A centred empty-state card - reused by MyDonDon's own "no orders" screen
+   (MyDonDonOrders.jsx). */
+.md-quoted-card{max-width:88%;background:var(--md-surface);border:1px solid var(--sq-line);border-radius:12px;overflow:hidden;box-shadow:0 5px 16px rgba(31,42,55,.12)}
+.md-quoted-card-body{padding:16px 14px;text-align:center}
+.md-quoted-card-icon{width:40px;height:40px;border-radius:50%;background:#FDECEB;color:#C2453A;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.md-quoted-card-title{font-size:15px;font-weight:800;color:var(--md-text)}
+.md-quoted-card-body p{font-size:12px;color:var(--md-text-2);line-height:1.6;margin:6px 0 0}
+
+/* =======================================================================
+   Browser chrome - mounted by websites only (黑皮通 official, fake support).
+   Identical for both: the address is the only difference the player gets
+   (spec section 28).
+   ======================================================================= */
+.wb-chrome{flex:none;display:flex;align-items:center;gap:6px;min-height:calc(46px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 6px;background:#DDE1E6;border-bottom:1px solid #C4CAD1}
+.wb-icon-btn{width:34px;height:34px;min-width:34px;border:0;background:none;color:#39414B;display:grid;place-items:center;border-radius:999px;cursor:pointer;flex:none}
+.wb-icon-btn:active{background:rgba(0,0,0,.08)}
+.wb-icon-display{cursor:default;pointer-events:none}
+.wb-omnibox{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;background:#fff;border-radius:999px;height:30px;padding:0 12px;color:#39414B}
+.wb-domain{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:system-ui,-apple-system,sans-serif}
+
+/* =======================================================================
+   SafeDeal (safe-deal.tw) - the fake external trading site. Its own clean,
+   modern purple + white identity - a plausible third-party trust/escrow
+   service, never anything like 黑皮通's yellow + black (see
+   apps/hpe-logistics/styles/index.css) or MyDonDon's blue (spec: the three
+   must stay visually unmistakable from each other).
+   ======================================================================= */
+.sq-masthead{flex:none;background:var(--sq-purple);color:#fff;padding:14px 16px 13px}
+.sq-brand{display:flex;align-items:center;gap:7px}
+.sq-brand-icon{flex:none;opacity:.95}
+.sq-wordmark{font-size:18px;font-weight:900;letter-spacing:.02em}
+.sq-brand-tag{font-size:11px;opacity:.82;margin-top:3px}
+.sq-section{font-size:12.5px;font-weight:600;margin-top:8px;opacity:.95}
+.sq-page{padding:14px 14px calc(20px + env(safe-area-inset-bottom));gap:0}
+
+.sq-field{background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:12px 14px;margin-top:10px}
+.sq-field:first-child{margin-top:0}
+.sq-field-label{font-size:11px;color:var(--sq-text-2);font-weight:700;letter-spacing:.06em;margin-bottom:5px}
+.sq-field-value{font-size:14.5px;color:var(--sq-text)}
+.sq-field-value.strong{font-weight:700}
+/* Carrier row: the name, then 黑皮通's own delivery mark. Wraps rather than
+   overflowing once the label is long (EN/JP run wider than the zh original). */
+.sq-field-carrier{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+/* margin:0 overrides HpeLogo's own `.hpe-logo{margin:0 auto}` - in a flex row
+   an auto margin eats the free space and shoves the mark to the far edge
+   (apps/blackpi's timeline hit the same thing). HPE's stylesheet is not
+   touched; this only neutralises the centring for this one row. */
+.sq-field-carrier .hpe-logo{flex:none;margin:0}
+
+.sq-card{background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:14px;margin-top:10px}
+.sq-card:first-child{margin-top:0}
+.sq-card-title{font-size:12.5px;font-weight:800;color:var(--sq-text-2);letter-spacing:.04em;margin-bottom:10px}
+.sq-card p{font-size:12.5px;line-height:1.75;margin:0 0 8px;color:var(--sq-text)}
+.sq-card p:last-child{margin-bottom:0}
+.sq-card .sq-card-help{font-size:12px;color:var(--sq-text-2);line-height:1.7;margin-top:10px}
+
+/* "交易安全提醒" card only (TradeInfo.jsx) - title/body/help text forced to
+   plain readable black regardless of the surrounding grey/brand tones the
+   rest of .sq-card uses elsewhere, per spec. Scoped to this one card so
+   OrderGone.jsx's unrelated .sq-card blocks are untouched. */
+.sq-safety-notice .sq-card-title,
+.sq-safety-notice p,
+.sq-safety-notice .sq-card-help{color:#000}
+
+.sq-alert{display:flex;gap:10px;background:#FDECEB;border:1px solid #F3B6B0;padding:14px}
+.sq-alert-icon{color:#D92D20;flex:none}
+.sq-alert-title{font-size:15px;font-weight:800;color:#8C2318}
+.sq-alert-code{font-size:11px;color:#8C2318;opacity:.85;margin-top:6px;font-family:monospace}
+.sq-fields div{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:8px 0;border-top:1px solid var(--sq-line)}
+.sq-fields div:first-child{border-top:0}
+.sq-fields dt{color:var(--sq-text-2);flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.sq-fields dd{margin:0;font-weight:700;text-align:right;flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+
+.sq-btn{appearance:none;border:0;border-radius:10px;min-height:50px;padding:0 18px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;background:var(--sq-purple);color:#fff;margin-top:16px;margin-bottom:calc(8px + env(safe-area-inset-bottom))}
+.sq-btn:active{filter:brightness(.94)}
+.sq-btn:disabled{opacity:.5;cursor:not-allowed}
+.sq-btn.sq-btn-outline{background:#fff;border:1.5px solid var(--sq-purple);color:var(--sq-purple-deep)}
+.sq-success{position:absolute;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:0 32px;text-align:center;z-index:5;animation:goFadeIn .2s ease-out}
+.sq-success-check{width:64px;height:64px;border-radius:50%;background:var(--sq-purple-tint);color:var(--sq-purple);display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+/* Both scoped one level deeper than they need to be: styles/global.css sets
+   a site-wide `p:not(.gugo-app *)` colour whose specificity (0,1,1) would
+   otherwise beat a bare single class and wash these out to --muted. */
+.sq-success .sq-success-title{font-size:17px;font-weight:800;color:var(--sq-text);margin:0}
+.sq-success .sq-success-sub{font-size:13px;color:var(--sq-text-2);margin:0}
+@keyframes goFadeIn{from{opacity:0}to{opacity:1}}
+
+/* =======================================================================
+   Brief transitional "processing" beat, reused wherever the story needs a
+   believable pause before the fake trading site fails to load
+   (OrderGone.jsx) - kept neutral navy, not colour-coded to any verdict.
+   ======================================================================= */
+.bk-processing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--bk-navy);font-size:14px}
+.bk-spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(18,48,91,.2);border-top-color:var(--bk-navy);animation:goSpin .8s linear infinite}
+@keyframes goSpin{to{transform:rotate(360deg)}}
+
+/* =======================================================================
+   Quick-reply choices. Shared behaviour, per-context appearance: rounded
+   brand-blue inside MyDonDon, squared slate on the support website.
+   ======================================================================= */
+.go-choices{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;transition:opacity .16s ease}
+.go-choices-leaving{opacity:0}
+.go-choices-prompt{margin:0 2px;font-size:10.5px}
+.go-choice-list{display:flex;flex-direction:column;gap:8px}
+.go-choice-btn{width:100%;min-height:52px;height:auto;text-align:left;padding:10px 14px;font-size:14px;line-height:1.4;cursor:pointer;font-family:inherit;overflow-wrap:anywhere;transition:transform .1s ease,background-color .12s ease}
+.go-choice-btn:active{transform:scale(.98)}
+.go-choice-btn:disabled{opacity:.45;cursor:not-allowed}
+
+.go-choices-mydondon{background:var(--md-surface)}
+.go-choices-mydondon .go-choice-list:has(> .go-choice-btn:nth-child(2):last-child){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.go-choices-mydondon .go-choice-list:has(> .go-choice-btn:nth-child(2):last-child) .go-choice-btn{min-width:0}
+.go-choices-mydondon .go-choices-prompt{color:var(--md-text-3)}
+.go-choices-mydondon .go-choice-btn{background:var(--md-blue-tint);border:1px solid var(--md-blue-light);border-radius:18px;color:var(--md-blue);min-height:48px}
+.go-choices-mydondon .go-choice-btn:active{background:#DCE7FF;border-color:var(--md-blue)}
+
+@media (max-width:380px){
+  .md-chat-header{gap:7px;padding-left:2px;padding-right:6px}
+  .go-choice-btn{min-height:52px;padding:11px 13px;line-height:1.45}
+  .md-quoted-card{max-width:94%}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .go-app,.md-push,.md-typing i,.bk-spinner{animation:none!important}
+}

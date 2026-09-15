@@ -1,0 +1,12 @@
+{
+  "releaseId": "1.2.0-20260825.007",
+  "version": "1.2.0",
+  "releaseDate": "2026-08-25",
+  "sequence": 7,
+  "gitCommit": "75876bf1328d940d659409033f9ee04575482726",
+  "sourcePR": 378,
+  "sha256": "fbdf5ce7c74050df90b936465d251914d0d5cbcd1d171cffb5edf2f6e6be37d9",
+  "sizeBytes": 91770369,
+  "minShellVersion": "1.0.0",
+  "url": "https://github.com/ericingptt/CIBAR/releases/download/web-1.2.0-20260825.007/cibar-web-1.2.0-20260825.007.zip"
+}

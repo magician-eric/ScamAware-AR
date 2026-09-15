@@ -1,0 +1,90 @@
+/* ---------------------------------------------------------------------
+   LINE module stylesheet - the single owner of every LINE visual surface.
+
+   Scope rule: this file styles exactly the class surface the module's own
+   components render (`apps/line/components/Line.jsx` and
+   `apps/line/components/LineWebsitePreview.jsx`), and nothing else. Anything
+   a Scenario draws *inside* a LINE row (story cards, story photos/videos,
+   scenario transitions) stays owned by that Scenario, even when it happens
+   to sit in a LINE bubble - see `pages/scenario02/PrivateChat.css` and
+   scenario03's `.pol-line-card-slot`.
+
+   Imported by `apps/line/index.js`, so any consumer of the module's public
+   API gets the styles automatically; Scenario pages never import it.
+   Enforced by `npm run validate:shared-ui-ownership`.
+
+   Self-contained by design: every custom property and every keyframe this
+   file references is also declared here. The three colour/font values below
+   used to be read from MeetU's `--meetu-text` / `--meetu-line` /
+   `--meetu-font` tokens, which made this module's rendering depend on
+   another App module being loaded; the typing animation had the same
+   problem via `global.css`'s shared `@keyframes typingDot`. Both are LINE's
+   own now.
+--------------------------------------------------------------------- */
+
+/* ---- shell ---------------------------------------------------------- */
+.line-app{--line-text:#17171B;--line-border:#ECECF1;--line-font:'Inter','SF Pro Display',system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;width:min(430px,100%);height:min(844px,100%);max-width:100%;max-height:100%;border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.22);background:#fff;color:var(--line-text);font-family:var(--line-font);display:flex;flex-direction:column;transition:filter .3s ease,transform .3s ease;animation:lineSlideIn 320ms ease-out}
+@keyframes lineSlideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+/* ---- header --------------------------------------------------------- */
+.line-header{flex:none;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0 4px;display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid var(--line-border)}
+.line-icon-btn{width:36px;height:36px;border:0;background:none;color:#333;display:grid;place-items:center;border-radius:999px;cursor:pointer}.line-header-name{flex:1;font-weight:700;font-size:15px;color:#151515}.line-header-title{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}.line-header-title .line-header-name{flex:none}.line-header-sub{font-size:11px;color:#8a93a3}.line-header-icons{display:flex;gap:2px}
+
+/* ---- avatar --------------------------------------------------------- */
+/* Deliberately NOT scoped under .line-app: `LineAvatar` is exported on its
+   own and scenario03 renders it outside a LINE conversation (the friend
+   -request notification in LineAdd.jsx, the custody chat head in
+   LineCustody.jsx). */
+.line-avatar{flex:none;border-radius:50%;object-fit:cover;display:grid;place-items:center}.line-avatar-fallback{background:#dce5ef;color:#526273;font-weight:700}
+
+/* ---- transcript viewport -------------------------------------------- */
+.line-chat-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:12px 12px 6px;display:flex;flex-direction:column;background:#a9bcd5;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:18px 18px}.line-chat-scroll::-webkit-scrollbar{display:none}
+
+/* ---- message bubbles ------------------------------------------------ */
+.line-date-divider{align-self:center;background:rgba(70,90,120,.35);color:#fff;font-size:12px;padding:5px 14px;border-radius:999px;margin:10px 0}.line-msg{max-width:78%;padding:10px 14px;font-size:15px;line-height:1.45;white-space:pre-line;box-shadow:0 1px 2px rgba(0,0,0,.08)}.line-msg.them{background:#fff;color:#151515;border-radius:16px 16px 16px 4px}.line-msg.me{background:#85e249;color:#151515;border-radius:16px 16px 4px 16px}
+
+/* ---- message rows / timestamps / read receipts ----------------------
+   `.chat-row` / `.chat-time` / `.chat-read` / `.chat-meta` are the LINE
+   module's own row classes (rendered by LineIncomingMessage /
+   LineIncomingBubble / LineOutgoingBubble), but the names are generic
+   enough to collide with any other chat UI that ever reaches for them.
+   They are scoped under the module's own `.line-app` root so the module
+   claims no unprefixed global name. Selector text only - every declaration
+   below is unchanged, and the extra ancestor only raises specificity
+   against rules that do not exist. */
+.line-app .chat-row{display:flex;align-items:flex-end;gap:6px;margin:6px 0}.line-app .chat-row .line-msg{margin:0}.line-app .chat-row-in{justify-content:flex-start}.line-app .chat-row-out{justify-content:flex-end}.line-app .chat-time,.line-app .chat-read{font-size:11px;color:#6b7684;white-space:nowrap}.line-app .chat-time{flex:none;padding-bottom:2px}.line-app .chat-meta{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none}.line-app .chat-read{line-height:1.3}.line-app .chat-meta .chat-time{padding-bottom:0}
+
+/* ---- group rows / footer -------------------------------------------- */
+.line-chat-footer{flex:none;background:#f7f7fa;border-top:1px solid var(--line-border)}.line-group-row{display:flex;align-items:flex-start;gap:8px;margin:10px 0}.line-group-content{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}.line-group-sender{font-size:12px;color:#6b7684;margin:0 0 3px 2px}
+
+/* ---- typing indicator ----------------------------------------------- */
+.line-typing{align-self:flex-start;display:flex;gap:4px;background:#fff;border-radius:16px 16px 16px 4px;padding:12px 16px;margin:3px 0}.line-typing i{width:6px;height:6px;border-radius:50%;background:#8d99a6;animation:lineTypingDot 1s infinite ease-in-out}.line-typing i:nth-child(2){animation-delay:.12s}.line-typing i:nth-child(3){animation-delay:.24s}
+@keyframes lineTypingDot{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-4px);opacity:1}}
+
+/* ---- quick replies / media row shell -------------------------------- */
+.line-quick-replies{padding:8px 12px calc(8px + env(safe-area-inset-bottom));transition:opacity .16s}.line-quick-replies-picked{opacity:.6}.line-quick-pill:disabled{cursor:default;opacity:.7}.line-quick-pill-active{opacity:1;border-color:#15803d;background:#e9f9ef}.line-quick-label{font-size:12px;color:#6b7684;margin-bottom:6px}.line-quick-pills{display:flex;gap:8px;overflow-x:auto}.line-quick-pill{flex:1;min-height:42px;border:1px solid #06c755;border-radius:999px;background:#fff;color:#15803d;font-weight:600;padding:9px 14px;cursor:pointer}.line-media-shell{max-width:78%;overflow:hidden;border-radius:13px}
+
+/* ---- full-bleed variant / body wrapper / footer content -------------- */
+.line-app-full{width:100%;height:100%;max-width:100%;max-height:100%;border-radius:0;box-shadow:none;animation:none}.line-app-full .line-header{height:auto;min-height:calc(52px + env(safe-area-inset-top))}.line-app-full .line-header-name{white-space:normal;line-height:1.25}.line-app-full .line-quick-pill{white-space:normal;height:auto;min-height:42px;line-height:1.3;text-align:center;padding:10px 16px}
+.line-group-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.line-footer-content{padding:10px 12px calc(12px + env(safe-area-inset-bottom))}.line-footer-content>.btns{padding:0;margin:0}
+
+/* ---- link preview card ----------------------------------------------
+   The card LINE renders for a URL sent in a chat (LineWebsitePreview.jsx):
+   preview image, title, description, domain - white surface, incoming-bubble
+   corners, capped at the same 78% row width as `.line-msg` so it reads as one
+   more message rather than a panel dropped into the transcript.
+
+   `.line-website-card-actions` is the host's CTA slot: a grid so whatever
+   button the consumer puts there (the app-wide `.btn`) fills the card width
+   on a phone instead of shrinking to its label. */
+.line-website-card{max-width:78%;display:flex;flex-direction:column;gap:8px}
+.line-website-card-main{width:100%;padding:0;border:0;text-align:left;background:#fff;color:#151515;border-radius:16px 16px 16px 4px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.08);display:block}
+.line-website-card-tappable{cursor:pointer}
+.line-website-card-image{display:block;width:100%;aspect-ratio:40/21;object-fit:cover;background:#dce5ef}
+.line-website-card-text{padding:10px 13px 11px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.line-website-card-title{font-size:14px;font-weight:700;line-height:1.35;color:#151515;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
+.line-website-card-desc{font-size:12.5px;line-height:1.45;color:#6b7684;white-space:pre-line;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}
+.line-website-card-domain{font-size:11.5px;color:#8d99a6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.line-website-card-actions{display:grid}
+.line-website-card-actions>.btns{padding:0;margin:0}

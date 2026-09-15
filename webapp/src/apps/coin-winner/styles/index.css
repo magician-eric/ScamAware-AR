@@ -1,0 +1,203 @@
+/* ---------------------------------------------------------------------
+   幣勝客 Coin Winner (BITION) - the App module's own design system.
+
+   Every rule in this file used to live in webapp/src/styles/global.css.
+   They were moved here unchanged - same selectors, same declarations, same
+   order relative to one another - so the module that renders the UI is the
+   module that styles it (§13 AD-04 in docs/CIBAR-Technical-Specification.md).
+   apps/coin-winner/index.js imports this file, so mounting any Coin Winner
+   screen brings its styling with it; nothing outside the module imports it.
+
+   Scenario 02 renders Coin Winner-branded screens of its own and is a
+   consumer of the rules below: four sit inside the app frame (the
+   guarantee/verification page, the two forced warnings and the risk
+   disclosure) and two more only take the stage (the scammed/stopped result
+   pages). That is a component ownership question, not a styling one, and is
+   untouched here.
+
+   Deliberately NOT moved, because each has a live consumer outside this
+   module and is therefore genuinely shared (see §13 AD-04):
+   - @keyframes chartSweep     - GuGo Invest's .profit-asset-card (the former
+                                 global `.fake-chart` consumer had no markup
+                                 left and was deleted as dead CSS)
+   - @keyframes lineVideoSpin  - LINE's .line-video-spinner
+   - @keyframes bitionBlink    - GuGo Invest's .profit-live-dot
+   - .trend-line               - GuGo Invest owns it (apps/gugo-invest/app/
+                                 styles/platform.css); .bition-trend-line
+                                 below layers this module's own animation on
+                                 top of it, exactly as before
+   - .mini, .warning, .hero, .card, .ar-stage, --danger and the other :root
+     variables - app-wide primitives with consumers in several modules
+--------------------------------------------------------------------- */
+
+@keyframes drawTrend{to{stroke-dashoffset:0}}
+
+/* The deposit page's chart (apps/coin-winner/DepositPage.jsx) is this
+   module's only consumer; GuGo Invest's own chart uses
+   .gugo-candlestick-chart, in that module. */
+.candlestick-chart{width:100%;height:auto;display:block;margin:8px 0}
+.candlestick-chart{min-height:160px}
+
+/* ---- 幣勝客 BITION investment platform (scenario02, Day13+) --------------
+   Same "measure against the .ar-stage box, not the real viewport" approach
+   as .meetu-stage/.line-app (styles/global.css) - a dark, mobile-portrait crypto-app frame
+   centered inside the shared 16:9 stage. Emily never appears anywhere in
+   here; every hand-off to/from LINE is a full route change, not an overlay. */
+.ar-stage.bition-stage{padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 0%,#0d2a4a 0%,#050d1c 55%,#020610 100%)}
+.bition-app{
+  width:min(430px,100%);
+  height:min(844px,100%);
+  max-width:100%;
+  max-height:100%;
+  border-radius:30px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.4);
+  background:#050d1c;
+  color:#eef6ff;
+  font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  display:flex;
+  flex-direction:column;
+}
+.bition-home-scroll,.bition-register-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:16px 16px 24px}
+.bition-home-scroll::-webkit-scrollbar,.bition-register-scroll::-webkit-scrollbar{display:none}
+
+.bition-logo-block{text-align:center;margin:36px 0 28px}
+.bition-logo{font-size:30px;font-weight:900;letter-spacing:.04em;color:#fff;display:flex;flex-direction:column;line-height:1.2}
+.bition-logo span{font-size:15px;font-weight:700;letter-spacing:.25em;color:#25d0ff;margin-top:2px}
+.bition-tagline{color:#8ea3c2;font-size:14px;margin-top:10px}
+
+.bition-home-header,.bition-sub-header{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(5,13,28,.9)}
+.bition-home-logo{font-weight:900;font-size:17px;letter-spacing:.03em;color:#fff;display:flex;align-items:baseline;gap:6px}
+.bition-home-logo span{font-size:11px;font-weight:700;letter-spacing:.2em;color:#25d0ff}
+.bition-home-logo.small{font-size:15px}
+.bition-home-icons{display:flex;gap:10px}
+.bition-home-icons>span{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#cfe0f5;display:grid;place-items:center}
+
+.bition-card{background:linear-gradient(165deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:18px;margin-bottom:14px;backdrop-filter:blur(14px);box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.bition-section-title{font-size:19px;margin:0 0 12px;color:#fff}
+
+.bition-asset-card{position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(37,208,255,.16),rgba(5,13,28,.4) 60%);border:1px solid rgba(37,208,255,.28)}
+.bition-asset-card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0 35%,rgba(37,208,255,.14) 48%,transparent 62%);animation:chartSweep 6s ease-out infinite;pointer-events:none}
+.bition-asset-label{color:#9db4d4;font-size:13px}
+.bition-asset-value{font-size:34px;font-weight:900;color:#fff;margin-top:6px;letter-spacing:.01em}
+.bition-asset-value span{font-size:15px;font-weight:700;color:#25d0ff;margin-left:4px}
+.bition-asset-value.large{font-size:30px;text-align:center;margin:10px 0}
+.bition-asset-sub{color:#8ea3c2;font-size:13px;margin-top:2px}
+.bition-asset-profit{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);font-size:14px;color:#9db4d4}
+.bition-asset-profit strong{color:#eef6ff;font-weight:800}
+.bition-asset-profit strong.up,.up{color:#39d98a}
+.bition-quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.bition-quick-action{border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 4px;text-align:center;font-size:13px;color:#9db4d4;background:rgba(255,255,255,.03)}
+
+.bition-strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.bition-strategy-name{font-weight:800;font-size:16px;color:#fff}
+.bition-strategy-desc{color:#8ea3c2;font-size:13px;margin-top:2px}
+.bition-status-pill{flex:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);color:#9db4d4;border:1px solid rgba(255,255,255,.14)}
+.bition-status-pill.running{background:rgba(57,217,138,.16);color:#39d98a;border-color:rgba(57,217,138,.4)}
+.bition-strategy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.bition-strategy-grid div{background:rgba(255,255,255,.04);border-radius:12px;padding:10px 8px;text-align:center}
+.bition-strategy-grid span{display:block;color:#8ea3c2;font-size:11px;margin-bottom:4px}
+.bition-strategy-grid strong{font-size:13px;color:#eef6ff}
+
+.bition-pools{display:grid;gap:10px}
+.bition-pool-card{padding:14px 16px;margin-bottom:0}
+.bition-pool-name{font-weight:700;font-size:14px;color:#fff;margin-bottom:8px}
+.bition-pool-row{display:flex;justify-content:space-between;font-size:13px;color:#8ea3c2;padding:3px 0}
+.bition-pool-row strong{color:#eef6ff}
+
+.bition-stat-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px;color:#9db4d4}
+.bition-stat-row strong{color:#eef6ff;font-weight:700}
+
+.bition-bottom-nav{flex:none;display:flex;justify-content:space-around;align-items:center;height:calc(58px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(5,13,28,.95);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08)}
+.bition-bottom-nav>div{background:none;border:0;color:#7f93b3;font-size:12px;font-weight:600;padding:6px 10px}
+.bition-bottom-nav>div.active{color:#25d0ff}
+
+.bition-form{display:flex;flex-direction:column;gap:14px}
+.bition-field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#9db4d4}
+.bition-field input{height:50px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#fff;padding:0 14px;font-size:15px}
+.bition-field input:read-only{color:#8ea3c2}
+
+.bition-btn-primary{appearance:none;border:0;border-radius:16px;padding:16px 18px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:#fff;font-size:16px;font-weight:800;cursor:pointer;width:100%;margin-top:6px}
+.bition-btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.bition-btn-danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}
+.bition-btn-secondary{appearance:none;border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:16px 18px;background:rgba(255,255,255,.06);color:#eef6ff;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
+.bition-btn-secondary:disabled{opacity:.4;cursor:not-allowed}
+
+.bition-success{text-align:center;margin-top:60px}
+.bition-success-check{width:64px;height:64px;border-radius:50%;background:rgba(57,217,138,.16);border:1px solid rgba(57,217,138,.5);color:#39d98a;font-size:30px;display:grid;place-items:center;margin:0 auto 16px}
+.bition-success p{color:#eef6ff;font-size:16px;font-weight:700}
+
+.bition-processing{text-align:center;color:#9db4d4;font-size:15px;margin:24px 0}
+.bition-deposit-success{text-align:center}
+.bition-success-line{color:#39d98a;font-weight:800;font-size:16px;margin-bottom:4px}
+.bition-fake-chart{margin:14px 0}
+
+.bition-withdraw-failed h3{color:#ff8fa3;font-size:18px;margin:0 0 8px}
+.bition-withdraw-failed p{color:#c9d6ea}
+
+.bition-inline-fraud-warning{--warning-red:#cf252d;display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px;align-items:start;margin-top:14px;padding:14px 12px;color:#eef6ff;background:rgba(207,37,45,.12);border:1px solid rgba(255,86,102,.45);border-left:7px solid var(--warning-red);border-radius:14px}
+.bition-inline-fraud-warning-icon{display:grid;place-items:center;width:30px;height:30px;color:#fff;background:var(--warning-red);border-radius:50%}
+.bition-inline-fraud-warning-copy{display:grid;min-width:0;gap:8px;font-size:14px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+.bition-inline-fraud-warning-copy strong{padding-bottom:7px;border-bottom:1px solid rgba(255,86,102,.35);font-size:16px;line-height:1.3}
+
+/* Registration: pure display cards, never real <input> elements. */
+.bition-display-field{display:flex;justify-content:space-between;align-items:center;min-height:52px;padding:0 16px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);color:#9db4d4;font-size:14px}
+.bition-display-field strong{color:#eef6ff;font-weight:700;letter-spacing:.02em}
+.bition-terms-static{display:flex;align-items:center;min-height:52px;padding:0 16px;border:1px solid rgba(57,217,138,.35);border-radius:14px;background:rgba(57,217,138,.08);color:#8fe9bd;font-size:13px;line-height:1.5;margin:6px 0}
+
+/* Brand landing page. */
+.bition-landing-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:16px 16px 24px;text-align:center}
+.bition-landing-scroll::-webkit-scrollbar{display:none}
+.bition-landing-visual{position:relative;height:180px;margin:18px auto;display:grid;place-items:center}
+.bition-landing-orbit{position:absolute;width:150px;height:150px;border-radius:50%;border:1px solid rgba(37,208,255,.3);animation:bitionOrbitSpin 12s linear infinite}
+.bition-landing-orbit:before{content:"";position:absolute;inset:22px;border-radius:50%;border:1px solid rgba(85,120,255,.25);animation:bitionOrbitSpin 8s linear infinite reverse}
+.bition-landing-particle{position:absolute;width:6px;height:6px;border-radius:50%;background:#25d0ff;box-shadow:0 0 10px rgba(37,208,255,.9);animation:bitionParticleFloat 4s ease-in-out infinite}
+.bition-landing-particle.p1{top:18%;left:22%;animation-delay:0s}
+.bition-landing-particle.p2{top:70%;left:28%;animation-delay:.8s;background:#39d98a;box-shadow:0 0 10px rgba(57,217,138,.9)}
+.bition-landing-particle.p3{top:26%;left:76%;animation-delay:1.6s}
+.bition-landing-particle.p4{top:66%;left:72%;animation-delay:2.4s;background:#5578ff;box-shadow:0 0 10px rgba(85,120,255,.9)}
+.bition-landing-symbol{position:relative;font-weight:900;font-size:15px;letter-spacing:.18em;color:#25d0ff;text-shadow:0 0 16px rgba(37,208,255,.7)}
+.bition-landing-title{color:#fff;font-size:22px;line-height:1.3;margin:6px 0}
+.bition-landing-sub{color:#8ea3c2;font-size:14px;line-height:1.6}
+.bition-landing-stats{display:grid;gap:10px;margin-top:20px;text-align:left}
+.bition-landing-stat{display:flex;justify-content:space-between;align-items:center;padding:16px 18px}
+.bition-landing-stat span{color:#8ea3c2;font-size:13px}
+.bition-landing-stat strong{color:#eef6ff;font-size:16px;font-weight:800}
+.bition-landing-cta{flex:none;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:rgba(5,13,28,.9);border-top:1px solid rgba(255,255,255,.08)}
+@keyframes bitionOrbitSpin{to{transform:rotate(360deg)}}
+@keyframes bitionParticleFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-14px);opacity:1}}
+
+/* Brand transition overlay used for every LINE<->platform hand-off. */
+.bition-opening-overlay{position:fixed;inset:0;z-index:10000;background:#050d1c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:bitionFadeIn .3s ease-out}
+.bition-opening-logo{font-size:24px;font-weight:900;color:#fff;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.bition-opening-logo span{font-size:12px;letter-spacing:.25em;color:#25d0ff;margin-top:2px}
+.bition-opening-spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#25d0ff;animation:lineVideoSpin .8s linear infinite}
+.bition-opening-overlay p{color:#8ea3c2;font-size:14px}
+@keyframes bitionFadeIn{from{opacity:0}to{opacity:1}}
+
+/* Platform-home "alive, not static HTML" touches. */
+.bition-pulse{animation:bitionPulse 1.6s ease-in-out infinite}
+@keyframes bitionPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.bition-asset-trend{width:100%;height:36px;margin-top:10px}
+.bition-trend-line{stroke:url(#chartGlow);animation:drawTrend 3.5s ease-out infinite alternate}
+.bition-status-pill.running{animation:bitionBreathe 2.2s ease-in-out infinite}
+@keyframes bitionBreathe{0%,100%{box-shadow:0 0 0 0 rgba(57,217,138,.35)}50%{box-shadow:0 0 0 6px rgba(57,217,138,0)}}
+.bition-node-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#39d98a;margin-right:8px;box-shadow:0 0 6px rgba(57,217,138,.8);animation:bitionBlink 1.4s ease-in-out infinite}
+
+.bition-ticker-card{overflow:hidden}
+.bition-section-title.small{font-size:15px;margin-bottom:10px}
+.bition-ticker{height:96px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent)}
+.bition-ticker-track{animation:bitionTickerScroll 9s linear infinite}
+.bition-ticker-row{font-size:12.5px;color:#8ea3c2;padding:6px 0;white-space:nowrap;font-variant-numeric:tabular-nums}
+@keyframes bitionTickerScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+/* The one control that ends a visit to the platform (ReturnBar.jsx).
+   Deliberately not styled like anything else in here: the platform's own
+   chrome is small, muted and inert (aria-hidden tabs, aria-disabled quick
+   actions), so the way out is the opposite - a full-width, high-contrast
+   band in the messenger's own green rather than the platform's blue. It is
+   the last flex row of .bition-app, not an overlay, so no card, banner or
+   ticker can ever cover it and the page cannot scroll it out of reach. */
+.bition-return-bar{flex:none;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(3,8,18,.98);border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.35)}
+.bition-return-cta{appearance:none;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;padding:14px 18px;border:0;border-radius:16px;background:linear-gradient(135deg,#06c755,#04a548);color:#fff;font-size:17px;font-weight:800;letter-spacing:.02em;line-height:1.25;text-align:center;cursor:pointer;box-shadow:0 10px 24px rgba(6,199,85,.3)}
+.bition-return-cta:active{transform:translateY(1px)}

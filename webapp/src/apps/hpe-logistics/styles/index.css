@@ -1,0 +1,52 @@
+/* HPE / 黑皮通 - the App's own stylesheet.
+ *
+ * Tokens are hoisted to :root (not scoped to .hpe-shell) so the same brand
+ * colors are available to Scenario05's fake-HPE surfaces, which deliberately
+ * mimic this CIS while staying a distinct site with its own URL and story
+ * state - see apps/mydondon/styles/index.css's sq- and cs-prefixed rules and
+ * docs/hpe-brand-audit.md. Values match HPE_BRAND.colors in ../brand/index.js;
+ * keep both in sync by hand, since there is no CSS-in-JS build step here.
+ */
+:root{
+  --hpe-yellow:#FFCC00;
+  --hpe-yellow-deep:#8A6100; /* text-safe shade of the same hue - see brand/index.js */
+  --hpe-yellow-tint:#FFF6DA; /* light fill for status pills/backgrounds under ink text */
+  --hpe-ink:#141414;
+}
+
+/* Full-bleed app surface, matching every other App module's own
+   .ar-stage.<x>-stage rule (blackpi-stage, go-stage, meetu-stage, ...).
+   Without this, .hpe-shell rendered inset inside the shared CIBAR kiosk
+   chrome's dark blurred padding instead of as its own app - which is why a
+   player reaching ReturnLogistics did not read it as "now inside HPE". */
+.ar-stage.hpe-stage{padding:0;overflow:hidden;background:#fff}
+
+.hpe-shell{display:flex;flex-direction:column;width:100%;height:100%;min-height:0;background:#f3f7f5;color:var(--hpe-ink);font-family:system-ui,-apple-system,sans-serif}
+.hpe-header{height:64px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:0 12px;background:#fff;border-bottom:1px solid #dfe9e5;box-shadow:0 2px 8px rgba(23,53,45,.05)}
+.hpe-header__back{border:0;background:transparent;color:var(--hpe-ink);font-size:34px;line-height:1;cursor:pointer}
+.hpe-header__back--display{display:grid;place-items:center;cursor:default;pointer-events:none}
+.hpe-header__brand{text-align:center;line-height:1.05}
+.hpe-logo{display:block;width:auto;object-fit:contain;margin:0 auto}
+.hpe-logo-text{display:inline-block;font-weight:800;letter-spacing:.04em;color:var(--hpe-ink)}
+.hpe-shell__title{padding:20px 20px 4px;font-size:22px;font-weight:800}
+.hpe-shell__content{overflow:auto;padding:14px 18px 24px}
+.hpe-shipment-card,.hpe-tracking-panel{background:#fff;border:1px solid #deebe6;border-radius:16px;box-shadow:0 5px 18px rgba(25,69,55,.06)}
+.hpe-shipment-card{padding:17px}
+.hpe-shipment-card__top{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.hpe-shipment-card dl{margin:16px 0 0}
+.hpe-shipment-card dl div{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #edf3f0}
+.hpe-shipment-card dt{color:#6a7f78;font-size:13px}
+.hpe-shipment-card dd{margin:0;font-size:13px;font-weight:700}
+.hpe-status{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:99px;background:var(--hpe-yellow-tint);color:var(--hpe-yellow-deep);font-size:11px;font-weight:800}
+.hpe-tracking-panel{margin-top:14px;padding:20px}
+.hpe-timeline{list-style:none;margin:0;padding:0}
+.hpe-timeline li{position:relative;display:flex;align-items:center;gap:13px;min-height:52px;color:#899791;font-size:14px}
+.hpe-timeline li:not(:last-child)::after{content:"";position:absolute;left:8px;top:34px;width:2px;height:27px;background:#dce7e2}
+.hpe-timeline__dot{z-index:1;display:grid;place-items:center;width:18px;height:18px;border:2px solid #c5d3cd;border-radius:50%;background:#fff}
+.hpe-timeline .is-current{color:var(--hpe-ink);font-weight:800}
+.hpe-timeline .is-current .hpe-timeline__dot{border:5px solid var(--hpe-yellow-deep)}
+.hpe-timeline .is-done{color:#5c5230}
+.hpe-timeline .is-done .hpe-timeline__dot{border-color:var(--hpe-yellow);background:var(--hpe-yellow);color:var(--hpe-ink)}
+.hpe-timeline li.is-done:not(:last-child)::after{background:var(--hpe-yellow)}
+.hpe-primary-button{display:flex;justify-content:center;align-items:center;gap:7px;width:100%;margin-top:18px;padding:13px;border:0;border-radius:12px;background:var(--hpe-yellow);color:var(--hpe-ink);font-size:15px;font-weight:800;cursor:pointer}
+.hpe-primary-button:disabled{opacity:.62;cursor:wait}

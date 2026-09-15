@@ -1,0 +1,227 @@
+/* MeetU (覓友) - the simulated dating app module's own stylesheet.
+   Everything that paints MeetU's surfaces lives here: brand tokens, app
+   shell, launcher tile, landing/splash, header, bottom nav, swipe deck,
+   match overlay, interstitials, in-app chat and the avatar it renders.
+   These rules used to sit in styles/global.css, back when the app was
+   implemented inside Scenario02.
+
+   The `--meetu-*` tokens are private to this module: they are declared on
+   MeetU's own root elements, not on :root, so no other module can end up
+   depending on them. All three roots are listed because the landing/splash
+   screen and the match overlay are siblings of `.meetu-app`, not children of
+   it (the overlay is fixed-position, painted over whatever triggered it).
+
+   Sizing note: this site renders inside a fixed 16:9 .ar-stage box (see
+   useFitStage) shared by every scenario, not a real mobile viewport - so the
+   "phone app" width/height here is measured against the stage's own box (the
+   host scenario applies `.ar-stage.meetu-stage`, which removes the stage's
+   normal padding/overflow) rather than real 100dvh/matchMedia breakpoints. */
+
+.meetu-app,
+.meetu-landing,
+.meetu-match-overlay{
+  --meetu-primary:#FF4668;
+  --meetu-gradient:linear-gradient(135deg,#FF4668 0%,#FF6B77 45%,#FF8A6B 100%);
+  --meetu-bg:#F7F7FA;
+  --meetu-card:#FFFFFF;
+  --meetu-text:#17171B;
+  --meetu-text-2:#777780;
+  --meetu-line:#ECECF1;
+  --meetu-pass:#666672;
+  --meetu-online:#35C759;
+  --meetu-shadow:0 16px 45px rgba(28,28,35,.14);
+  --meetu-font:'Inter','SF Pro Display',system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;
+}
+
+.meetu-app{
+  width:min(430px,100%);
+  height:min(844px,100%);
+  max-width:100%;
+  max-height:100%;
+  border-radius:30px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.22);
+  background:var(--meetu-bg);
+  color:var(--meetu-text);
+  font-family:var(--meetu-font);
+  display:flex;
+  flex-direction:column;
+  transition:filter .3s ease,transform .3s ease;
+}
+.meetu-app.meetu-app-blurred{filter:brightness(.92) saturate(.92);transform:scale(.98)}
+
+/* Home-screen launcher tile (screens/MeetUHomeScreenTile.jsx) */
+.meetu-desktop{
+  width:min(430px,100%);height:min(844px,100%);max-width:100%;max-height:100%;
+  border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.22);
+  background:linear-gradient(160deg,#2a1f4d 0%,#4a1f4d 55%,#221233 100%);
+  color:#fff;display:flex;flex-direction:column;align-items:center;
+  padding:calc(24px + env(safe-area-inset-top)) 0 80px;
+}
+.meetu-desktop-clock{font-size:44px;font-weight:300;margin-bottom:auto;margin-top:12px}
+.meetu-desktop-app{display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .18s ease}
+.meetu-desktop-app.is-opening{transform:scale(.86);opacity:.7}
+.meetu-desktop-app-icon{
+  width:64px;height:64px;border-radius:18px;display:grid;place-items:center;
+  background:#fff;
+  box-shadow:0 10px 26px rgba(0,0,0,.35);
+}
+.meetu-desktop-app-icon img{width:70%;height:70%;object-fit:contain}
+.meetu-desktop-app-label{font-size:12px;font-weight:600}
+
+/* App landing/splash (screens/MeetULandingScreen.jsx) - MeetU's own brand
+   pitch before the player ever sees a swipe card. */
+.meetu-landing{
+  width:min(430px,100%);height:min(844px,100%);max-width:100%;max-height:100%;
+  border-radius:30px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.22);
+  background:var(--meetu-bg);color:var(--meetu-text);font-family:var(--meetu-font);
+  display:flex;flex-direction:column;
+}
+.meetu-landing-scroll{flex:1;min-height:0;overflow-y:auto;padding:calc(40px + env(safe-area-inset-top)) 28px 20px;text-align:center;scrollbar-width:none}
+.meetu-landing-scroll::-webkit-scrollbar{display:none}
+.meetu-landing-logo-block{display:flex;justify-content:center;margin-bottom:22px}
+.meetu-landing-teaser{display:flex;justify-content:center;margin-bottom:20px}
+.meetu-landing-teaser-photo{
+  width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:center 25%;
+  border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.14);margin:0 -12px;
+}
+.meetu-landing-title{font-size:clamp(22px,6vw,28px);font-weight:800;margin:0 0 8px}
+.meetu-landing-sub{color:var(--meetu-text-2);font-size:14.5px;margin:0 0 26px}
+.meetu-landing-stats{display:flex;justify-content:center;gap:36px}
+.meetu-landing-stat{display:flex;flex-direction:column;align-items:center;gap:2px}
+.meetu-landing-stat strong{font-size:22px;font-weight:800;color:var(--meetu-primary)}
+.meetu-landing-stat span{font-size:12px;color:var(--meetu-text-2)}
+.meetu-landing-cta{flex:none;padding:0 0 calc(14px + env(safe-area-inset-bottom))}
+
+/* Header (explore page) */
+.meetu-header{flex:none;height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 18px 0;display:flex;align-items:center;justify-content:space-between;background:var(--meetu-card);border-bottom:1px solid var(--meetu-line)}
+.meetu-header-icons{display:flex;gap:4px}
+.meetu-icon-btn{width:40px;height:40px;border:0;background:none;color:var(--meetu-text);display:grid;place-items:center;border-radius:999px}
+
+/* Wordmark: real MeetU / 覓友 artwork (components/MeetULogo.jsx renders it as an
+   <img>, sized via inline style) - this class is just a shared hook for
+   effects like the Match Success drop-shadow below. */
+.meetu-logo{display:block}
+
+/* Bottom nav */
+.meetu-bottom-nav{flex:none;height:calc(58px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-top:1px solid var(--meetu-line)}
+.meetu-bottom-nav-btn{border:0;background:none;display:grid;place-items:center;width:44px;height:44px}
+
+/* Explore card */
+.meetu-card-area{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:14px 14px 0}
+.meetu-profile-card{position:relative;width:100%;height:clamp(400px,68%,620px);border-radius:24px;overflow:hidden;touch-action:pan-y;cursor:grab}
+.meetu-profile-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;-webkit-user-drag:none}
+.meetu-profile-photo-fallback{display:grid;place-items:center;background:#E4E4EA;color:#A6A6AF}
+.meetu-profile-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.84) 0%,rgba(0,0,0,.46) 27%,rgba(0,0,0,.08) 53%,transparent 70%)}
+.meetu-stamp{position:absolute;top:28px;padding:8px 20px;border-radius:10px;border:3px solid;font-size:26px;font-weight:900;letter-spacing:.06em;-webkit-text-stroke:1px rgba(0,0,0,.15)}
+.meetu-stamp.like{left:22px;color:var(--meetu-primary);border-color:var(--meetu-primary);background:rgba(255,70,104,.14);transform:rotate(-10deg)}
+.meetu-stamp.pass{right:22px;color:#fff;border-color:#fff;background:rgba(102,102,114,.28);transform:rotate(10deg)}
+.meetu-profile-info{position:absolute;left:18px;right:18px;bottom:16px;color:#fff}
+.meetu-profile-name-row{display:flex;align-items:baseline;gap:8px}
+.meetu-profile-name{font-size:32px;font-weight:700}
+.meetu-profile-age{font-size:28px;font-weight:400}
+.meetu-profile-distance{display:flex;align-items:center;gap:6px;font-size:14px;color:rgba(255,255,255,.82);margin-top:2px}
+.meetu-online-dot{width:6px;height:6px;border-radius:50%;background:var(--meetu-online);flex:none}
+.meetu-profile-job{font-size:15px;font-weight:600;margin-top:8px}
+.meetu-profile-bio{font-size:14px;line-height:1.5;margin:4px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meetu-profile-tags{display:flex;gap:8px;flex-wrap:wrap}
+.meetu-profile-tag{background:rgba(255,255,255,.18);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 13px;font-size:12.5px;font-weight:600}
+
+.meetu-swipe-actions{flex:none;display:flex;justify-content:center;align-items:center;gap:34px;padding:16px 0}
+.meetu-swipe-btn{width:64px;height:64px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;box-shadow:var(--meetu-shadow);transition:transform .15s ease}
+.meetu-swipe-btn:active{transform:scale(.9)}
+.meetu-swipe-btn.pass{background:#FFFFFF;color:var(--meetu-pass);border:1px solid var(--meetu-line)}
+.meetu-swipe-btn.like{background:var(--meetu-gradient);color:#fff}
+
+/* In-app interstitial notices (components/MeetUInterstitial.jsx) */
+.meetu-interstitial{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 28px;gap:2px}
+.meetu-interstitial-icon{color:var(--meetu-primary);margin-bottom:14px}
+.meetu-interstitial h2{font-size:19px;font-weight:700;margin:0 0 10px}
+.meetu-interstitial p{font-size:14.5px;line-height:1.6;color:var(--meetu-text-2);margin:0 0 4px;max-width:320px}
+.meetu-interstitial-meta{color:var(--meetu-text-2);font-size:13.5px}
+.meetu-interstitial .profile-avatar{margin-bottom:14px}
+.meetu-interstitial-actions{width:min(280px,100%)}
+.meetu-interstitial .meetu-primary-btn,.meetu-interstitial .meetu-secondary-btn{width:100%;margin:18px 0 0}
+.meetu-interstitial .meetu-secondary-btn{margin-top:10px}
+.meetu-interstitial-actions-split{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:18px}
+.meetu-interstitial-actions-split .meetu-primary-btn,.meetu-interstitial-actions-split .meetu-secondary-btn{min-width:0;height:auto;margin:0;white-space:normal;overflow-wrap:anywhere}
+
+/* Match overlay */
+.meetu-match-overlay{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(15,15,20,.74);backdrop-filter:blur(18px);animation:meetuMatchFade 220ms ease-out;font-family:var(--meetu-font)}
+.meetu-match-avatars{display:flex;margin-bottom:6px}
+.meetu-match-avatar{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;overflow:hidden;color:#fff;margin:0 -14px;border:3px solid rgba(255,255,255,.85);animation:meetuMatchPop 400ms cubic-bezier(.34,1.56,.64,1) backwards}
+.meetu-match-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 25%}
+.meetu-match-avatar.you{background:#3A3A44;animation-delay:40ms}
+.meetu-match-avatar.person{background:#3A3A44;animation-delay:140ms}
+.meetu-match-wordmark{display:flex;justify-content:center;margin:2px 0 10px;max-width:78vw;animation:meetuMatchRise 400ms ease-out 220ms backwards}
+.meetu-match-wordmark .meetu-logo{filter:drop-shadow(0 2px 10px rgba(0,0,0,.4))}
+.meetu-match-title{font-size:clamp(26px,6vw,36px);font-weight:800;color:#fff;animation:meetuMatchRise 400ms ease-out 300ms backwards}
+.meetu-match-sub{color:rgba(255,255,255,.78);font-size:15px;animation:meetuMatchRise 400ms ease-out 380ms backwards}
+.meetu-match-btn{margin-top:14px;border:0;border-radius:14px;padding:14px 32px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:15px;cursor:pointer;animation:meetuMatchRise 400ms ease-out 460ms backwards}
+@keyframes meetuMatchFade{from{opacity:0}to{opacity:1}}
+@keyframes meetuMatchPop{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+@keyframes meetuMatchRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Suggested-reply pills */
+.meetu-suggested-replies{padding:10px 16px 14px}
+.meetu-suggested-label{font-size:12px;color:var(--meetu-text-2);margin-bottom:8px}
+.meetu-suggested-pills{display:flex;flex-wrap:wrap;gap:8px}
+.meetu-suggested-pill{height:42px;padding:0 18px;border-radius:999px;border:1px solid #E4E4EA;background:#fff;color:var(--meetu-text);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+/* A two-pill reply row is a `dual` decision, so it is drawn as a LEFT and a
+   RIGHT. Both of MeetU's conversations reach one: 主線對象的對話
+   (.meetu-chat-page, scenario02/dating-chat/choice) and the two 路人配對小對話
+   (.meetu-mini-chat, scenario02/mini-match/<id>/reply). Only the first opted
+   in, so the mini-matches kept the default nowrap flex row and wrapped their
+   two pills onto two lines the moment the labels were long enough - "Mostly
+   landscapes" / "Whatever's in front of me" does it on any portrait width -
+   turning a left/right decision into a top/bottom one. Opt-in per instance
+   rather than on .meetu-suggested-pills itself, and never inside an @media
+   block: the pair must not restack at any width. */
+.meetu-chat-page .meetu-suggested-pills:has(> .meetu-suggested-pill:nth-child(2):last-child),
+.meetu-mini-chat .meetu-suggested-pills:has(> .meetu-suggested-pill:nth-child(2):last-child){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.meetu-chat-page .meetu-suggested-pills:has(> .meetu-suggested-pill:nth-child(2):last-child) .meetu-suggested-pill,
+.meetu-mini-chat .meetu-suggested-pills:has(> .meetu-suggested-pill:nth-child(2):last-child) .meetu-suggested-pill{min-width:0;width:100%;height:auto;min-height:42px;padding:9px 12px;white-space:normal;line-height:1.3;overflow-wrap:anywhere}
+.meetu-suggested-pill:active{background:#F7F7FA}
+
+/* Circular profile avatar (components/ProfileAvatar.jsx) */
+.profile-avatar{position:relative;display:inline-flex;flex:none;width:var(--avatar-size);height:var(--avatar-size);border-radius:50%;overflow:hidden;background:var(--meetu-line)}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 24%}
+.profile-avatar-fallback{margin:auto;color:#A6A6AF}
+.profile-avatar-status{position:absolute;right:0;bottom:0;width:28%;height:28%;min-width:8px;min-height:8px;border-radius:50%;border:2px solid #fff}
+.profile-avatar-status.online{background:var(--meetu-online)}
+
+/* In-app chat surface (components/MeetUChatSurface.jsx) */
+.meetu-chat-page,.meetu-mini-chat{position:relative}
+.meetu-chat-leaving{animation:meetuChatLeave 320ms ease-in forwards}
+@keyframes meetuChatLeave{to{transform:translateX(-100%);opacity:0}}
+.meetu-chat-header{flex:none;display:flex;align-items:center;gap:10px;height:64px;padding:0 16px;background:var(--meetu-card);border-bottom:1px solid var(--meetu-line)}
+.meetu-chat-header-info{flex:1;min-width:0}
+.meetu-chat-header-name{font-weight:700;font-size:15px}
+.meetu-chat-header-status{font-size:12px;color:var(--meetu-online)}
+.meetu-chat-header .meetu-logo{flex:none}
+.meetu-chat-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:14px 14px 6px;display:flex;flex-direction:column}
+.meetu-chat-scroll::-webkit-scrollbar{display:none}
+.meetu-msg-row{display:flex;flex-direction:column;align-items:flex-start;margin:3px 0}
+.meetu-msg-row.mine{align-items:flex-end}
+.meetu-msg{max-width:78%;padding:10px 14px;font-size:15px;line-height:1.45;white-space:pre-line}
+.meetu-msg.them{background:#FFDCE5;color:var(--meetu-text);border-radius:18px 18px 18px 5px}
+.meetu-msg.me{background:#fff;color:var(--meetu-text);border-radius:18px 18px 5px 18px;box-shadow:0 1px 2px rgba(23,23,27,.08)}
+.meetu-msg.system{align-self:center;background:rgba(119,119,128,.12);color:var(--meetu-text-2);font-size:13px;padding:6px 14px;border-radius:999px}
+.meetu-msg-time{font-size:11px;color:#A6A6AF;margin-top:2px}
+.meetu-typing{align-self:flex-start;display:flex;gap:4px;background:#FFDCE5;border-radius:18px 18px 18px 5px;padding:12px 16px;margin:3px 0}
+.meetu-typing i{width:6px;height:6px;border-radius:999px;background:#B5B5BE;animation:meetuTypingDot 1s infinite ease-in-out}
+.meetu-typing i:nth-child(2){animation-delay:.12s}
+.meetu-typing i:nth-child(3){animation-delay:.24s}
+/* Was `global.css`'s shared `@keyframes typingDot`, which MeetU and the
+   LINE module both reached for - an App module's rendering depending on
+   the global stylesheet. Same keyframe, declared by the module that uses
+   it; `apps/line` now declares its own `lineTypingDot` the same way. */
+@keyframes meetuTypingDot{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-4px);opacity:1}}
+.meetu-chat-footer{flex:none;background:var(--meetu-card);border-top:1px solid var(--meetu-line)}
+.meetu-primary-btn{display:block;width:calc(100% - 32px);margin:14px 16px;border:0;border-radius:14px;padding:14px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
+.meetu-secondary-btn{display:block;width:calc(100% - 32px);margin:0 16px 10px;border:1px solid var(--meetu-line);border-radius:14px;padding:14px;background:#fff;color:var(--meetu-text);font-weight:600;font-size:15px;cursor:pointer}
+.meetu-declined-box{padding:14px 16px 4px}
+.meetu-declined-box p{font-size:13px;color:var(--meetu-text-2);margin:0 0 12px}
+
+.meetu-mini-chat-closing{flex:none;text-align:center;padding:16px;color:var(--meetu-text-2);font-size:14px;background:var(--meetu-card);border-top:1px solid var(--meetu-line)}
+.meetu-continue-btn{margin-top:10px;border:0;border-radius:14px;padding:12px 28px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
