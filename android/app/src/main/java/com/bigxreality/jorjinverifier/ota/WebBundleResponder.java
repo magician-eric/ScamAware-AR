@@ -65,7 +65,7 @@ public final class WebBundleResponder {
     }
 
     /**
-     * @param path the part of the URL after {@code /CIBAR/}, exactly as the asset loader hands it
+     * @param path the part of the URL after {@code /ScamAware-AR/}, exactly as the asset loader hands it
      *             over.
      */
     public Response respondTo(String path) {

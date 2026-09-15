@@ -52,7 +52,7 @@ final class TestBundles {
     static Map<String, byte[]> completeBuild() {
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("index.html",
-                bytes("<!doctype html><script type=\"module\" src=\"/CIBAR/assets/app.js\"></script>"));
+                bytes("<!doctype html><script type=\"module\" src=\"/ScamAware-AR/assets/app.js\"></script>"));
         files.put("manifest.json", bytes("{\"name\":\"反詐AR體驗\"}"));
         files.put("assets/app.js", bytes("export const app = 1;\n"));
         files.put("assets/app.css", bytes("body{margin:0}\n"));

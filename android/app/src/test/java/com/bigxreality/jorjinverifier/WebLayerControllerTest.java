@@ -38,7 +38,7 @@ public class WebLayerControllerTest {
         assertNull(WebLayerController.pageOf("about:blank"));
         assertNull(WebLayerController.pageOf("https://example.com/"));
         // A look-alike host must not pass for CIBAR.
-        assertNull(WebLayerController.pageOf("https://ericingptt.github.io/CIBAR-evil/"));
+        assertNull(WebLayerController.pageOf("https://magician-eric.github.io/ScamAware-AR-evil/"));
         // The engineering pages are gone, and their addresses must not resolve to CIBAR either.
         assertNull(WebLayerController.pageOf("file:///android_asset/gesture-test/index.html"));
     }
@@ -73,7 +73,7 @@ public class WebLayerControllerTest {
         assertFalse(WebLayerController.isGlassesCameraRequest(
                 WebLayerController.GLASSES_CAMERA_URL + "2"));
         assertFalse(WebLayerController.isGlassesCameraRequest(
-                "https://ericingptt.github.io/CIBAR-evil/__jorjin-camera.mjpeg"));
+                "https://magician-eric.github.io/ScamAware-AR-evil/__jorjin-camera.mjpeg"));
     }
 
     /**
@@ -102,7 +102,7 @@ public class WebLayerControllerTest {
      *
      * <p>The two are not independent. The MJPEG endpoint deliberately sits on the page's own
      * origin - it has to, or a canvas drawn from its frames is tainted and {@code getImageData}
-     * throws - which puts it inside the same {@code /CIBAR/} prefix the bundle is served at.
+     * throws - which puts it inside the same {@code /ScamAware-AR/} prefix the bundle is served at.
      * Asked in the wrong order, the bundle answers the camera request with a 404 for a file that
      * is not supposed to exist, and the page reports "no frame arrived" with perfectly working
      * hardware. That failure is indistinguishable from the boundary bug above.

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Serves the active CIBAR bundle at {@code https://appassets.androidplatform.net/CIBAR/…}.
+ * Serves the active CIBAR bundle at {@code https://appassets.androidplatform.net/ScamAware-AR/…}.
  *
  * <p>This is the thin half, and it is deliberately thin: which file a path means, what
  * {@code Content-Type} it gets, whether a miss falls back to the SPA document and what a 404 says
@@ -39,7 +39,7 @@ import java.util.Map;
  *
  * <p>That origin is also what makes an over-the-air update invisible to the page. The URL the page
  * is loaded from is the same string whether the bytes come out of the APK or out of internal
- * storage, so React Router, the asset paths Vite compiled against {@code base: '/CIBAR/'}, the
+ * storage, so React Router, the asset paths Vite compiled against {@code base: '/ScamAware-AR/'}, the
  * camera bridge, {@code localStorage} and the camera permission grant all carry across an update
  * without noticing one happened.
  */
@@ -53,7 +53,7 @@ final class WebBundleAssetHandler implements WebViewAssetLoader.PathHandler {
     }
 
     /**
-     * Builds the loader that routes {@code /CIBAR/} on the reserved app-assets domain at whichever
+     * Builds the loader that routes {@code /ScamAware-AR/} on the reserved app-assets domain at whichever
      * bundle this session resolved to.
      *
      * <p>Only that one prefix is registered, and only the bundle behind it is reachable: nothing

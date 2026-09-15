@@ -199,7 +199,7 @@ tasks.named("preBuild").configure { dependsOn("verifyJjSdk", "verifySigningKey")
 // The web content packaged into the APK - the baseline bundle.
 //
 // There is exactly one CIBAR webapp, in webapp/, and exactly one build of it. That build is
-// packaged into this APK and served from https://appassets.androidplatform.net/CIBAR/, so a phone
+// packaged into this APK and served from https://appassets.androidplatform.net/ScamAware-AR/, so a phone
 // that has never had a network runs the whole experience out of the APK it was installed from.
 //
 // Nobody maintains a second copy and nobody copies files by hand: the build below runs webapp's
@@ -296,7 +296,7 @@ def buildCibarWebapp = tasks.register("buildCibarWebapp", BuildCibarWebapp) {
  *       to look, and which keeps it from colliding with anything else the APK packages under
  *       {@code assets/};</li>
  *   <li>{@code cibar-baseline-manifest.json} - deliberately <em>outside</em> {@code cibar/}, so it
- *       is not reachable from the page's own origin. Only {@code /CIBAR/} is mounted, and only
+ *       is not reachable from the page's own origin. Only {@code /ScamAware-AR/} is mounted, and only
  *       {@code cibar/} is behind it.</li>
  * </ul>
  */

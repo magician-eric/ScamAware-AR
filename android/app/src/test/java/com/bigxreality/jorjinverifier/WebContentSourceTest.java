@@ -15,7 +15,7 @@ import org.junit.Test;
  * which is a few hundred bytes of update pointer and is never rendered.
  *
  * <p>Every failure guarded here is silent. A root that does not end in a slash produces a camera
- * URL of {@code …/CIBARW__jorjin-camera.mjpeg} and a scan screen that reports a dead camera. A
+ * URL of {@code …/ScamAware-AR__jorjin-camera.mjpeg} and a scan screen that reports a dead camera. A
  * camera endpoint on a different host than the page taints the recognition canvas and makes
  * {@code getImageData} throw, which the page reports as a recogniser failure. And an entry URL
  * that quietly became the published site would pass every test in this repository, work perfectly
@@ -33,21 +33,21 @@ public class WebContentSourceTest {
      */
     @Test public void theExperienceIsServedFromThisDevice() {
         WebContentSource source = WebContentSource.local();
-        assertEquals("https://appassets.androidplatform.net/CIBAR/", source.rootUrl);
+        assertEquals("https://appassets.androidplatform.net/ScamAware-AR/", source.rootUrl);
         assertEquals(source.rootUrl, source.entryUrl);
         assertTrue(source.rootUrl.startsWith("https://"));
     }
 
     /**
-     * The bundle is mounted at the same {@code /CIBAR/} path the site is published at, so the APK
+     * The bundle is mounted at the same {@code /ScamAware-AR/} path the site is published at, so the APK
      * can package - and an OTA bundle can carry - the identical {@code webapp/dist}. Vite compiles
-     * absolute asset URLs against {@code base: '/CIBAR/'}, and any other mount point would need a
+     * absolute asset URLs against {@code base: '/ScamAware-AR/'}, and any other mount point would need a
      * second build of the same source.
      */
     @Test public void theLocalMountUsesTheSitesOwnPath() {
-        assertTrue(WebContentSource.local().rootUrl.endsWith("/CIBAR/"));
-        assertTrue(WebContentSource.SITE_ROOT.endsWith("/CIBAR/"));
-        assertEquals("/CIBAR/", WebContentSource.LOCAL_PATH_PREFIX);
+        assertTrue(WebContentSource.local().rootUrl.endsWith("/ScamAware-AR/"));
+        assertTrue(WebContentSource.SITE_ROOT.endsWith("/ScamAware-AR/"));
+        assertEquals("/ScamAware-AR/", WebContentSource.LOCAL_PATH_PREFIX);
     }
 
     /** Every derived URL is the root plus a suffix, which is what keeps the app branch-free. */
@@ -91,7 +91,7 @@ public class WebContentSourceTest {
         WebContentSource source = WebContentSource.local();
         assertFalse(source.owns("https://appassets.androidplatform.net/other/index.html"));
         assertFalse(source.owns("file:///android_asset/cibar/index.html"));
-        assertFalse(source.owns("https://ericingptt.github.io/CIBAR/"));
+        assertFalse(source.owns("https://magician-eric.github.io/ScamAware-AR/"));
     }
 
     /**
