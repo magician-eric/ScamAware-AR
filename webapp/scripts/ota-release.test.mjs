@@ -33,7 +33,7 @@ function scratch() {
 function fakeDist(root) {
   mkdirSync(join(root, 'assets/scenarios'), { recursive: true })
   writeFileSync(join(root, 'index.html'),
-    '<!doctype html><script type="module" src="/CIBAR/assets/index-abc.js"></script>')
+    '<!doctype html><script type="module" src="/ScamAware-AR/assets/index-abc.js"></script>')
   writeFileSync(join(root, 'manifest.json'), '{"name":"反詐AR體驗"}')
   writeFileSync(join(root, 'assets/index-abc.js'), 'export const app = 1\n'.repeat(200))
   writeFileSync(join(root, 'assets/index-abc.css'), 'body{margin:0}\n'.repeat(200))

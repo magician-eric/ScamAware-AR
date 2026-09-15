@@ -190,7 +190,7 @@ export function isScanDiagnosticsEnabled(env = import.meta.env ?? {}, scope = gl
 
   const href = typeof scope?.location?.href === 'string' ? scope.location.href : '';
   // A substring test rather than URL parsing, because the flag has to be
-  // findable in either half of `.../CIBAR/?diag=1#/ar-scan` - HashRouter puts
+  // findable in either half of `.../ScamAware-AR/?diag=1#/ar-scan` - HashRouter puts
   // the route after the query, and a `?diag=1` typed after the hash is inside
   // the fragment where `URLSearchParams(location.search)` would never see it.
   if (!/[?&]diag=1(?:&|$|#)/.test(href)) return false;

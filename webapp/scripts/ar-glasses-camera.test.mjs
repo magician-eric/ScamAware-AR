@@ -65,7 +65,7 @@ import { createFakeCameraScope } from './stubs/fake-camera-scope.mjs';
 
 // --- the descriptor the ar-app publishes -------------------------------------
 
-const STREAM_URL = 'https://ericingptt.github.io/CIBAR/__jorjin-camera.mjpeg';
+const STREAM_URL = 'https://magician-eric.github.io/ScamAware-AR/__jorjin-camera.mjpeg';
 const GLASSES_WIDTH = 1280;
 const GLASSES_HEIGHT = 960;
 

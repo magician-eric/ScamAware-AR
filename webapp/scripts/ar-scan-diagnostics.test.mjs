@@ -46,7 +46,7 @@ import {
 } from '../src/lib/ar/scanDiagnostics.js';
 import { createFakeCameraScope } from './stubs/fake-camera-scope.mjs';
 
-const STREAM_URL = 'https://ericingptt.github.io/CIBAR/__jorjin-camera.mjpeg';
+const STREAM_URL = 'https://magician-eric.github.io/ScamAware-AR/__jorjin-camera.mjpeg';
 const GLASSES_CAMERA = Object.freeze({
   version: 1,
   available: true,
@@ -131,7 +131,7 @@ test('three ways to turn it on, and each is a deliberate act', () => {
   assert.equal(isScanDiagnosticsEnabled({ DEV: false }, inspected), true);
 
   const flagged = createFakeCameraScope({
-    href: 'https://ericingptt.github.io/CIBAR/?diag=1',
+    href: 'https://magician-eric.github.io/ScamAware-AR/?diag=1',
   }).scope;
   assert.equal(isScanDiagnosticsEnabled({ DEV: false }, flagged), true);
 });
@@ -141,22 +141,22 @@ test('the URL flag survives the walk to /ar-scan', () => {
   // language and finishes the gesture tutorial before /ar-scan exists. A flag
   // that only worked on the URL it was typed on would never be on by the time
   // it mattered.
-  const fake = createFakeCameraScope({ href: 'https://ericingptt.github.io/CIBAR/?diag=1' });
+  const fake = createFakeCameraScope({ href: 'https://magician-eric.github.io/ScamAware-AR/?diag=1' });
   assert.equal(isScanDiagnosticsEnabled({ DEV: false }, fake.scope), true);
   assert.equal(fake.scope.sessionStorage.getItem(SCAN_DIAGNOSTICS_STORAGE_KEY), '1');
 
-  fake.scope.location.href = 'https://ericingptt.github.io/CIBAR/#/ar-scan';
+  fake.scope.location.href = 'https://magician-eric.github.io/ScamAware-AR/#/ar-scan';
   assert.equal(isScanDiagnosticsEnabled({ DEV: false }, fake.scope), true);
 });
 
 test('the flag is found in either half of a HashRouter URL', () => {
   const afterHash = createFakeCameraScope({
-    href: 'https://ericingptt.github.io/CIBAR/#/ar-scan?diag=1',
+    href: 'https://magician-eric.github.io/ScamAware-AR/#/ar-scan?diag=1',
   }).scope;
   assert.equal(isScanDiagnosticsEnabled({ DEV: false }, afterHash), true);
 
   const lookalike = createFakeCameraScope({
-    href: 'https://ericingptt.github.io/CIBAR/?diagnostics=1',
+    href: 'https://magician-eric.github.io/ScamAware-AR/?diagnostics=1',
   }).scope;
   assert.equal(isScanDiagnosticsEnabled({ DEV: false }, lookalike), false);
 });

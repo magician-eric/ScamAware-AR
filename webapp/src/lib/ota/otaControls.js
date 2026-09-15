@@ -95,7 +95,7 @@ export function subscribeToShell(handler) {
  * The site root this build was served from, with a trailing slash.
  *
  * Derived from the document rather than hard-coded, because the same bundle is served from
- * https://ericingptt.github.io/CIBAR/ and from the APK's local https origin at the same path.
+ * https://magician-eric.github.io/ScamAware-AR/ and from the APK's local https origin at the same path.
  */
 export function siteRoot(location = typeof window === 'undefined' ? null : window.location) {
   const path = location?.pathname ?? '/';

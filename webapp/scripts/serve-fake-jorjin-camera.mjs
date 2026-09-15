@@ -15,7 +15,7 @@
 //
 //   npm run build
 //   node scripts/serve-fake-jorjin-camera.mjs --target scenario1.png
-//   # open http://localhost:5178/CIBAR/ , pick a language, watch /ar-scan
+//   # open http://localhost:5178/ScamAware-AR/ , pick a language, watch /ar-scan
 //
 // getUserMedia is not involved at any point. Chrome will not even ask for
 // camera permission, which is itself the thing being demonstrated: if the
@@ -54,7 +54,7 @@ const [WIDTH, HEIGHT] = option('size', '1280x960').split('x').map(Number);
 
 // Must match vite.config.js's `base`, because that is the path the built
 // index.html's own asset URLs are written against.
-const BASE = '/CIBAR/';
+const BASE = '/ScamAware-AR/';
 const STREAM_PATH = `${BASE}__jorjin-camera.mjpeg`;
 const BOUNDARY = 'jorjinframe';
 

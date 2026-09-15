@@ -126,7 +126,7 @@ export function createFakeCameraScope({
   jorjinCamera = null,
   streams = {},
   getUserMedia = null,
-  href = 'https://ericingptt.github.io/CIBAR/',
+  href = 'https://magician-eric.github.io/ScamAware-AR/',
   userMediaSize = { width: 1280, height: 720 },
   deliverSynchronously = false,
   userAgent = null,
