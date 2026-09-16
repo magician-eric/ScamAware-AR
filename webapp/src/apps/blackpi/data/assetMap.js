@@ -85,6 +85,43 @@ export const ASSET_MAP = {
   'vexa-flex-x1-connectivity': photo('vexa-flex-x1-connectivity', 'VEXA FLEX X1 底部連接埠細節圖', '1536×1536'),
 
   // -----------------------------------------------------------------
+  // VEXA FLEX X1 - what actually arrives. The four shots above are the
+  // product page's claim; these four are the parcel: two cheap phones
+  // joined by a door hinge and sold as one foldable. Same claim-vs-actual
+  // pairing the robot-vacuum-* and luckybag-* sets above already use.
+  //
+  // Registered now for the same reason as the claim set, and with the same
+  // caveat - nothing reads these four keys yet either. ./catalog.js still
+  // sells the 福袋 and pages/scenario04/Unboxing.jsx still opens a parcel of
+  // luckybag-* items, so no screen changes because these landed.
+  //
+  // 1254x1254 - square, which is the part this table promises its
+  // consumers, but a third size again alongside 1024 and 2048. It is what
+  // the masters are; resampling them to a rounder number would cost detail
+  // for nothing.
+  // -----------------------------------------------------------------
+  'vexa-flex-x1-actual-unboxing': photo(
+    'vexa-flex-x1-actual-unboxing',
+    'VEXA FLEX X1 實際收到商品開箱照',
+    '1254×1254',
+  ),
+  'vexa-flex-x1-actual-main': photo(
+    'vexa-flex-x1-actual-main',
+    'VEXA FLEX X1 實際收到商品正面照',
+    '1254×1254',
+  ),
+  'vexa-flex-x1-actual-hinge': photo(
+    'vexa-flex-x1-actual-hinge',
+    'VEXA FLEX X1 實際收到商品轉軸瑕疵',
+    '1254×1254',
+  ),
+  'vexa-flex-x1-actual-folded': photo(
+    'vexa-flex-x1-actual-folded',
+    'VEXA FLEX X1 實際收到商品摺疊背面',
+    '1254×1254',
+  ),
+
+  // -----------------------------------------------------------------
   // Decorative filler only. `filler-generic` deliberately has no `src`:
   // the ~30 storefront filler cards and category-matched search decoys are
   // scenery, not part of the story, so they keep the neutral placeholder
