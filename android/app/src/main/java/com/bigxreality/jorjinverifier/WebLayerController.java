@@ -65,7 +65,7 @@ final class WebLayerController {
      * <p>The active bundle is served here by {@link WebBundleAssetHandler} - either the copy of
      * {@code webapp/dist} packaged into this APK, or a newer one that arrived over the air and was
      * promoted at launch. The URL is the same string either way, which is what lets an update
-     * carry across React Router's history, the Vite build's absolute {@code /CIBAR/} asset paths,
+     * carry across React Router's history, the Vite build's absolute {@code /ScamAware-AR/} asset paths,
      * {@code localStorage} and the camera permission grant without any of them noticing. The app
      * is a React SPA on a HashRouter, so every route below this is a fragment of the same
      * document.

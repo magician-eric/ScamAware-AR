@@ -291,7 +291,7 @@ public final class OtaUpdater {
         File unpacked = new File(staging, UNPACK_DIR);
         try {
             BundleInstaller.unpackAndVerify(archive, latest.sha256, latest.releaseId, unpacked,
-                    shellVersion, log);
+                    shellVersion, store.basePath(), log);
             store.stagePending(latest.releaseId, unpacked);
         } catch (OtaException rejected) {
             String detail = latest.releaseId + " 驗證失敗，已丟棄：" + rejected.getMessage();

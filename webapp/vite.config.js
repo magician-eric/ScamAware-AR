@@ -71,10 +71,10 @@ const webBundleRelease = {
   minShellVersion: releaseVersions.minShellVersion,
 }
 
-// Deployed as a GitHub Pages *project* page at https://ericingptt.github.io/CIBAR/,
+// Deployed as a GitHub Pages *project* page at https://magician-eric.github.io/ScamAware-AR/,
 // so all built asset URLs need this prefix.
 export default defineConfig({
-  base: '/CIBAR/',
+  base: '/ScamAware-AR/',
   plugins: [react(), tailwindcss(), scopeGugoPreflight()],
   // Deliberately not `import.meta.env`: this has to survive into the built bundle as a plain
   // literal that src/lib/releaseInfo.js can read with no build-tool assumptions, because the same

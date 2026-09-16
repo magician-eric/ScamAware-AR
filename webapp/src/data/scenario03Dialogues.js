@@ -65,7 +65,7 @@ import { getScenario03Lang } from '../pages/scenario03/i18n';
 import { localizeLocationName } from '../lib/location/localizedLocationName';
 
 // Root-absolute paths 404 once this app is served from a GitHub Pages
-// project path (/CIBAR/) instead of domain root - every other scenario's
+// project path (/ScamAware-AR/) instead of domain root - every other scenario's
 // audio/image paths already go through import.meta.env.BASE_URL for this
 // reason (see RegionAgencyResolver.js, scenario01/02's video/photo consts).
 const AUDIO_BASE_URL = import.meta.env?.BASE_URL ?? '/';

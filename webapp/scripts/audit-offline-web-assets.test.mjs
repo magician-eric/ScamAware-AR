@@ -37,9 +37,9 @@ const audit = (root, allowlist = ALLOWLIST) => auditBundle(root, allowlist, null
 function makeBundle(overrides = {}) {
   const root = mkdtempSync(join(tmpdir(), 'cibar-offline-'))
   const files = {
-    'index.html': '<!doctype html><script type="module" src="/CIBAR/assets/app-abc.js"></script>'
-      + '<link rel="stylesheet" href="/CIBAR/assets/app-abc.css">'
-      + '<link rel="manifest" href="/CIBAR/manifest.json">',
+    'index.html': '<!doctype html><script type="module" src="/ScamAware-AR/assets/app-abc.js"></script>'
+      + '<link rel="stylesheet" href="/ScamAware-AR/assets/app-abc.css">'
+      + '<link rel="manifest" href="/ScamAware-AR/manifest.json">',
     'manifest.json': JSON.stringify({ start_url: './index.html', icons: [{ src: './icons/i.png' }] }),
     'assets/app-abc.js': 'export const hello = 1',
     'assets/app-abc.css': 'body{background:url(./bg.webp)}',
@@ -90,7 +90,7 @@ test('fetching an allowlisted origin still fails - being mentioned is not being 
 test('the app\'s own local origin may be fetched', () => {
   const { problems } = audit(makeBundle({
     'assets/app-abc.js':
-      'fetch("https://appassets.androidplatform.net/CIBAR/assets/shared/ar/image-targets.mind")',
+      'fetch("https://appassets.androidplatform.net/ScamAware-AR/assets/shared/ar/image-targets.mind")',
   }), ALLOWLIST)
   assert.deepEqual(problems, [])
 })
@@ -98,7 +98,7 @@ test('the app\'s own local origin may be fetched', () => {
 test('an external script tag fails even when its origin is allowlisted', () => {
   const { problems } = audit(makeBundle({
     'index.html': '<!doctype html><script src="https://github.com/x.js"></script>'
-      + '<script type="module" src="/CIBAR/assets/app-abc.js"></script>',
+      + '<script type="module" src="/ScamAware-AR/assets/app-abc.js"></script>',
   }), ALLOWLIST)
   assert.ok(problems.some((problem) => /<script> loads https:\/\/github\.com/.test(problem)))
 })
@@ -149,7 +149,7 @@ test('a lookalike host does not inherit an allowlisted one', () => {
 test('local references are the relative ones and the ones under the served base', () => {
   assert.ok(isLocalReference('./icons/i.png'))
   assert.ok(isLocalReference('assets/app.js'))
-  assert.ok(isLocalReference('/CIBAR/assets/app.js'))
+  assert.ok(isLocalReference('/ScamAware-AR/assets/app.js'))
   assert.ok(isLocalReference('#/ar-scan'))
   assert.ok(isLocalReference('data:image/png;base64,AAAA'))
   assert.ok(!isLocalReference('/assets/app.js'))
@@ -158,9 +158,9 @@ test('local references are the relative ones and the ones under the served base'
 })
 
 test('document and stylesheet references are read out of real markup', () => {
-  const refs = documentReferences('<link rel="icon" href="/CIBAR/i.png"><img src="a.webp">')
+  const refs = documentReferences('<link rel="icon" href="/ScamAware-AR/i.png"><img src="a.webp">')
   assert.deepEqual(refs, [
-    { tag: 'link', url: '/CIBAR/i.png' },
+    { tag: 'link', url: '/ScamAware-AR/i.png' },
     { tag: 'img', url: 'a.webp' },
   ])
   assert.deepEqual(styleSheetReferences('a{background:url("x.webp")}b{background:url(y.png)}'),

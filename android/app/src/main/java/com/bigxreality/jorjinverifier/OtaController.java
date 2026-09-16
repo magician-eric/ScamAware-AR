@@ -122,7 +122,8 @@ final class OtaController {
         String baselineVersion = readBaselineVersion(application);
         File root = new File(application.getFilesDir(), STORE_DIRECTORY);
         return new OtaController(application,
-                new WebBundleStore(root, baselineVersion, BuildConfig.SHELL_VERSION, LOG));
+                new WebBundleStore(root, baselineVersion, BuildConfig.SHELL_VERSION,
+                        WebContentSource.LOCAL_PATH_PREFIX, LOG));
     }
 
     /**

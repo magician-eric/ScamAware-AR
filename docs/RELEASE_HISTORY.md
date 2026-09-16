@@ -33,6 +33,13 @@
 **最新的在最上面。** 表格是空的就代表還沒有任何正式 OTA Release ——
 第一次正式發布會是 `1.0.0-YYYYMMDD.NNN`，日期與序號依實際發布日產生（規範 §17）。
 
+> **`1.4.0-20260901.001` 以前的 12 列產生於 `ericingptt/CIBAR`。** 該帳號已無法存取，所以
+> `Notes` 欄裡的 `ericingptt/...` 分支名與 `PR` 欄的編號**維持原樣不改寫** —— 它們記錄的是
+> 當時確實存在過的來源，改成新帳號只會造出從未存在的參照。對應的
+> `release/ota/releases/*.json` 的 `url` 基於同一個理由也保持原值，那些下載網址已失效且
+> 無法復原。詳見 [`release/ota/README.md`](../release/ota/README.md)。
+> `1.5.0` 起改由 `magician-eric/ScamAware-AR` 發佈。
+
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->

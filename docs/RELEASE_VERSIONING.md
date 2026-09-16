@@ -190,6 +190,34 @@ Web Bundle     1.3.8-20260825.004
 
 > **不要因為修改一句劇情文字就增加 APK Shell version。**
 
+### `minShellVersion`：什麼時候該把它拉上來
+
+`release/versions.json` 的 `minShellVersion` 是**「要服務這一版 Web Bundle，Shell 至少得是哪一版」**。
+CI 把它寫進 `latest.json` 與每一份 OTA manifest，手機在三個地方拿它跟自己的 `SHELL_VERSION` 比：
+
+| 位置 | 比不過的結果 |
+| --- | --- |
+| `UpdateDecision.decide` | `SHELL_TOO_OLD` —— 連下載都不下載 |
+| `BundleInstaller` | 下載完拒收，不會成為 pending |
+| `WebBundleStore.whyUnusable` | 啟動時不使用它，退回上一版或 APK 內建版本 |
+
+三處都是 `SemanticVersion.satisfies(shellVersion, minShellVersion)`，也就是 `shell >= 要求` 才放行。
+
+**平常不要動它。** 它只在一種情況該拉上來：**新的 bundle 舊 Shell 服務不了**。判準是「舊 Shell 拿到這份
+bundle 會壞，而且壞的方式它自己看不出來」——例如 bundle 依賴新的 native bridge，或 base path 變了。
+
+base path 是最典型的一種，因為它的失敗是無聲的：Vite 把每個 asset URL 寫成 `base` 底下的絕對路徑，
+舊 Shell 把新 bundle 掛在自己的舊前綴下，**進入點載入成功、底下每個 asset 404**，畫面是白的而退版機制
+看不到失敗（頁面確實載入了）。所以帳號遷移那一版把 `minShellVersion` 一起拉到 `1.2.0`：這是唯一能保護
+「永遠不會被手動重裝」的現場裝置的一層。
+
+拉高 `minShellVersion` 的 PR **必須同時**把 `shellVersion` 提到同一個號碼，否則剛建出來的 APK 會拒絕
+自己要發的 bundle。
+
+> Shell 端還有一道與版本無關的守門：`BundleRequirements` 會讀 bundle 的 `index.html`，確認它是為
+> 這支 Shell 掛載的 base path 建置的。`minShellVersion` 擋的是「還沒拿到新 APK 的裝置」，那一道擋的是
+> 「裝置上已經存在、為舊 base path 建置的 bundle」。兩者互補，缺一不可。
+
 ---
 
 ## 6. Web Bundle Version：`WEB_BUNDLE_VERSION`
@@ -318,7 +346,7 @@ Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網
   "sha256": "<SHA-256>",
   "sizeBytes": 12345678,
   "minShellVersion": "1.0.0",
-  "url": "https://github.com/ericingptt/CIBAR/releases/download/web-1.0.3-20260825.002/cibar-web-1.0.3-20260825.002.zip"
+  "url": "https://github.com/magician-eric/ScamAware-AR/releases/download/web-1.0.3-20260825.002/cibar-web-1.0.3-20260825.002.zip"
 }
 ```
 
@@ -328,7 +356,7 @@ Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網
 
 `release/ota/latest.json` 是最後一次正式發布的同一份 manifest 的副本，也是 production 的指標。
 它同時被複製到發布站台的 `ota/latest.json`，所以線上版 Shell 可以直接讀
-`https://ericingptt.github.io/CIBAR/ota/latest.json`。
+`https://magician-eric.github.io/ScamAware-AR/ota/latest.json`。
 
 ---
 
@@ -340,6 +368,10 @@ Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網
 
 由 `ota-release.yml` 在發布成功之後自動附加一列，`Type` 欄（PATCH／MINOR／MAJOR）是拿前一次的
 `latest.json` 與這次的版本比出來的，不是人填的，所以不可能與版本號互相矛盾。
+
+`1.4.0-20260901.001` 以前的記錄產生於舊帳號 `ericingptt/CIBAR`。該帳號已無法存取，那批
+manifest 的 `url` 與 History 表 `Notes` 欄的分支名都保持原值不改寫，理由與作法見
+[`release/ota/README.md`](../release/ota/README.md)。
 
 ---
 

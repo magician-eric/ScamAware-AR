@@ -17,7 +17,7 @@ import org.junit.Test;
 public class WebBundlePathsTest {
 
     @Test public void theBundleRootIsTheEntryPoint() {
-        // What the app loads: https://appassets.androidplatform.net/CIBAR/ - the loader hands the
+        // What the app loads: https://appassets.androidplatform.net/ScamAware-AR/ - the loader hands the
         // handler an empty path for it, and the SPA document is the answer.
         assertEquals("index.html", WebBundlePaths.relativePathFor(""));
         assertEquals("index.html", WebBundlePaths.relativePathFor("/"));
@@ -38,7 +38,7 @@ public class WebBundlePathsTest {
 
     /**
      * Inside the APK the same build sits under {@code assets/cibar/}, one path segment away from
-     * anything else the APK ever packages. Only {@code /CIBAR/} is mounted, and only that
+     * anything else the APK ever packages. Only {@code /ScamAware-AR/} is mounted, and only that
      * subdirectory is behind it.
      */
     @Test public void theApkKeepsTheBaselineInItsOwnAssetSubdirectory() {

@@ -3,7 +3,7 @@ package com.bigxreality.jorjinverifier.ota;
 import java.util.Locale;
 
 /**
- * How a URL under {@code https://appassets.androidplatform.net/CIBAR/} becomes a file inside a
+ * How a URL under {@code https://appassets.androidplatform.net/ScamAware-AR/} becomes a file inside a
  * bundle, and what {@code Content-Type} that file is served with.
  *
  * <p>Pure functions, and separate from the Android class that opens the file, because every one of
@@ -38,7 +38,7 @@ public final class WebBundlePaths {
      * The file a loader path refers to, relative to a bundle root, or null when it must not be
      * served.
      *
-     * @param path the part of the URL path after {@code /CIBAR/}, as {@code WebViewAssetLoader}
+     * @param path the part of the URL path after {@code /ScamAware-AR/}, as {@code WebViewAssetLoader}
      *             hands it over - no scheme, no host, and no guarantee about the leading slash.
      */
     public static String relativePathFor(String path) {

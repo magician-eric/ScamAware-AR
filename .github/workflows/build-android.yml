@@ -57,7 +57,21 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
+      # `packages:` is set deliberately - it is not redundant, do not delete it to
+      # "fall back to the default". The action's own default is "tools platform-tools",
+      # and Google removed the legacy `tools` package from the SDK repository around
+      # 2026-09-14. The sdkmanager in cmdline-tools 16.0 exits 1 on an unknown package
+      # rather than only warning, so that default now aborts this step with
+      # "Failed to find package 'tools'" and every step after it is skipped - the job
+      # fails before a single line of this project is built. Bumping the action does
+      # not help: v4.0.1 ships the same default, so the caller has to override it.
+      #
+      # Nothing here needs `tools`: "Install Android SDK 35" below calls sdkmanager
+      # itself for the platform and build-tools, and aapt2/apksigner are read out of
+      # $ANDROID_HOME/build-tools/*/ in "Name the APKs after the delivery".
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -218,7 +232,7 @@ jobs:
           require "assets/cibar/assets/.*\.mp3" "情境語音"
           require "assets/cibar/assets/.*\.webp" "情境圖片"
           # The baseline's manifest is what tells the shell which version it shipped with, and it
-          # sits OUTSIDE assets/cibar/ on purpose: only /CIBAR/ is mounted, and only cibar/ is
+          # sits OUTSIDE assets/cibar/ on purpose: only /ScamAware-AR/ is mounted, and only cibar/ is
           # behind it, so the page's own origin cannot read it.
           require "assets/cibar-baseline-manifest.json" "內建 bundle 的 manifest"
           if grep -qE "assets/cibar/cibar-baseline-manifest.json" entries.txt; then
@@ -226,9 +240,9 @@ jobs:
             exit 1
           fi
           unzip -p "$APK" assets/cibar/index.html > index.html
-          grep -q 'src="/CIBAR/assets/' index.html || {
-            echo "::error::內建的 index.html 不是以 /CIBAR/ 為 base 建置的，"
-            echo "::error::而 App 把它掛在 https://appassets.androidplatform.net/CIBAR/"
+          grep -q 'src="/ScamAware-AR/assets/' index.html || {
+            echo "::error::內建的 index.html 不是以 /ScamAware-AR/ 為 base 建置的，"
+            echo "::error::而 App 把它掛在 https://appassets.androidplatform.net/ScamAware-AR/"
             exit 1
           }
           echo "OK: 內建網頁的 base 與 App 的本機 origin 一致"
@@ -446,9 +460,9 @@ jobs:
             printf '交付這支 APK 時，請把上面的 Shell Version 與 SHA-256 記進 '
             printf '`docs/DELIVERY_HISTORY.md`（規則見 `docs/RELEASE_VERSIONING.md`）。\n\n'
             printf '### 網頁內容從哪裡來\n\n'
-            printf -- '- **APK 內建一份完整的 CIBAR**，由本機 `https://appassets.androidplatform.net/CIBAR/` 提供。'
+            printf -- '- **APK 內建一份完整的 CIBAR**，由本機 `https://appassets.androidplatform.net/ScamAware-AR/` 提供。'
             printf '第一次安裝後即使完全沒有網路，五個情境、影片、音效、圖片、圖像辨識都能完整跑完。\n'
-            printf -- '- **有網路時**會在背景檢查 <https://ericingptt.github.io/CIBAR/ota/latest.json>，'
+            printf -- '- **有網路時**會在背景檢查 <https://magician-eric.github.io/ScamAware-AR/ota/latest.json>，'
             printf '有新版就在背景下載、驗證 SHA-256、解壓縮並完整檢查。\n'
             printf -- '- **不會在體驗途中換版**：驗證通過的新版會等到**下一次啟動** App 才生效。\n'
             printf -- '- 下載失敗、中斷或檔案損毀都不影響目前這一份，App 照常使用。\n'

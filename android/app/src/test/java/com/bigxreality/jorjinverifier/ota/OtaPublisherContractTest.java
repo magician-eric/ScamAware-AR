@@ -81,7 +81,10 @@ public class OtaPublisherContractTest {
         assertEquals(BundleVersion.productVersionOf(VERSION), latest.version);
         assertEquals(BUNDLE_URL, latest.bundleUrl);
         assertEquals("2026-08-25", latest.releaseDate);
-        assertEquals(TestBundles.BASELINE_SHELL, latest.minShellVersion);
+        // Whatever release/versions.json says, verbatim. Asserting a literal here would make
+        // this test a second place the project's minShellVersion is written down, and the first
+        // bump would fail it for being a bump rather than for a drift between publisher and phone.
+        assertEquals(publishedMinShellVersion(), latest.minShellVersion);
         assertEquals(archive.length(), latest.sizeBytes);
 
         // The digest the publisher published is the digest of the file it published.
@@ -92,7 +95,8 @@ public class OtaPublisherContractTest {
         // And the whole thing verifies and unpacks, by the code the phone runs.
         File unpacked = new File(scratch, "unpack");
         OtaManifest manifest = BundleInstaller.unpackAndVerify(archive, latest.sha256,
-                latest.releaseId, unpacked, TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                latest.releaseId, unpacked, latest.minShellVersion, TestBundles.BASE_PATH,
+                OtaLog.NONE);
 
         assertEquals(VERSION, manifest.version);
         assertEquals("index.html", manifest.entry);
@@ -152,8 +156,8 @@ public class OtaPublisherContractTest {
         OtaLatest latest = OtaLatest.parse(read(new File(out, "latest.json")));
         try {
             BundleInstaller.unpackAndVerify(new File(out, "bundle.zip"), latest.sha256,
-                    latest.releaseId, new File(scratch, "unpack"), TestBundles.BASELINE_SHELL,
-                    OtaLog.NONE);
+                    latest.releaseId, new File(scratch, "unpack"), latest.minShellVersion,
+                    TestBundles.BASE_PATH, OtaLog.NONE);
             org.junit.Assert.fail("a bundle with no video is not a complete experience");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("情境影片"));
@@ -161,6 +165,20 @@ public class OtaPublisherContractTest {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    /**
+     * {@code minShellVersion} out of {@code release/versions.json} - the file the publisher reads.
+     *
+     * <p>Parsed by hand rather than with org.json, because the two org.json builds in play disagree
+     * about whether {@code JSONException} is checked and this file is three flat string fields.
+     */
+    private String publishedMinShellVersion() throws IOException {
+        String json = read(new File(repositoryRoot, "release/versions.json"));
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("\"minShellVersion\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
+        assertTrue("release/versions.json must declare minShellVersion", matcher.find());
+        return matcher.group(1);
+    }
 
     /** A structurally complete CIBAR build, small enough to publish in a test. */
     private static void writeSyntheticBuild(File dist) throws IOException {

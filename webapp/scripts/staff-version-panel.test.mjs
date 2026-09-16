@@ -114,7 +114,7 @@ function androidShell({ status = null, diagnostics = {}, controls = true } = {})
         refresh: record('refresh'),
       }
       : undefined,
-    location: { pathname: '/CIBAR/', reload: record('reload') },
+    location: { pathname: '/ScamAware-AR/', reload: record('reload') },
     addEventListener() {}, removeEventListener() {},
     navigator: {},
     matchMedia: () => ({ matches: false }),
@@ -126,7 +126,7 @@ function androidShell({ status = null, diagnostics = {}, controls = true } = {})
 function webOnly({ standalone = true } = {}) {
   const calls = [];
   globalThis.window = {
-    location: { pathname: '/CIBAR/', reload: () => calls.push('reload') },
+    location: { pathname: '/ScamAware-AR/', reload: () => calls.push('reload') },
     addEventListener() {}, removeEventListener() {},
     navigator: { standalone },
     matchMedia: () => ({ matches: standalone }),

@@ -18,10 +18,10 @@ import com.bigxreality.jorjinverifier.ota.WebBundlePaths;
  * them in at the next launch rather than by fetching the page itself every time. The network is
  * now only ever a way to <em>acquire</em> a bundle. It is never the source a scenario plays from.
  *
- * <h2>Why the local origin uses the site's own /CIBAR/ path</h2>
- * The Vite build is configured with {@code base: '/CIBAR/'} because that is where GitHub Pages
+ * <h2>Why the local origin uses the site's own /ScamAware-AR/ path</h2>
+ * The Vite build is configured with {@code base: '/ScamAware-AR/'} because that is where GitHub Pages
  * serves it, so every built asset URL in {@code index.html} is absolute and starts with
- * {@code /CIBAR/}. Mounting the bundle anywhere else would need a second build of the same source
+ * {@code /ScamAware-AR/}. Mounting the bundle anywhere else would need a second build of the same source
  * with a different base - two builds of one webapp, which is exactly the drift this arrangement
  * exists to avoid. Mounting it here means the APK ships, and the OTA bundle carries, the identical
  * {@code webapp/dist} the website ships.
@@ -36,8 +36,8 @@ final class WebContentSource {
      */
     static final String LOCAL_DOMAIN = "appassets.androidplatform.net";
 
-    /** The path the active bundle is mounted at - see the class comment for why it is /CIBAR/. */
-    static final String LOCAL_PATH_PREFIX = "/CIBAR/";
+    /** The path the active bundle is mounted at - see the class comment for why it is /ScamAware-AR/. */
+    static final String LOCAL_PATH_PREFIX = "/ScamAware-AR/";
 
     /** A real https origin, so the page runs under the same rules it does on the published site. */
     static final String ROOT_URL = "https://" + LOCAL_DOMAIN + LOCAL_PATH_PREFIX;
@@ -57,7 +57,7 @@ final class WebContentSource {
      * The published site, which is also where the OTA pointer file lives. Not loaded by the
      * WebView - nothing in the experience is ever fetched from here.
      */
-    static final String SITE_ROOT = "https://ericingptt.github.io/CIBAR/";
+    static final String SITE_ROOT = "https://magician-eric.github.io/ScamAware-AR/";
 
     /**
      * The one URL this app fetches over the network: a few hundred bytes saying which web bundle

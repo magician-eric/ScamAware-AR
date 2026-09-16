@@ -32,7 +32,7 @@ export const DEFAULT_ALLOWLIST = join(HERE, 'offline-external-url-allowlist.json
 export const DEFAULT_PUBLIC_DIR = join(HERE, '..', 'public')
 
 /** The path prefix the Vite build is compiled for (`base` in vite.config.js). */
-export const BASE_PATH = '/CIBAR/'
+export const BASE_PATH = '/ScamAware-AR/'
 
 /** Files whose bytes are text and therefore worth scanning for URLs. */
 const TEXT_EXTENSIONS = new Set([

@@ -55,7 +55,7 @@ public class BundleInstallerTest {
         TestBundles.Release release = TestBundles.publish(scratch, VERSION);
 
         OtaManifest manifest = BundleInstaller.unpackAndVerify(release.archive, release.sha256,
-                VERSION, unpackDir(), TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                VERSION, unpackDir(), TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
 
         assertEquals(VERSION, manifest.version);
         assertEquals("index.html", manifest.entry);
@@ -85,7 +85,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(release.archive, wrongDigest, VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("an archive that does not match its published digest must not be installed");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("SHA-256"));
@@ -102,7 +102,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(release.archive, release.sha256, VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("half an archive is not an archive");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("SHA-256"));
@@ -127,7 +127,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(archive, Digests.of(archive), VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("a bundle missing a file its own manifest lists is not installable");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("clip.mp4"));
@@ -144,7 +144,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(archive, Digests.of(archive), VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("a file that does not match its digest must fail the install");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("assets/app.js"));
@@ -168,10 +168,50 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(release.archive, release.sha256, VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("a bundle with no video is not a complete experience");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("情境影片"));
+        }
+    }
+
+    // ------------------------------------------------------------------ the base path gate
+
+    /**
+     * A bundle compiled against a different mount prefix never reaches the pending slot.
+     *
+     * <p>It is complete, it unpacks, every digest matches and its {@code minShellVersion} is
+     * satisfied - and its asset URLs are absolute under a path this shell does not serve, so the
+     * page would come up with nothing on it. Refusing here is what keeps the phone from finding
+     * that out at the next launch, when the bundle is already what it is pointed at.
+     */
+    @Test public void aBundleBuiltForAnotherBasePathIsRefused() throws Exception {
+        TestBundles.Release release = TestBundles.publish(scratch, VERSION,
+                TestBundles.completeBuild(TestBundles.FOREIGN_BASE_PATH),
+                TestBundles.BASELINE_SHELL);
+
+        try {
+            BundleInstaller.unpackAndVerify(release.archive, release.sha256, VERSION, unpackDir(),
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
+            fail("a bundle built for another base path must not be installed");
+        } catch (OtaException refused) {
+            // The message names the prefix that was wanted, because "wrong base path" alone leaves
+            // whoever reads the diagnostics dump with the question they started with.
+            assertTrue(refused.getMessage(),
+                    refused.getMessage().contains(TestBundles.BASE_PATH));
+        }
+    }
+
+    /** A shell that cannot say what prefix it mounts refuses everything rather than guessing. */
+    @Test public void aShellWithNoBasePathInstallsNothing() throws Exception {
+        TestBundles.Release release = TestBundles.publish(scratch, VERSION);
+
+        try {
+            BundleInstaller.unpackAndVerify(release.archive, release.sha256, VERSION, unpackDir(),
+                    TestBundles.BASELINE_SHELL, "", OtaLog.NONE);
+            fail("no base path means no way to tell a servable bundle from an unservable one");
+        } catch (OtaException refused) {
+            assertTrue(refused.getMessage(), refused.getMessage().contains("base path"));
         }
     }
 
@@ -190,7 +230,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(release.archive, release.sha256, VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("a bundle above this shell's version must not be installed");
         } catch (OtaException refused) {
             // The message names both numbers, because a diagnostics dump that says only
@@ -217,7 +257,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(archive, Digests.of(archive), VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("zip slip must be refused");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("不合法的路徑"));
@@ -232,7 +272,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(archive, Digests.of(archive), VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("without a manifest there is nothing to verify the tree against");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(),
@@ -250,7 +290,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(release.archive, release.sha256, VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("the archive must be the version latest.json said it was");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(), refused.getMessage().contains("1.0.0-20260101.001"));
@@ -265,7 +305,7 @@ public class BundleInstallerTest {
 
         try {
             BundleInstaller.unpackAndVerify(notAZip, Digests.of(notAZip), VERSION, unpackDir(),
-                    TestBundles.BASELINE_SHELL, OtaLog.NONE);
+                    TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH, OtaLog.NONE);
             fail("an HTML page is not a bundle, whatever its digest is");
         } catch (OtaException refused) {
             assertTrue(refused.getMessage(),
