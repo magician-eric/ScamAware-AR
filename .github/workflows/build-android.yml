@@ -57,7 +57,21 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
+      # `packages:` is set deliberately - it is not redundant, do not delete it to
+      # "fall back to the default". The action's own default is "tools platform-tools",
+      # and Google removed the legacy `tools` package from the SDK repository around
+      # 2026-09-14. The sdkmanager in cmdline-tools 16.0 exits 1 on an unknown package
+      # rather than only warning, so that default now aborts this step with
+      # "Failed to find package 'tools'" and every step after it is skipped - the job
+      # fails before a single line of this project is built. Bumping the action does
+      # not help: v4.0.1 ships the same default, so the caller has to override it.
+      #
+      # Nothing here needs `tools`: "Install Android SDK 35" below calls sdkmanager
+      # itself for the platform and build-tools, and aapt2/apksigner are read out of
+      # $ANDROID_HOME/build-tools/*/ in "Name the APKs after the delivery".
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - uses: actions/setup-node@v4
         with:
           node-version: 22
