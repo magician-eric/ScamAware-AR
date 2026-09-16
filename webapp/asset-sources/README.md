@@ -12,6 +12,7 @@ and re-deriving it from scratch would mean going back to the design tool.
 | --- | --- |
 | `app-icons/app-icon-source.png` | `public/icons/*` (PWA icon set, `public/manifest.json`) |
 | `scenarios/scenario-0N/images/entry-hero.png` (five, one per scenario) | `src/assets/scenarios/scenario-0N/images/entry-hero.webp` |
+| `scenarios/scenario-04/images/products/vexa-flex-x1-*.png` (four) | `public/assets/scenarios/scenario-04/images/products/vexa-flex-x1-*.webp` |
 
 Mirror the shipped asset's location in the path here, so a master is
 findable from the file it produced. A master whose derived asset has been

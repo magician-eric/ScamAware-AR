@@ -39,16 +39,29 @@ RULE 1 fails any shipping binary no registry resolves. New Chinese labels added
 to that table also need `apps/blackpi/i18n/{en,jp}.js` entries, or
 `validate:i18n` fails.
 
-## Pending: VEXA FLEX X1 (Route B product replacement)
+## VEXA FLEX X1 (Route B product replacement)
 
-Four masters, not yet delivered:
+Four masters, delivered as 1536×1024 PNG (8-bit RGB, no alpha) and derived
+with:
+
+```sh
+cwebp -q 95 -m 6 -sharp_yuv -pass 10 -af -metadata none
+```
+
+49.6-50.6 dB PSNR. `-q 95` rather than the 90 above because two of the four
+carry marketing copy, and text is the first thing a lower quality factor
+gives up.
 
 | Basename | Shot |
 | --- | --- |
 | `vexa-flex-x1-main` | Full product hero |
 | `vexa-flex-x1-camera` | Triple-camera detail |
 | `vexa-flex-x1-display` | Unfolded borderless display detail |
-| `vexa-flex-x1-connectivity` | Fully folded — bottom USB-C, speaker grille, double-layer body |
+| `vexa-flex-x1-connectivity` | Fully folded - bottom USB-C, speaker grille, double-layer body |
 
-Delete this section once they land and are derived; a master whose derived
-asset was deleted should be deleted too.
+**These four are 3:2 landscape, not square.** They are the only product
+photos in the shipped folder that are not 1:1, so the squareness
+`apps/blackpi/data/assetMap.js` promises its consumers does not hold for
+them. Whoever adds them to that table has to decide what `object-fit: cover`
+should crop from a 3:2 source, or re-cut the masters square - the promise in
+that table's comment is currently false for these four.
