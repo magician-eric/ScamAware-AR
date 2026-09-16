@@ -27,6 +27,16 @@ Every shipped product photo in this folder's shipped counterpart is **square
 promises squareness so consumers can use `object-fit: cover` without cropping
 the product out of frame. Square masters of at least 2048×2048 keep that true.
 
+Keep marketing copy **out of the picture**. The app ships zh, en and jp, and
+text burned into a photo cannot be translated - an en player would read
+Chinese off the product image. Every one of the 26 product photos already in
+the shipped folder is text-free for that reason; the selling copy belongs in
+`apps/blackpi/data/catalog.js` and its i18n, where all three languages get
+it. A wide shot that splits its subject and its caption across a 3:2 frame
+also cannot survive a square crop: a first VEXA set was rejected for exactly
+this, because no 1:1 window held both the camera module and the caption
+beside it.
+
 ## Deriving the shipped WebP
 
 ```sh
@@ -39,29 +49,16 @@ RULE 1 fails any shipping binary no registry resolves. New Chinese labels added
 to that table also need `apps/blackpi/i18n/{en,jp}.js` entries, or
 `validate:i18n` fails.
 
-## VEXA FLEX X1 (Route B product replacement)
+## Pending: VEXA FLEX X1 (Route B product replacement)
 
-Four masters, delivered as 1536×1024 PNG (8-bit RGB, no alpha) and derived
-with:
-
-```sh
-cwebp -q 95 -m 6 -sharp_yuv -pass 10 -af -metadata none
-```
-
-49.6-50.6 dB PSNR. `-q 95` rather than the 90 above because two of the four
-carry marketing copy, and text is the first thing a lower quality factor
-gives up.
+Four masters, not yet delivered:
 
 | Basename | Shot |
 | --- | --- |
 | `vexa-flex-x1-main` | Full product hero |
 | `vexa-flex-x1-camera` | Triple-camera detail |
 | `vexa-flex-x1-display` | Unfolded borderless display detail |
-| `vexa-flex-x1-connectivity` | Fully folded - bottom USB-C, speaker grille, double-layer body |
+| `vexa-flex-x1-connectivity` | Fully folded — bottom USB-C, speaker grille, double-layer body |
 
-**These four are 3:2 landscape, not square.** They are the only product
-photos in the shipped folder that are not 1:1, so the squareness
-`apps/blackpi/data/assetMap.js` promises its consumers does not hold for
-them. Whoever adds them to that table has to decide what `object-fit: cover`
-should crop from a 3:2 source, or re-cut the masters square - the promise in
-that table's comment is currently false for these four.
+Delete this section once they land and are derived; a master whose derived
+asset was deleted should be deleted too.
