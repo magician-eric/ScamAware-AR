@@ -278,6 +278,10 @@ export const EN = {
   '實際收到的掃把與畚箕': 'The Broom and Dustpan That Actually Arrived',
   '掃把頭': 'Broom Head',
   '畚箕': 'Dustpan',
+  'VEXA FLEX X1 摺疊手機商品主圖': 'VEXA FLEX X1 Foldable Phone Main Product Photo',
+  'VEXA FLEX X1 三鏡頭細節圖': 'VEXA FLEX X1 Triple-Camera Detail',
+  'VEXA FLEX X1 展開螢幕細節圖': 'VEXA FLEX X1 Unfolded Display Detail',
+  'VEXA FLEX X1 底部連接埠細節圖': 'VEXA FLEX X1 Bottom Port Detail',
 
   // apps/blackpi/components/ChatScreen.jsx / Placeholder.jsx / screens/ProductDetail.jsx
   // (reached from inside a template literal: `${t('...')}${value}`)

@@ -66,6 +66,25 @@ export const ASSET_MAP = {
   'luckybag-actual': photo('luckybag-actual', '福袋實際收到的四件商品'),
 
   // -----------------------------------------------------------------
+  // VEXA FLEX X1 - the foldable phone that will replace 精品驚喜福袋 as
+  // Route B's product. The photography is in; the story is not. Nothing
+  // reads these four keys yet: ./catalog.js still sells the 福袋, and the
+  // luckybag-* entries above stay until it stops.
+  //
+  // They are registered now rather than later because a shipped file no
+  // registry names fails validate-asset-ownership RULE 1 - the table is
+  // what makes a photo reachable, so the photo and its entry land together.
+  //
+  // 1536x1536, the only size in this table that is neither 1024 nor 2048.
+  // It is what the masters are; resampling to a rounder number would cost
+  // detail for nothing. Square is the part that matters, and they are.
+  // -----------------------------------------------------------------
+  'vexa-flex-x1-main': photo('vexa-flex-x1-main', 'VEXA FLEX X1 摺疊手機商品主圖', '1536×1536'),
+  'vexa-flex-x1-camera': photo('vexa-flex-x1-camera', 'VEXA FLEX X1 三鏡頭細節圖', '1536×1536'),
+  'vexa-flex-x1-display': photo('vexa-flex-x1-display', 'VEXA FLEX X1 展開螢幕細節圖', '1536×1536'),
+  'vexa-flex-x1-connectivity': photo('vexa-flex-x1-connectivity', 'VEXA FLEX X1 底部連接埠細節圖', '1536×1536'),
+
+  // -----------------------------------------------------------------
   // Decorative filler only. `filler-generic` deliberately has no `src`:
   // the ~30 storefront filler cards and category-matched search decoys are
   // scenery, not part of the story, so they keep the neutral placeholder
