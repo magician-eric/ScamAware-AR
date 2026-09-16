@@ -64,7 +64,7 @@ The descriptor the ar-app sets on the WebView before CIBAR loads:
 window.__jorjinCamera = {
   version: 1,
   available: true,
-  streamUrl: 'https://ericingptt.github.io/CIBAR/__jorjin-camera.mjpeg',
+  streamUrl: 'https://magician-eric.github.io/ScamAware-AR/__jorjin-camera.mjpeg',
   width: 1280,
   height: 960,
 }
@@ -371,7 +371,7 @@ fed from a generated Y4M — a second of empty desk, then the target card.
 npm run build
 node scripts/make-fake-camera-y4m.mjs /tmp/s1.y4m none:8 scenario1.png:22
 
-# serve webapp/dist as /CIBAR/, then:
+# serve webapp/dist as /ScamAware-AR/, then:
 chromium --use-fake-ui-for-media-stream \
          --use-fake-device-for-media-stream \
          --use-file-for-fake-video-capture=/tmp/s1.y4m
@@ -417,7 +417,7 @@ of empty desk, then the printed card.
 ```bash
 npm run build
 node scripts/serve-fake-jorjin-camera.mjs --target scenario1.png
-# open http://localhost:5178/CIBAR/
+# open http://localhost:5178/ScamAware-AR/
 ```
 
 Driven in headless Chromium with `navigator.mediaDevices.getUserMedia`

@@ -37,7 +37,7 @@
 > **CIBAR 的執行環境分兩層，不可混為一談（詳見附錄 A）：**
 >
 > - **Development / Browser Build**：React／Vite 的純靜態產物，瀏覽器可直接執行，供開發與內部測試使用。**GitHub／PR／Actions／預覽發布只屬於這一層的開發流程。**
-> - **Final Exhibition Runtime（`IMPLEMENTED`）**：正式展場執行載體為**單一 Android App「反詐AR體驗」**（`android/`），以佐臻 JJSDK 驅動 AR 眼鏡的 RGB 相機與 ToF 手勢，並以 WebView 呈現 CIBAR。**APK 內建完整的 `webapp/dist`，由本機 https origin（`https://appassets.androidplatform.net/CIBAR/`）提供**，安裝後第一次啟動即可全程離線；`INTERNET` 權限只用於背景 OTA 取得新的 web bundle。
+> - **Final Exhibition Runtime（`IMPLEMENTED`）**：正式展場執行載體為**單一 Android App「反詐AR體驗」**（`android/`），以佐臻 JJSDK 驅動 AR 眼鏡的 RGB 相機與 ToF 手勢，並以 WebView 呈現 CIBAR。**APK 內建完整的 `webapp/dist`，由本機 https origin（`https://appassets.androidplatform.net/ScamAware-AR/`）提供**，安裝後第一次啟動即可全程離線；`INTERNET` 權限只用於背景 OTA 取得新的 web bundle。
 >
 > **「純前端靜態站台」只描述 browser build，不是交付形態。**正式交付形態是上面那支 APK。
 
@@ -599,7 +599,7 @@ CTA 的 `onClick` 與 contract 的 RIGHT action **是同一個 function**，不�
 | --- | --- |
 | 眼鏡 SDK | JJSDK v1.3.3，驅動佐臻 J-Reality AR 眼鏡的 `CameraManager`（RGB 相機）與 `TofManager`（ToF 手勢） |
 | 手勢來源 | `TofGestureRecognizer` 由 ToF 的 8×8 深度幀自行計算 LEFT／RIGHT，**不是** JJSDK 的 `TofGestureEvent`（該路徑在此韌體上永遠不會送事件） |
-| 網頁 origin | `https://appassets.androidplatform.net/CIBAR/`（Vite `base` 即 `/CIBAR/`） |
+| 網頁 origin | `https://appassets.androidplatform.net/ScamAware-AR/`（Vite `base` 即 `/ScamAware-AR/`） |
 | 網頁內容來源 | 手機上目前的 active web bundle：APK 內建的那一份，或 OTA 下載並驗證過的那一份 |
 | 體驗是否需要網路 | **不需要。**安裝後第一次啟動即可全程斷網；每一個 byte 由 `shouldInterceptRequest` 從本機 bundle 回應 |
 | `INTERNET` 權限 | 有，**只用於** OTA（抓 `latest.json` 與 `bundle.zip`），不是體驗的播放來源 |
@@ -2047,7 +2047,7 @@ Known debt/allowlist audit：`SCENARIO_STATE_DEBT` 對應 AD-01，該 AD 已 RES
 | 傳輸協定 | **必須 HTTPS**（或現場 `localhost`） | 桌機 fallback 的 `getUserMedia` 與 `navigator.geolocation` 需要 secure context；眼鏡上的 `__jorjinCamera` MJPEG stream 與網頁同 origin（否則辨識用的 canvas 會被污染） |
 | 主機型態 | 任何能提供靜態檔案的環境即可（含離線／區網主機） | 系統無後端相依 |
 | SPA fallback | **不需要**主機端 rewrite 設定 | 採 HashRouter，深層路徑不會向主機請求不存在的路徑 |
-| Base path | 固定為 `/CIBAR/`（Vite `base`），APK 掛載路徑與之相同 | `dist` 內每個 asset URL 都是絕對路徑 `/CIBAR/...`；掛在別的路徑就得重建 webapp |
+| Base path | 固定為 `/ScamAware-AR/`（Vite `base`），APK 掛載路徑與之相同 | `dist` 內每個 asset URL 都是絕對路徑 `/ScamAware-AR/...`；掛在別的路徑就得重建 webapp |
 | MIME 型別 | 需正確回應 `.webp`／`.mp3`／`.mp4`／`.json`／`.webmanifest`／`.mind` | 媒體、地區資料與辨識資料集載入 |
 | 快取策略 | 指紋化資產可長快取；`index.html` 與 `data/*.json` 應短快取或帶驗證 | 避免現場更新後仍載入舊版 |
 | 現場硬體 | 支援 ES modules／React 19 的行動瀏覽器；相機需 `playsInline`；直式手機畫面 | 見 A.5 |
@@ -2081,7 +2081,7 @@ manifest、192／512／maskable icons、Apple touch icon 齊備，`display` 為 
 
 | # | 狀態 | 說明 |
 | --- | --- | --- |
-| L-01 | `PARTIAL` | **Android 側已定案並實作**（專案結構、WebView runtime、`/CIBAR/` origin、OTA 發布流程皆已完成，見 A.3、§2.11）。仍待確認的只剩：瀏覽器版若要對外，正式主機／網域／驗收網址；以及 APK 的正式簽章與散布方式。 |
+| L-01 | `PARTIAL` | **Android 側已定案並實作**（專案結構、WebView runtime、`/ScamAware-AR/` origin、OTA 發布流程皆已完成，見 A.3、§2.11）。仍待確認的只剩：瀏覽器版若要對外，正式主機／網域／驗收網址；以及 APK 的正式簽章與散布方式。 |
 | L-02 | `IMPLEMENTED` | 影像辨識已完成：`mind-ar` `^1.2.5` ＋ `@tensorflow/tfjs`、五張圖卡依 index 0–4 固定順序編譯為 `assets/shared/ar/image-targets.mind`、對應表見 §2.10。仍需在正式圖卡印製完成後於現場光線下做一次實機辨識率驗證。<br>**架構歸屬**：**Image Recognition 屬於 CIBAR application capability，不屬於特定 AR 眼鏡品牌的 business logic。**概念責任鏈為 `Camera source / hardware frame` → `Recognition module` → `scenarioId` → `Scenario router`：眼鏡（或手機）只提供影像來源，「這張圖卡是哪一個情境」與「進入哪一個 Scenario」永遠由 CIBAR 自己決定，因此更換硬體品牌不應改變辨識與路由的歸屬。 |
 | L-03 | `IMPLEMENTED` | **Offline runtime 已完成**：APK 內建完整 web bundle 並由本機 https origin 提供，安裝後即可全程斷網（A.3）。browser／PWA 仍**沒有** offline cache，`sw.js` 仍是 kill switch（A.4）——這是刻意的，不是缺口。 |
 | L-04 | 待確認 | 指定手機、OS、瀏覽器最低版本、AR 眼鏡型號及相機方向。 |

@@ -148,19 +148,19 @@ progress bar**：第 11 條仍然成立，`ProductionStartupTest` 會擋。
 搶相機與 ToF。
 
 **MJPEG 一定要在 bundle 之前攔。** 相機端點刻意跟網頁同 origin（否則辨識用的 canvas 會被污染），
-所以它就落在 `/CIBAR/` 裡面。順序反過來的話，bundle 會用 404 回答相機請求，症狀跟第 8 條的
+所以它就落在 `/ScamAware-AR/` 裡面。順序反過來的話，bundle 會用 404 回答相機請求，症狀跟第 8 條的
 boundary bug 完全一樣：Android 側看起來一切正常，頁面回報沒有影格。
 順序寫在 `WebLayerController.interceptionFor()`，有測試釘住。
 
-**掛在 `/CIBAR/` 不是隨便選的，而且不隨版本改變。** Vite 的 `base` 就是 `/CIBAR/`，所以 `dist`
-裡每個 asset URL 都是絕對路徑 `/CIBAR/...`；掛在別的路徑就得再建一次 webapp。origin 每一版
+**掛在 `/ScamAware-AR/` 不是隨便選的，而且不隨版本改變。** Vite 的 `base` 就是 `/ScamAware-AR/`，所以 `dist`
+裡每個 asset URL 都是絕對路徑 `/ScamAware-AR/...`；掛在別的路徑就得再建一次 webapp。origin 每一版
 都相同，這是 React Router 的 history、`localStorage` 與相機權限能跨版本留下來的原因。
 
 **assets 由 build task 產生，不要手動複製。** `assembleDebug`/`assembleRelease` 會跑
 `buildCibarWebapp`（webapp 自己的 `npm run build`）→ `bundleCibarWebAssets`（複製 + 禁網稽核 +
 產生 `cibar-baseline-manifest.json`）。所以建 APK 一定需要 Node。
 
-**baseline manifest 不可以放進 `assets/cibar/`。** 只有 `/CIBAR/` 被掛出去，後面只有 `cibar/`；
+**baseline manifest 不可以放進 `assets/cibar/`。** 只有 `/ScamAware-AR/` 被掛出去，後面只有 `cibar/`；
 放進去就等於把它交給頁面的 origin。CI 會擋。
 
 **OTA 的邏輯全部寫成純 Java（`ota/` 套件，不含 `android.*`）。** 這不是潔癖：一個只能在手機上

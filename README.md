@@ -33,7 +33,7 @@ CIBAR 有**兩條互相獨立的版本線**：Android **APK Shell**（重裝才�
 ```bash
 cd webapp
 npm install
-npm run dev      # 開發模式，預設 http://localhost:5173/CIBAR/
+npm run dev      # 開發模式，預設 http://localhost:5173/ScamAware-AR/
 npm run build    # 產生 dist/ 靜態檔案
 npm run preview  # 預覽 build 結果
 npm run lint     # oxlint 檢查
@@ -43,7 +43,7 @@ npm run lint     # oxlint 檢查
 
 架構上，CIBAR 是一個共用的 Experience Platform 承載五個 Scenario：Scenario 只負責故事編排，模擬 App（GuGo Invest／Coin Winner／BlackPi／MyDonDon／HPE Logistics）、LINE 對話外殼、警示、結算、測驗、角色、所在地與素材都由平台層的共用模組提供。
 
-> **GitHub 只是開發階段的 source control／collaboration environment**（`Development workflow only`）。CIBAR 最終的正式執行環境與部署方式尚未定案；`/CIBAR/` base path 為目前的開發預覽值。詳見規格書附錄 A。
+> **GitHub 只是開發階段的 source control／collaboration environment**（`Development workflow only`）。CIBAR 最終的正式執行環境與部署方式尚未定案；`/ScamAware-AR/` base path 為目前的開發預覽值。詳見規格書附錄 A。
 
 ## 情境列表
 

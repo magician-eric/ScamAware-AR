@@ -47,7 +47,7 @@ WebView 上方沒有工具列、右上角沒有手勢讀數。啟動模式固定
 
 | | 反詐AR體驗 |
 |---|---|
-| WebView origin | `https://appassets.androidplatform.net/CIBAR/` |
+| WebView origin | `https://appassets.androidplatform.net/ScamAware-AR/` |
 | 網頁內容來源 | 手機上目前的 active bundle（APK 內建的，或 OTA 下載的） |
 | 體驗需要網路 | **不要**（安裝後第一次啟動就可以全程斷網） |
 | 桌面名稱 | **反詐AR體驗** |
@@ -170,7 +170,7 @@ webapp/ 原始碼 → npm run build（含 webapp 自己的 prebuild 驗證）→
 路徑就產生不出來，所以「APK 內的網頁比網站舊」在結構上不可能發生。
 
 `cibar-baseline-manifest.json` 刻意放在 `assets/` 根目錄而**不是** `assets/cibar/` 裡面：
-只有 `/CIBAR/` 這個前綴被掛出去，而它後面只有 `cibar/`，所以頁面的 origin 讀不到它。
+只有 `/ScamAware-AR/` 這個前綴被掛出去，而它後面只有 `cibar/`，所以頁面的 origin 讀不到它。
 
 ### 為什麼不用 `file:///android_asset/`
 
@@ -179,8 +179,8 @@ webapp/ 原始碼 → npm run build（含 webapp 自己的 prebuild 驗證）→
 眼鏡 MJPEG 影格會變成 cross-origin 而污染辨識用的 canvas（`getImageData` 直接丟 SecurityError）。
 
 所以用 `WebViewAssetLoader`（`androidx.webkit`）把同一批 bytes 掛在
-`https://appassets.androidplatform.net/CIBAR/`——一個真正的 https origin，語意跟 GitHub Pages 上
-完全一樣。掛在 `/CIBAR/` 而不是別的路徑，是因為 Vite 的 `base` 就是 `/CIBAR/`：這樣打包的
+`https://appassets.androidplatform.net/ScamAware-AR/`——一個真正的 https origin，語意跟 GitHub Pages 上
+完全一樣。掛在 `/ScamAware-AR/` 而不是別的路徑，是因為 Vite 的 `base` 就是 `/ScamAware-AR/`：這樣打包的
 就是「跟網站一模一樣的那一份 `dist`」，不需要為了離線再建一次。
 
 **這個 origin 不隨版本改變**，OTA 換版也一樣。React Router 的 history、Vite 編出來的絕對資源
@@ -206,12 +206,12 @@ kill switch），所以正常情況下什麼都不會發生。`ServiceWorkerGuar
 ### MJPEG 與本機資源的攔截順序
 
 眼鏡相機端點 `__jorjin-camera.mjpeg` 刻意跟網頁同 origin（否則 canvas 會被污染），
-所以它就落在 bundle 負責的 `/CIBAR/` 前綴裡面。順序因此是固定的，
+所以它就落在 bundle 負責的 `/ScamAware-AR/` 前綴裡面。順序因此是固定的，
 由 `WebLayerController.interceptionFor()` 決定並有測試釘住：
 
 ```text
-/CIBAR/__jorjin-camera.mjpeg  → GlassesCameraStream
-其他 /CIBAR/…                 → 目前的 active bundle
+/ScamAware-AR/__jorjin-camera.mjpeg  → GlassesCameraStream
+其他 /ScamAware-AR/…                 → 目前的 active bundle
 其他                          → 交給 WebView（體驗本身永遠不會走到這裡）
 ```
 
@@ -506,7 +506,7 @@ APK 是不是一個完整的離線體驗，也在 artifact 上驗，而不是相
   （在裡面就等於把它暴露給頁面的 origin）。
 - 那份 manifest 宣告的版本，必須等於同一個 commit 由 `webapp/scripts/ota-version.mjs` 算出來的
   OTA 版本。不相等的話，每一支剛裝好的手機都會為了拿到自己內建的那一份而下載 80 MB。
-- 從 APK 裡解出來的 `index.html` 必須以 `/CIBAR/` 為 base，否則它在手機上每個 asset 都會 404。
+- 從 APK 裡解出來的 `index.html` 必須以 `/ScamAware-AR/` 為 base，否則它在手機上每個 asset 都會 404。
 - 對 APK 內實際打包的網頁 bytes 重跑一次禁網稽核（Gradle 已對 staging 目錄跑過一次）。
 
 Lint 在 APK 產出**之後**才執行且只作報告（`continue-on-error`），樣式類問題不會擋住可測試的
@@ -520,7 +520,7 @@ push 到 main → Build Android APK → 驗證 APK → 上傳 Artifact → 更�
 
 取得 APK 有兩種方式：
 
-1. **GitHub Release（手機最方便）**：<https://github.com/ericingptt/CIBAR/releases/tag/debug-latest>
+1. **GitHub Release（手機最方便）**：<https://github.com/magician-eric/ScamAware-AR/releases/tag/debug-latest>
    （`main` 用 `debug-latest`；其他分支各自發布 `debug-<branch>`，方便未合併前先拿去實機測。）
    直接用手機瀏覽器開啟，**點 Release 內文最上面的下載連結**即可安裝，不需解壓縮。
    Release asset 的檔名是 ASCII 的 `CIBAR.apk`：GitHub 的 release-asset API 會把
@@ -569,10 +569,10 @@ PR merge → main
 發布之後的位置：
 
 ```text
-https://ericingptt.github.io/CIBAR/ota/latest.json
-https://ericingptt.github.io/CIBAR/updates/releases/<version>/manifest.json
-https://ericingptt.github.io/CIBAR/updates/releases/<version>/sha256.txt
-https://github.com/ericingptt/CIBAR/releases/download/web-<version>/bundle.zip
+https://magician-eric.github.io/ScamAware-AR/ota/latest.json
+https://magician-eric.github.io/ScamAware-AR/updates/releases/<version>/manifest.json
+https://magician-eric.github.io/ScamAware-AR/updates/releases/<version>/sha256.txt
+https://github.com/magician-eric/ScamAware-AR/releases/download/web-<version>/bundle.zip
 ```
 
 `bundle.zip` 放在 GitHub Release 而不是 Pages 上，因為 Pages 每次部署都會整份換掉，

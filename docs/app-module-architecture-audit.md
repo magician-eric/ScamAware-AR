@@ -74,7 +74,7 @@ type AppScreenProps<TData, TEvent> = {
 Git 歷史顯示 GuGo 是為「build/deploy 並由 Scenario01 嵌入」後加入，之後才逐步補完整註冊、量化配置與投資頁面。現行特例包括：
 
 1. 第二套 package/lockfile、React Router、i18next、TypeScript 與 Vite config。
-2. production base 固定為 `/CIBAR/gugo-invest/dist/`，部署流程要獨立 build 再拷貝產物。
+2. production base 固定為 `/ScamAware-AR/gugo-invest/dist/`，部署流程要獨立 build 再拷貝產物。
 3. iframe 隔離 CSS/runtime；語言由主站 `zh` 映射成 `zh-TW` query；狀態無 shared context，只靠子 App localStorage。
 4. Scenario01 的 `Profit`／`WithdrawFail` 沒在子 App 內，卻複製 GuGo 品牌外觀，因此「App 結束、scenario 恢復」的界線只靠 iframe footer。
 5. React/Vite/lucide patch versions 與主站不同，且 GuGo 額外依賴 charts、i18next、Tailwind；這是部署隔離造成的成本，不是 domain 必要性。
