@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.5.1-20260916.002` | 1.2.0 | 1.5.1 | 2026-09-16 | #4 | `22f72f2` | MINOR | Merge pull request #4 from magician-eric/claude/youthful-heisenberg-xau2b7 |
 | `1.4.0-20260901.001` | 1.1.0 | 1.4.0 | 2026-09-01 | #386 | `6ed8d72` | MINOR | Merge pull request #386 from ericingptt/claude/ar-recognition-flow-split-m86xio |
 | `1.3.3-20260826.004` | 1.1.0 | 1.3.3 | 2026-08-26 | #385 | `92eee5e` | PATCH | Merge pull request #385 from ericingptt/claude/cibar-scenario2-remove-back-button-tqwyqm |
 | `1.3.2-20260826.003` | 1.1.0 | 1.3.2 | 2026-08-26 | #384 | `67d9e4e` | PATCH | Merge pull request #384 from ericingptt/claude/scenario04-ad33-flow-blocker |
