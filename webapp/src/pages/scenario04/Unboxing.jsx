@@ -26,6 +26,11 @@ const FIRST_ANOMALY_LINE = {
 const STAGE1_ASSET = { health: 'robot-vacuum-package', luckyBag: 'vexa-flex-x1-actual-unboxing' };
 const STAGE2_ASSET = { health: 'robot-vacuum-unboxed' };
 
+// The stage-1 headline, per route for the same reason the photos are. The
+// robot vacuum keeps the 包裹已送達 wording it has always had - the same string
+// the order screen uses - while the VEXA parcel carries its own 開箱標題.
+const STAGE1_HEADLINE = { health: '包裹已送達', luckyBag: '商品已送達，準備開箱' };
+
 // The four unboxing photos per route, shown all at once in a 2x2 grid.
 //
 // Both routes deliberately use the same presentation. The robot vacuum used
@@ -160,7 +165,7 @@ export function Unboxing() {
         {stage === 'package' && (
           <div style={{ textAlign: 'center' }}>
             <AssetImage assetKey={STAGE1_ASSET[route]} className="bp-photo-block" priority />
-            <h1 className="bp-h1 bp-section">{t('包裹已送達')}</h1>
+            <h1 className="bp-h1 bp-section">{t(STAGE1_HEADLINE[route] || STAGE1_HEADLINE.health)}</h1>
             <button type="button" className="bp-btn bp-btn-block bp-section" onClick={openPackage}>{t('拆開外箱')}</button>
           </div>
         )}

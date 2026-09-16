@@ -82,9 +82,8 @@ export const ROBOT_VACUUM_REVIEWS = [
 export const VEXA_FLEX_X1_PRODUCT = {
   id: 'vexa-flex-x1',
   route: 'luckyBag',
-  // The listing's own headline. 8.7 吋 is the advertised panel size and is
-  // deliberately never explained anywhere in the story - the player is meant
-  // to read it as a spec, exactly as they would on a real listing.
+  // The listing's own headline. 8.7 吋 is the advertised panel size - a spec
+  // line the player reads exactly as they would on a real listing.
   name: 'VEXA FLEX X1｜8.7 吋旗艦摺疊手機',
   shop: '潮選數位通訊館',
   // NT$29,800 is the whole of the money this route ever charges: free
@@ -113,7 +112,7 @@ export const VEXA_FLEX_X1_PRODUCT = {
   promoSub: '原價 NT$69,800，限時特惠 NT$29,800',
   deliveryInfo: '宅配免運｜預計 3 至 5 天送達',
   guaranteeInfo: '平台付款保障｜七天鑑賞期',
-  description: '主打 8.7 吋旗艦摺疊大螢幕的 5G 摺疊手機，搭載旗艦三鏡頭與 512GB 大容量，石墨黑精品機身，限時品牌體驗價供應，數量有限。',
+  description: '全新 VEXA FLEX X1，搭載 8.7 吋旗艦摺疊大螢幕、旗艦三鏡頭與 512GB 大容量。限時品牌體驗價 NT$29,800，數量有限，售完為止。',
   // The hedge the seller leans on later, when the parcel turns out to be two
   // phones on a hinge: 「不同批次外觀可能略有差異」.
   notice: '商品規格與外觀可能因出貨批次略有差異，實際內容以出貨商品為準。',
