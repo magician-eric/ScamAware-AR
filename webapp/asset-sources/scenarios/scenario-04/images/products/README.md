@@ -27,6 +27,16 @@ Every shipped product photo in this folder's shipped counterpart is **square
 promises squareness so consumers can use `object-fit: cover` without cropping
 the product out of frame. Square masters of at least 2048×2048 keep that true.
 
+Keep marketing copy **out of the picture**. The app ships zh, en and jp, and
+text burned into a photo cannot be translated - an en player would read
+Chinese off the product image. Every one of the 26 product photos already in
+the shipped folder is text-free for that reason; the selling copy belongs in
+`apps/blackpi/data/catalog.js` and its i18n, where all three languages get
+it. A wide shot that splits its subject and its caption across a 3:2 frame
+also cannot survive a square crop: a first VEXA set was rejected for exactly
+this, because no 1:1 window held both the camera module and the caption
+beside it.
+
 ## Deriving the shipped WebP
 
 ```sh
