@@ -637,7 +637,7 @@ export const AR_MIGRATION_INVENTORY = [
     scenario: 'scenario04', surface: '黑皮首頁・商品選擇',
     file: 'src/apps/blackpi/screens/Home.jsx',
     surfaceId: 'blackpi/home', mode: 'dual',
-    left: '限量精品驚喜福袋', right: '智慧掃拖機器人',
+    left: 'VEXA FLEX X1 旗艦摺疊手機', right: '智慧掃拖機器人',
     notes: '首頁有兩個劇情商品卡（固定左右）。同一畫面上的搜尋列、通知鈴、BottomNav、裝飾商品列都不宣告，而且自 inert chrome 修正後三者（Touch / Mouse / Gesture）皆不可操作 —— 這正是 contract 存在的理由。',
   }),
   surface({

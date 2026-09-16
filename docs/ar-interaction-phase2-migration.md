@@ -154,7 +154,7 @@ Contract 只是用**語意**再說一次畫面本來就有的 handler；觸控�
 | --- | --- | --- | --- | --- | --- | --- |
 | 模擬手機桌面 | `webapp/src/pages/scenario04/SimPhoneHome.jsx` | `scenario04/phone-home` | `single` | — | 開啟黑皮購物 | — |
 | 黑皮購物開場動畫 | `webapp/src/pages/scenario04/blackpi/hosts.jsx` | `scenario04/blackpi-splash` | `display` | — | — | — |
-| 黑皮首頁・商品選擇 | `webapp/src/apps/blackpi/screens/Home.jsx` | `blackpi/home` | `dual` | 限量精品驚喜福袋 | 智慧掃拖機器人 | 首頁有兩個劇情商品卡（固定左右）。同一畫面上的搜尋列、通知鈴、BottomNav、裝飾商品列都不宣告，而且自 inert chrome 修正後三者（Touch / Mouse / Gesture）皆不可操作 —— 這正是 contract 存在的理由。 |
+| 黑皮首頁・商品選擇 | `webapp/src/apps/blackpi/screens/Home.jsx` | `blackpi/home` | `dual` | VEXA FLEX X1 旗艦摺疊手機 | 智慧掃拖機器人 | 首頁有兩個劇情商品卡（固定左右）。同一畫面上的搜尋列、通知鈴、BottomNav、裝飾商品列都不宣告，而且自 inert chrome 修正後三者（Touch / Mouse / Gesture）皆不可操作 —— 這正是 contract 存在的理由。 |
 | 商品詳情 | `webapp/src/apps/blackpi/screens/ProductDetail.jsx` | `blackpi/product-detail` | `dual` | 賣家聊聊 | 直接購買 | — |
 | 商品詳情・找不到商品 | `webapp/src/apps/blackpi/screens/ProductDetail.jsx` | `blackpi/product-not-found` | `single` | — | 回首頁 | — |
 | 結帳確認 | `webapp/src/apps/blackpi/screens/Checkout.jsx` | `blackpi/checkout` | `single` | — | 確認付款 | — |

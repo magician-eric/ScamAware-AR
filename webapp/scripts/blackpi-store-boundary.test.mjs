@@ -59,7 +59,7 @@ function installStorages() {
 }
 
 const HEALTH = { route: 'health', name: '智慧掃拖機器人' };
-const LUCKY_BAG = { route: 'luckyBag', name: '驚喜福袋' };
+const VEXA_FLEX_X1 = { route: 'luckyBag', name: 'VEXA FLEX X1｜8.7 吋旗艦摺疊手機' };
 
 // --- the boundary itself -----------------------------------------------------
 
@@ -289,7 +289,7 @@ test('the order id and its timestamp are minted once, never on a revisit', async
     assert.equal(second.orderCreatedAt, first.orderCreatedAt, 'nor restamp it');
 
     // The other product line is a different order.
-    app.confirmPurchase(LUCKY_BAG);
+    app.confirmPurchase(VEXA_FLEX_X1);
     const other = store.getShoppingState();
     assert.equal(other.selectedRoute, 'luckyBag');
     assert.notEqual(other.orderId, first.orderId, 'switching product line mints a new order');
@@ -319,7 +319,7 @@ test('the props handed to the App carry the order and nothing else of the story'
 
   assert.equal(app.selectOrderSummary(store.getShoppingState()), null, '訂單 tab is empty before there is an order');
 
-  app.confirmPurchase(LUCKY_BAG);
+  app.confirmPurchase(VEXA_FLEX_X1);
   store.saveShoppingState({ orderStatus: 'delivered', disputeStatus: 'opened', trustScore: 12, evidenceSaved: ['received-photos'] });
   const state = store.getShoppingState();
 

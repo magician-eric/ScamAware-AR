@@ -105,10 +105,15 @@ recommendation aimed at material still to be shot. Their `assetMap.js` entries
 record `'1254×1254'`, their true intrinsic size.
 
 All eight are registered in `apps/blackpi/data/assetMap.js`, with en/jp
-captions in `apps/blackpi/i18n/{en,jp}.js`. No screen reads those eight keys
-yet: `catalog.js` still sells the 精品驚喜福袋, so all 12 `luckybag-*` photos
-stay until it stops. Swapping Route B's product over - catalog, dialogue tree,
-price, `pages/scenario04/Unboxing.jsx`, i18n copy - is the work that retires
-them.
+captions in `apps/blackpi/i18n/{en,jp}.js`, and all eight are now on screen:
+`catalog.js` sells the VEXA FLEX X1 on Route B, the four claim shots are its
+PDP carousel / storefront card / order thumbnail, and
+`pages/scenario04/Unboxing.jsx` shows `-actual-unboxing` as the parcel that
+arrived and then all four as the photos the player keeps - which is what the
+return request attaches.
+
+The 12 `luckybag-*` photos Route B used to sell were deleted in that same
+swap. They never had masters in this folder - only the shipped WebP existed -
+so nothing here went with them.
 
 A master whose derived asset was deleted should be deleted too.

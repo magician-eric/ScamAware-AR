@@ -15,7 +15,7 @@ export function Messages({
   if (route) {
     threads.push({
       id: 'seller',
-      name: t(route === 'health' ? '智選家電生活館' : '好日子驚喜選物'),
+      name: t(route === 'health' ? '智選家電生活館' : '潮選數位通訊館'),
       preview: sellerUnreachable ? t('（店家暫停營業）') : t('點擊繼續與賣家的對話'),
       onClick: () => onOpenSellerChat?.(),
     });

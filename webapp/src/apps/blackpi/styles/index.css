@@ -294,7 +294,7 @@
 .bp-reveal-item-in{animation:bpRevealIn .38s ease-out}
 /* The 2x2 unboxing photo grid. Shared by both routes (robot vacuum and
    lucky bag) - named for the screen, not for one product, since it is no
-   longer luckyBag-only. */
+   longer one product line's only. */
 .bp-unboxing-result{max-width:440px;margin:0 auto}
 .bp-unboxing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .bp-unboxing-item{min-width:0;margin:0;display:flex;flex-direction:column;gap:5px}

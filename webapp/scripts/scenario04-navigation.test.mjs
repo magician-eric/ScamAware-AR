@@ -796,7 +796,7 @@ test('the ending is a flat 詐騙疑點分析 with four red flags and one CTA', 
   // The first flag is the one thing that differs per product; the refund
   // stall, the shop going dark and the off-platform trap are shared.
   assert.match(ending, /商品資訊與實際收到內容明顯不符/);
-  assert.match(ending, /「隨機內容」不能成為貨不對版的藉口/);
+  assert.match(ending, /遠低於原價的「限時優惠」可能只是誘餌/);
   for (const shared of ['賣家以退貨流程持續拖延退款', '賣家失聯或賣場停止營業', '平台外交易缺乏平台保障']) {
     assert.equal((ending.match(new RegExp(shared, 'g')) || []).length, 2, `${shared} must appear on both routes`);
   }
@@ -812,7 +812,7 @@ test('the ending is a flat 詐騙疑點分析 with four red flags and one CTA', 
   // this scenario's dictionaries along with the removed scorecard copy.
   for (const dict of ['scenario04En', 'scenario04Jp']) {
     const source = await read(`src/shared/i18n/${dict}.js`);
-    for (const key of ['商品資訊與實際收到內容明顯不符', '「隨機內容」不能成為貨不對版的藉口',
+    for (const key of ['商品資訊與實際收到內容明顯不符', '遠低於原價的「限時優惠」可能只是誘餌',
       '賣家以退貨流程持續拖延退款', '賣家失聯或賣場停止營業', '平台外交易缺乏平台保障']) {
       assert.ok(source.includes(`'${key}':`), `${dict} is missing ${key}`);
     }
