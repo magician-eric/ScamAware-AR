@@ -280,6 +280,10 @@ export const JP = {
   '實際收到的掃把與畚箕': '実際に届いたほうきとちりとり',
   '掃把頭': 'ほうきのヘッド',
   '畚箕': 'ちりとり',
+  'VEXA FLEX X1 摺疊手機商品主圖': 'VEXA FLEX X1 折りたたみスマホのメイン商品写真',
+  'VEXA FLEX X1 三鏡頭細節圖': 'VEXA FLEX X1 トリプルカメラの詳細',
+  'VEXA FLEX X1 展開螢幕細節圖': 'VEXA FLEX X1 展開時のディスプレイの詳細',
+  'VEXA FLEX X1 底部連接埠細節圖': 'VEXA FLEX X1 底面ポートの詳細',
 
   // apps/blackpi/components/ChatScreen.jsx / Placeholder.jsx / screens/ProductDetail.jsx
   // (reached from inside a template literal: `${t('...')}${value}`)
