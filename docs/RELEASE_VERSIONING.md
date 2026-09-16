@@ -318,7 +318,7 @@ Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網
   "sha256": "<SHA-256>",
   "sizeBytes": 12345678,
   "minShellVersion": "1.0.0",
-  "url": "https://github.com/ericingptt/CIBAR/releases/download/web-1.0.3-20260825.002/cibar-web-1.0.3-20260825.002.zip"
+  "url": "https://github.com/magician-eric/ScamAware-AR/releases/download/web-1.0.3-20260825.002/cibar-web-1.0.3-20260825.002.zip"
 }
 ```
 
@@ -328,7 +328,7 @@ Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網
 
 `release/ota/latest.json` 是最後一次正式發布的同一份 manifest 的副本，也是 production 的指標。
 它同時被複製到發布站台的 `ota/latest.json`，所以線上版 Shell 可以直接讀
-`https://ericingptt.github.io/CIBAR/ota/latest.json`。
+`https://magician-eric.github.io/ScamAware-AR/ota/latest.json`。
 
 ---
 
@@ -340,6 +340,10 @@ Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網
 
 由 `ota-release.yml` 在發布成功之後自動附加一列，`Type` 欄（PATCH／MINOR／MAJOR）是拿前一次的
 `latest.json` 與這次的版本比出來的，不是人填的，所以不可能與版本號互相矛盾。
+
+`1.4.0-20260901.001` 以前的記錄產生於舊帳號 `ericingptt/CIBAR`。該帳號已無法存取，那批
+manifest 的 `url` 與 History 表 `Notes` 欄的分支名都保持原值不改寫，理由與作法見
+[`release/ota/README.md`](../release/ota/README.md)。
 
 ---
 
