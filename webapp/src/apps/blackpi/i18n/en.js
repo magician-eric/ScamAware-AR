@@ -131,7 +131,6 @@ export const EN = {
   '限時品牌體驗價・數量有限': 'Limited-Time Brand Experience Price · While Supplies Last',
   '原價 NT$69,800，限時特惠 NT$29,800': 'Was NT$69,800 — NT$29,800 for a limited time',
   '宅配免運｜預計 3 至 5 天送達': 'Free Home Delivery · Arrives in 3-5 Days',
-  '石墨黑／512GB／1 台': 'Graphite Black / 512GB / 1 unit',
   '主打 8.7 吋旗艦摺疊大螢幕的 5G 摺疊手機，搭載旗艦三鏡頭與 512GB 大容量，石墨黑精品機身，限時品牌體驗價供應，數量有限。':
     'A 5G foldable phone built around an 8.7-inch flagship folding display, with a flagship triple camera, 512GB of storage and a premium graphite black body. Offered at a limited-time brand experience price while supplies last.',
   '商品規格與外觀可能因出貨批次略有差異，實際內容以出貨商品為準。':
@@ -153,7 +152,6 @@ export const EN = {
   '摺疊手機': 'Foldable Phone',
   '點這裡搜尋智慧掃地機器人或摺疊手機': 'Tap to search smart robot vacuums or foldable phones',
   '搜尋掃地機器人、摺疊手機': 'Search robot vacuums, foldable phones',
-  '規格 ': 'Spec ',
 
   // apps/blackpi/screens/Category.jsx
   '美妝保養': 'Beauty & Skincare',

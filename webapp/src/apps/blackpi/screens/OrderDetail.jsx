@@ -117,12 +117,7 @@ export function OrderDetail({
           <h2 className="bp-h2">{t(product.shop)}</h2>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14 }}>
             <AssetImage assetKey={product.assetKey} className="bp-compact-thumb" />
-            <span style={{ flex: 1 }}>
-              {t(product.name)}
-              {/* Same order line as 結帳確認, so the variant the shopper paid
-                  for is still on screen once the order exists. */}
-              {product.variant && <span className="bp-muted" style={{ display: 'block', marginTop: 4 }}>{t('規格 ')}{t(product.variant)}</span>}
-            </span>
+            <span style={{ flex: 1 }}>{t(product.name)}</span>
             <span style={{ flex: 'none', marginLeft: 10 }}>NT${product.price.toLocaleString()}</span>
           </div>
           <p className="bp-tertiary" style={{ marginTop: 8 }}>{t('訂單編號 ')}{order.id || t('產生中…')}</p>

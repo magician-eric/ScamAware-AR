@@ -64,10 +64,6 @@ export function Checkout({ productRoute: route = null, onConfirmPayment, onBack 
             <span>{t(product.name)}</span>
             <span style={{ flex: 'none', marginLeft: 10 }}>NT${product.price.toLocaleString()}</span>
           </div>
-          {/* The picked variant, the way a real storefront prints it on the
-              order line. Only products that have one render it - it is a
-              catalog field, not a per-route branch in this screen. */}
-          {product.variant && <div className="bp-muted" style={{ marginTop: 4 }}>{t('規格 ')}{t(product.variant)}</div>}
         </div>
 
         <div className="bp-card bp-section">
