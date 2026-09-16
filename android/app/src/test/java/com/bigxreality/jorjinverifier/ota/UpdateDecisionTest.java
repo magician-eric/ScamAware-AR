@@ -105,6 +105,29 @@ public class UpdateDecisionTest {
     }
 
     /**
+     * The migration's own numbers: a 1.5.0 bundle published with {@code minShellVersion} 1.2.0.
+     *
+     * <p>This is the layer that protects the phones nobody reaches. A shell below the line is the
+     * one that would mount the new bundle under the old prefix, and it is also the one that will
+     * never be reinstalled by hand - so the only thing that can stop it is refusing to hand it the
+     * bundle in the first place. The shell at the line takes it normally.
+     */
+    @Test public void aShellBelowTheMigrationLineIsNotGivenTheNewBundle() throws Exception {
+        OtaLatest published = latest(V2, "1.2.0");
+
+        UpdateDecision refused = UpdateDecision.decide(published, V1, null, "1.1.0");
+        assertEquals(UpdateDecision.Action.SHELL_TOO_OLD, refused.action);
+        assertFalse(refused.shouldDownload());
+        assertTrue(refused.reason.contains("1.2.0"));
+        assertTrue(refused.reason.contains("1.1.0"));
+
+        UpdateDecision accepted = UpdateDecision.decide(published, V1, null, "1.2.0");
+        assertEquals("the shell at the line is exactly old enough",
+                UpdateDecision.Action.DOWNLOAD, accepted.action);
+        assertTrue(accepted.shouldDownload());
+    }
+
+    /**
      * The shell gate is checked first, before "already current" and before "already staged".
      *
      * <p>Order matters for what diagnostics can say. A phone stuck on an old shell should report

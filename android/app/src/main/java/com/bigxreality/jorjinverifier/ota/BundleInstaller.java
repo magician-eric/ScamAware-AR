@@ -36,6 +36,11 @@ import java.util.zip.ZipInputStream;
  *   <li><b>The shape of a CIBAR build.</b> {@link BundleRequirements} - videos, audio, image
  *       targets, JavaScript, CSS. A bundle that unpacked completely and is missing its videos is
  *       complete by its own manifest and useless on a phone with no network.</li>
+ *   <li><b>The base path it was compiled for.</b> Also {@link BundleRequirements}, and the reason
+ *       a bundle can be perfect by every check above and still be unservable: its asset URLs are
+ *       absolute under the {@code base} it was built with, so mounted anywhere else the page comes
+ *       up and nothing on it does. Refused here means it never becomes pending, and the phone is
+ *       never in the position of discovering it at launch.</li>
  * </ol>
  */
 public final class BundleInstaller {
@@ -61,7 +66,7 @@ public final class BundleInstaller {
      */
     public static OtaManifest unpackAndVerify(File archive, String expectedSha256,
                                               String expectedVersion, File unpackDirectory,
-                                              String shellVersion, OtaLog log)
+                                              String shellVersion, String basePath, OtaLog log)
             throws OtaException {
         OtaLog logger = log == null ? OtaLog.NONE : log;
         try {
@@ -105,7 +110,7 @@ public final class BundleInstaller {
         }
 
         verifyFiles(manifest, unpackDirectory);
-        BundleRequirements.assertComplete(manifest, unpackDirectory);
+        BundleRequirements.assertComplete(manifest, unpackDirectory, basePath);
         logger.line("OTA：內容驗證通過 " + BundleRequirements.describe(manifest));
         return manifest;
     }

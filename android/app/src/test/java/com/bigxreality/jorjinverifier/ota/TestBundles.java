@@ -48,11 +48,39 @@ final class TestBundles {
     /** A Shell newer than any release the fixtures declare, for the "too old" side of the gate. */
     static final String NEWER_SHELL = "2.0.0";
 
+    /**
+     * The mount prefix the fixtures are built for, and the one the tests run their shell at. The
+     * real value, so a build that stopped matching {@code webapp/vite.config.js} shows up here.
+     */
+    static final String BASE_PATH = "/ScamAware-AR/";
+
+    /**
+     * A prefix that is not this shell's.
+     *
+     * <p>Every bundle installed on a phone before the account migration is in exactly this state:
+     * intact, complete, correctly signed, and compiled against a path the shell no longer serves.
+     * The literal does not matter and is deliberately not the historical one - what is being
+     * tested is the rule, not one value it happened to reject.
+     */
+    static final String FOREIGN_BASE_PATH = "/NotOurBase/";
+
     /** A complete, minimal CIBAR build: one file for each thing the shell insists on finding. */
     static Map<String, byte[]> completeBuild() {
+        return completeBuild(BASE_PATH);
+    }
+
+    /**
+     * The same build compiled for a given mount prefix - what Vite's {@code base} decides.
+     *
+     * <p>Only {@code index.html} carries it, which is the point: every other file in a bundle is
+     * byte-identical whichever base it was built for, so nothing but the entry document can tell
+     * the two apart.
+     */
+    static Map<String, byte[]> completeBuild(String basePath) {
         Map<String, byte[]> files = new LinkedHashMap<>();
         files.put("index.html",
-                bytes("<!doctype html><script type=\"module\" src=\"/ScamAware-AR/assets/app.js\"></script>"));
+                bytes("<!doctype html><script type=\"module\" src=\"" + basePath
+                        + "assets/app.js\"></script>"));
         files.put("manifest.json", bytes("{\"name\":\"反詐AR體驗\"}"));
         files.put("assets/app.js", bytes("export const app = 1;\n"));
         files.put("assets/app.css", bytes("body{margin:0}\n"));

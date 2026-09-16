@@ -155,7 +155,8 @@ public class OtaUpdaterTest {
 
     private WebBundleStore store() {
         return new WebBundleStore(new File(root, "webbundle"), BASELINE,
-                TestBundles.BASELINE_SHELL, message -> log.append(message).append('\n'),
+                TestBundles.BASELINE_SHELL, TestBundles.BASE_PATH,
+                message -> log.append(message).append('\n'),
                 () -> 1_700_000_000_000L);
     }
 
@@ -208,6 +209,39 @@ public class OtaUpdaterTest {
         bundleFile.set(release.archive);
         latestBody.set(release.latestJson(HTTPS_ORIGIN + "/bundle.zip", minShellVersion));
         return release;
+    }
+
+    // ------------------------------------------------------------------ the base path gate
+
+    /**
+     * A published bundle built for another mount prefix is fetched, refused, and thrown away.
+     *
+     * <p>The refusal happens after the download, because nothing before it can see the problem: the
+     * pointer file is honest, the digest matches, and the archive is a complete build. What the
+     * check costs is one wasted download; what it buys is that the phone never points at it.
+     */
+    @Test public void aBundleBuiltForAnotherBasePathIsDiscardedAndTheRunningOneKeptGoing()
+            throws Exception {
+        WebBundleStore store = store();
+        promoteInstalled(store, V1);
+
+        TestBundles.Release release = TestBundles.publish(publishDir, V2,
+                TestBundles.completeBuild(TestBundles.FOREIGN_BASE_PATH),
+                TestBundles.BASELINE_SHELL);
+        bundleFile.set(release.archive);
+        latestBody.set(release.latestJson(HTTPS_ORIGIN + "/bundle.zip",
+                TestBundles.BASELINE_SHELL));
+
+        OtaUpdater.Result result = updater(store).runOnce();
+
+        assertEquals(OtaUpdater.Outcome.FAILED, result.outcome);
+        assertEquals("the wearer's session is exactly what it was", V1, store.activeVersion());
+        assertNull("and nothing is waiting to take over at the next launch",
+                store.pendingVersion());
+        assertTrue(store.diagnostics().lastUpdateError,
+                store.diagnostics().lastUpdateError.contains(TestBundles.BASE_PATH));
+        assertFalse("the rejected bundle is not left on disk",
+                store.installedVersions().contains(V2));
     }
 
     // ------------------------------------------------------------------ Test B

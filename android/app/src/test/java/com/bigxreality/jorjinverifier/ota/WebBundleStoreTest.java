@@ -48,7 +48,17 @@ public class WebBundleStoreTest {
 
     /** One cold start: a new store over the same directory, which is all a launch really is. */
     private WebBundleStore launch() {
-        return new WebBundleStore(root, BASELINE, TestBundles.BASELINE_SHELL,
+        return launchAt(TestBundles.BASE_PATH);
+    }
+
+    /**
+     * One cold start as a shell that mounts bundles at a given prefix.
+     *
+     * <p>Changing only this between two launches over the same root is exactly what installing a
+     * new APK over an old one does: the code changes, {@code filesDir} does not.
+     */
+    private WebBundleStore launchAt(String basePath) {
+        return new WebBundleStore(root, BASELINE, TestBundles.BASELINE_SHELL, basePath,
                 message -> log.append(message).append('\n'),
                 () -> 1_700_000_000_000L);
     }
@@ -293,7 +303,118 @@ public class WebBundleStoreTest {
                 store.installedVersions().isEmpty());
     }
 
+    // ------------------------------------------- the bundle left behind by an in-place upgrade
+
+    /**
+     * The failure this whole gate exists for, in the order it actually happens.
+     *
+     * <p>Installing an APK over an older one keeps {@code filesDir}, so a phone that was running a
+     * bundle compiled for the previous mount prefix comes up with {@code state.json} still pointing
+     * at it. Every other check passes: the tree is intact, the manifest agrees with it, and the
+     * bundle's {@code minShellVersion} is <em>older</em> than this shell, so that gate waves it
+     * through. Served anyway, the document loads and every asset under it 404s - a white screen
+     * the rollback gate cannot see, because the page did load.
+     */
+    @Test public void aBundleBuiltForAnotherBasePathIsNotServedAfterAnInPlaceUpgrade()
+            throws Exception {
+        runningOnTheOldShell();
+
+        WebBundle bundle = upgradedShellLaunch();
+
+        assertTrue("a bundle compiled for another prefix must not be served", bundle.isBaseline());
+        assertEquals(BASELINE, bundle.version);
+        assertEquals(BASELINE, latestStore.activeVersion());
+        assertTrue(latestStore.diagnostics().lastRollbackReason,
+                latestStore.diagnostics().lastRollbackReason.contains(TestBundles.BASE_PATH));
+    }
+
+    /**
+     * And its 80 MiB goes back to the wearer - but only once the pointers have moved off it.
+     *
+     * <p>No new deletion path: falling back leaves nothing pointing at the directory, and
+     * {@link WebBundleStore#collectGarbage()} at the end of the launch deletes what no role points
+     * at. The ordering inside {@code openForLaunch} is what makes that safe - the new pointers are
+     * written to disk before anything is removed, so a process killed between the two comes back to
+     * a phone on the baseline rather than one pointing at a directory that is now half deleted.
+     */
+    @Test public void theBundleLeftBehindIsReclaimed() throws Exception {
+        runningOnTheOldShell();
+        assertEquals("it really is on disk before the upgrade",
+                1, launchAt(TestBundles.FOREIGN_BASE_PATH).installedVersions().size());
+
+        upgradedShellLaunch();
+
+        assertTrue("nothing points at it any more, so it is not kept",
+                latestStore.installedVersions().isEmpty());
+    }
+
+    /**
+     * Falling back off it is not held against the baseline.
+     *
+     * <p>The concern is real: the fallback clears {@code launchConfirmed} and the launch counter
+     * keeps counting, so a wearer who never gets the page up - opens the app, backgrounds it -
+     * could look like a baseline that will not run, and the baseline is the one bundle there is
+     * nothing below. {@link WebBundleStore#rollbackIfLastLaunchNeverFinished} is why that cannot
+     * happen: with no active version there is nothing to demote, and it resets the counter instead.
+     */
+    @Test public void fallingBackOffItIsNotCountedAgainstTheBaseline() throws Exception {
+        runningOnTheOldShell();
+
+        // Three launches in a row, none of them ever reaching onPageFinished - twice over
+        // MAX_UNCONFIRMED_LAUNCHES.
+        for (int launch = 0; launch < 3; launch++) {
+            WebBundleStore store = launch();
+            assertTrue("still the baseline, launch " + launch, store.openForLaunch().isBaseline());
+            assertEquals(BASELINE, store.activeVersion());
+            latestStore = store;
+        }
+        assertFalse("the baseline is never reported as having failed to launch",
+                latestStore.diagnostics().lastRollbackReason.contains("APK 內建版本載入失敗"));
+    }
+
+    /** The other half: a bundle built for this shell's own prefix is not swept up by the check. */
+    @Test public void aBundleBuiltForThisShellsBasePathKeepsRunning() throws Exception {
+        WebBundleStore first = launch();
+        first.openForLaunch();
+        stage(first, V1);
+
+        WebBundleStore promoted = launch();
+        assertEquals(V1, promoted.openForLaunch().version);
+        promoted.markLaunchSucceeded();
+
+        // A third launch, so the check runs against an already-active bundle rather than one
+        // being promoted - the path a phone spends every launch after an update in.
+        WebBundleStore third = launch();
+        WebBundle bundle = third.openForLaunch();
+
+        assertFalse("its prefix is this shell's, so it is not discarded", bundle.isBaseline());
+        assertEquals(V1, bundle.version);
+        assertEquals(1, third.installedVersions().size());
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /** The store the most recent simulated launch used, for asserting on after the fact. */
+    private WebBundleStore latestStore;
+
+    /** The phone as the migration finds it: an older shell, running a bundle built for its path. */
+    private void runningOnTheOldShell() throws Exception {
+        WebBundleStore first = launchAt(TestBundles.FOREIGN_BASE_PATH);
+        first.openForLaunch();
+        TestBundles.install(first, V1, TestBundles.completeBuild(TestBundles.FOREIGN_BASE_PATH),
+                TestBundles.BASELINE_SHELL);
+        first.stagePending(V1, moveAside(first, V1));
+
+        WebBundleStore running = launchAt(TestBundles.FOREIGN_BASE_PATH);
+        assertEquals("the old shell ran it perfectly well", V1, running.openForLaunch().version);
+        running.markLaunchSucceeded();
+    }
+
+    /** The APK replaced without an uninstall: same root, same state file, a different prefix. */
+    private WebBundle upgradedShellLaunch() {
+        latestStore = launch();
+        return latestStore.openForLaunch();
+    }
 
     /** Stages a freshly published bundle the way the updater does: verified tree, then a rename. */
     private void stage(WebBundleStore store, String version) throws Exception {

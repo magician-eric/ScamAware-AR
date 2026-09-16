@@ -75,14 +75,15 @@ public final class WebBundleStore {
     private final File stagingRoot;
     private final String baselineVersion;
     private final String shellVersion;
+    private final String basePath;
     private final OtaLog log;
     private final Clock clock;
 
     private WebBundleState state = WebBundleState.defaults();
     private WebBundle active;
 
-    public WebBundleStore(File root, String baselineVersion, String shellVersion, OtaLog log,
-                          Clock clock) {
+    public WebBundleStore(File root, String baselineVersion, String shellVersion,
+                          String basePath, OtaLog log, Clock clock) {
         this.root = root;
         this.stateFile = new File(root, STATE_FILE);
         this.versionsRoot = new File(root, VERSIONS_DIR);
@@ -91,12 +92,19 @@ public final class WebBundleStore {
                 ? baselineVersion : BundleVersion.UNKNOWN;
         this.shellVersion = SemanticVersion.isValid(shellVersion)
                 ? shellVersion : ShellVersion.UNKNOWN;
+        // Not defaulted the way the two versions above are. An unreadable version has a
+        // conservative reading - oldest possible shell, bundle that demands nothing - but there is
+        // no conservative base path: any value we invented here would be a path some bundle could
+        // match by accident. Kept as given, and BundleRequirements refuses everything when it is
+        // empty, which leaves the phone on the APK's baseline.
+        this.basePath = basePath;
         this.log = log == null ? OtaLog.NONE : log;
         this.clock = clock == null ? System::currentTimeMillis : clock;
     }
 
-    public WebBundleStore(File root, String baselineVersion, String shellVersion, OtaLog log) {
-        this(root, baselineVersion, shellVersion, log, null);
+    public WebBundleStore(File root, String baselineVersion, String shellVersion,
+                          String basePath, OtaLog log) {
+        this(root, baselineVersion, shellVersion, basePath, log, null);
     }
 
     // ------------------------------------------------------------------ launch
@@ -253,6 +261,16 @@ public final class WebBundleStore {
         return baselineVersion;
     }
 
+    /**
+     * The mount prefix every bundle this store accepts must have been built for.
+     *
+     * <p>Read by {@link OtaUpdater} so the install-time gate and the launch-time gate ask the same
+     * question of the same value, rather than each being handed one.
+     */
+    public String basePath() {
+        return basePath;
+    }
+
     /** Everything a tester can be asked to read back over adb. See {@link OtaDiagnostics}. */
     public synchronized OtaDiagnostics diagnostics() {
         return new OtaDiagnostics(shellVersion, baselineVersion, activeVersion(),
@@ -334,6 +352,16 @@ public final class WebBundleStore {
      * job was done at install time, and the failure this gate is actually for is a tree that got
      * truncated or partly deleted afterwards, which lengths catch. A file whose contents changed
      * without its length changing is not a failure mode internal storage has.
+     *
+     * <p>It also asks {@link BundleRequirements} whether the bundle was built for the path this
+     * shell mounts bundles at, which is the one check here that can fail on a tree that is
+     * perfectly intact. An APK installed over a previous one keeps {@code filesDir}, so a phone
+     * upgraded across a base path change still has the old path's bundle sitting in
+     * {@code versions/} with its state pointing at it - and the manifest's own
+     * {@code minShellVersion} gate waves it through, because a newer shell does satisfy an older
+     * requirement. Failing here routes it into the fallback below like any other unusable
+     * directory: no separate path, no special case, and the wearer gets the APK's baseline instead
+     * of a white screen.
      */
     private String whyUnusable(File directory) {
         if (directory == null || !directory.isDirectory()) return "目錄不存在";
@@ -354,7 +382,7 @@ public final class WebBundleStore {
                     return entry.path + " 長度不對（" + file.length() + " ≠ " + entry.bytes + "）";
                 }
             }
-            BundleRequirements.assertComplete(manifest, directory);
+            BundleRequirements.assertComplete(manifest, directory, basePath);
             return null;
         } catch (IOException | OtaException broken) {
             return String.valueOf(broken.getMessage());
