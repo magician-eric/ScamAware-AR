@@ -282,6 +282,10 @@ export const EN = {
   'VEXA FLEX X1 三鏡頭細節圖': 'VEXA FLEX X1 Triple-Camera Detail',
   'VEXA FLEX X1 展開螢幕細節圖': 'VEXA FLEX X1 Unfolded Display Detail',
   'VEXA FLEX X1 底部連接埠細節圖': 'VEXA FLEX X1 Bottom Port Detail',
+  'VEXA FLEX X1 實際收到商品開箱照': 'VEXA FLEX X1 Unboxing Photo of What Actually Arrived',
+  'VEXA FLEX X1 實際收到商品正面照': 'VEXA FLEX X1 Front View of What Actually Arrived',
+  'VEXA FLEX X1 實際收到商品轉軸瑕疵': 'VEXA FLEX X1 Hinge Defect on What Actually Arrived',
+  'VEXA FLEX X1 實際收到商品摺疊背面': 'VEXA FLEX X1 Folded Rear View of What Actually Arrived',
 
   // apps/blackpi/components/ChatScreen.jsx / Placeholder.jsx / screens/ProductDetail.jsx
   // (reached from inside a template literal: `${t('...')}${value}`)
