@@ -886,6 +886,36 @@ export const AR_MIGRATION_INVENTORY = [
     surfaceId: 'scenario05/mydondon-orders', mode: 'single', right: '返回聊天',
   }),
   surface({
+    scenario: 'scenario05', surface: 'SafeDeal・收款狀態',
+    file: 'src/pages/scenario05/SafeDealPaymentStatus.jsx',
+    surfaceId: 'scenario05/safedeal-payment-status', mode: 'single', right: '聯繫客服',
+  }),
+  surface({
+    scenario: 'scenario05', surface: 'SafeDeal 假客服（對方輸入中／身分驗證進度）',
+    file: 'src/pages/scenario05/SafeDealSupportChat.jsx',
+    surfaceId: 'scenario05/safedeal-support', mode: 'display',
+    notes: '自動播放與模擬認證進度期間沒有可執行動作，手勢不得沿用上一個畫面的操作。',
+  }),
+  surface({
+    scenario: 'scenario05', surface: 'SafeDeal 假客服・玩家回覆',
+    file: 'src/pages/scenario05/SafeDealSupportChat.jsx',
+    surfaceId: 'scenario05/safedeal-support/<nodeId>', mode: 'dual',
+    left: 'pendingChoices[0]', right: 'pendingChoices[1]',
+    sourceToken: 'scenario05/safedeal-support/${engine.currentNodeId}',
+    notes: 'cs.flow 是唯一的轉帳決定；cs.done 只有一個回覆，走同一段程式碼的 single 分支。',
+  }),
+  surface({
+    scenario: 'scenario05', surface: 'SafeDeal・模擬轉帳確認',
+    file: 'src/pages/scenario05/SafeDealTransfer.jsx',
+    surfaceId: 'scenario05/safedeal-transfer', mode: 'single', right: '確認模擬轉帳',
+    notes: '整個情境只會發生一次；確認後整份宣告被換掉（見下一列），手勢無法重複觸發第二次扣款。',
+  }),
+  surface({
+    scenario: 'scenario05', surface: 'SafeDeal・模擬轉帳已完成',
+    file: 'src/pages/scenario05/SafeDealTransfer.jsx',
+    surfaceId: 'scenario05/safedeal-transfer-done', mode: 'single', right: '返回客服對話',
+  }),
+  surface({
     scenario: 'scenario05', surface: '黑皮通寄件',
     file: 'src/pages/scenario05/HpeShip.jsx',
     surfaceId: 'scenario05/hpe-ship', mode: 'single',

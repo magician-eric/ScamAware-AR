@@ -6,17 +6,26 @@ import { saveDialogueCheckpoint, loadDialogueCheckpoint, saveScenario05State } f
 // scenario04's features/shopping/dialogueEngine.js - this project is a plain
 // Vite+React JS app, not TS).
 //
-// @typedef {'buyer'|'system'|'me'} Speaker
+// @typedef {'buyer'|'agent'|'system'|'me'} Speaker - 'buyer' is the fake
+//   MyDonDon buyer, 'agent' the fake SafeDeal support desk; both render as
+//   the other party on their own screen, and neither surface renders the
+//   other's.
 //
 // @typedef {Object} DialogueMessage
 // @property {Speaker} speaker @property {string} text @property {number} [delay]
 // @property {string} [type] - MyDonDon chat: 'timestamp'|'link-card'.
+//   SafeDeal support chat: 'progress'|'progress-done'.
 // @property {any} [data]
 //
 // @typedef {Object} DialogueChoice
 // @property {string} id @property {string} label @property {string} [playerMessage]
 // @property {string} [nextNodeId] @property {string} [awareness] - key recorded to
 //   scenario05Store so the identify-ending page can name the exact moment
+// @property {Object} [statePatch] - run-state a reply is itself a record of
+//   (which way the verification was answered, whether the item was shipped),
+//   merged into scenario05Store when the reply is taken. Deliberately never
+//   used for `verificationPaid`: the simulated transfer is an action on its
+//   own screen, not something a chat reply can charge for.
 //
 // @typedef {Object} DialogueNode
 // @property {string} id
@@ -33,7 +42,9 @@ import { saveDialogueCheckpoint, loadDialogueCheckpoint, saveScenario05State } f
 // @property {boolean} [terminal]
 // ---------------------------------------------------------------------------
 
-const TYPING_WAIT = { buyer: [300, 450] };
+// The fake SafeDeal agent types a beat slower than the buyer does - a support
+// desk working through a script, not a person chatting.
+const TYPING_WAIT = { buyer: [300, 450], agent: [420, 640] };
 
 function randomWait([min, max]) {
   return min + Math.random() * Math.max(0, max - min);
@@ -164,6 +175,7 @@ export function useDialogueEngine(nodesById, startNodeId, { screenKey, onRedirec
     if (!pendingChoices) return;
     setPendingChoices(null);
     if (choice.awareness) saveScenario05State({ awarenessKey: choice.awareness });
+    if (choice.statePatch) saveScenario05State(choice.statePatch);
 
     // `playerMessage: ''` marks a choice that is a pure action rather than
     // something the player says - the row is the only tappable control on

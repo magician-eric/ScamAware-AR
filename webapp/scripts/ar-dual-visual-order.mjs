@@ -388,6 +388,25 @@ dual({
   // stack when there are three of them. Exactly two is the contract's own
   // geometry, and the :has() rule turns that case into two across.
 });
+dual({
+  surfaceId: 'scenario05/safedeal-support/<nodeId>',
+  declaredIn: 'src/pages/scenario05/SafeDealSupportChat.jsx',
+  leftBinding: 'left: () => engine.choose(engine.pendingChoices[0]),',
+  rightBinding: 'right: () => engine.choose(engine.pendingChoices[1]),',
+  drawnIn: 'src/pages/scenario05/components/SafeDealSupportSurface.jsx',
+  css: 'src/apps/mydondon/styles/index.css',
+  selectors: [
+    '.go-choice-list',
+    '.go-choices-safedeal .go-choice-list:has(> .go-choice-btn:nth-child(2):last-child)',
+  ],
+  axis: 'row',
+  binding: 'indexed',
+  collection: 'choices',
+  // The fake support desk is a different world from MyDonDon and draws its own
+  // surface, but the pair geometry is deliberately identical: the same base
+  // column plus the same :has() rule turning exactly-two into two across, so
+  // LEFT is the left-hand button in both of Scenario 05's conversations.
+});
 
 export const AR_DUAL_VISUAL_ORDER = rows;
 

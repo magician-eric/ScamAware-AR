@@ -58,9 +58,9 @@ test('a stack is only allowed with a written reason, and a row never carries one
 
 // The count the audit report quotes, pinned so it cannot drift silently: a new
 // dual surface has to be added to the manifest deliberately.
-test('the five Scenarios plus shared carry 26 dual surfaces, 23 of them two-across', () => {
-  assert.equal(AR_DUAL_VISUAL_ORDER.length, 26);
-  assert.equal(AR_DUAL_VISUAL_ORDER.filter((row) => row.axis === 'row').length, 23);
+test('the five Scenarios plus shared carry 27 dual surfaces, 24 of them two-across', () => {
+  assert.equal(AR_DUAL_VISUAL_ORDER.length, 27);
+  assert.equal(AR_DUAL_VISUAL_ORDER.filter((row) => row.axis === 'row').length, 24);
   assert.deepEqual(
     AR_DUAL_VISUAL_ORDER.filter((row) => row.axis === 'stack').map((row) => row.surfaceId).sort(),
     ['scenario02/deposit-warning', 'scenario04/me', 'scenario04/messages'],

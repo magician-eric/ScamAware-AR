@@ -106,9 +106,13 @@ import { MarketplaceOrders as GhostOrderMyDonDonOrders } from './pages/scenario0
 import { BuyerChat as GhostOrderBuyerChat } from './pages/scenario05/BuyerChat';
 import { ShopCreate as GhostOrderShopCreate } from './pages/scenario05/ShopCreate';
 import { TradeInfo as GhostOrderTradeInfo } from './pages/scenario05/TradeInfo';
+import { SafeDealPaymentStatus as GhostOrderSafeDealPaymentStatus } from './pages/scenario05/SafeDealPaymentStatus';
+import { SafeDealSupportChat as GhostOrderSafeDealSupportChat } from './pages/scenario05/SafeDealSupportChat';
+import { SafeDealTransfer as GhostOrderSafeDealTransfer } from './pages/scenario05/SafeDealTransfer';
 import { HpeShip as GhostOrderHpeShip } from './pages/scenario05/HpeShip';
 import { OrderGone as GhostOrderOrderGone } from './pages/scenario05/OrderGone';
 import { EndingCaught as GhostOrderEndingCaught } from './pages/scenario05/EndingCaught';
+import { EndingStopped as GhostOrderEndingStopped } from './pages/scenario05/EndingStopped';
 import { EndingScammed as GhostOrderEndingScammed } from './pages/scenario05/EndingScammed';
 import { Reveal as GhostOrderReveal } from './pages/scenario05/Reveal';
 import { Quiz as GhostOrderQuiz } from './pages/scenario05/Quiz';
@@ -220,9 +224,13 @@ export const routes = [
       { path: 'scenario05-atm/shop-create', element: <GhostOrderShopCreate /> },
       { path: 'scenario05-atm/trade-info', element: <GhostOrderTradeInfo /> },
       { path: 'scenario05-atm/mydondon-orders', element: <GhostOrderMyDonDonOrders /> },
+      { path: 'scenario05-atm/safedeal-payment-status', element: <GhostOrderSafeDealPaymentStatus /> },
+      { path: 'scenario05-atm/safedeal-support', element: <GhostOrderSafeDealSupportChat /> },
+      { path: 'scenario05-atm/safedeal-transfer', element: <GhostOrderSafeDealTransfer /> },
       { path: 'scenario05-atm/hpe-ship', element: <GhostOrderHpeShip /> },
       { path: 'scenario05-atm/order-gone', element: <GhostOrderOrderGone /> },
       { path: 'scenario05-atm/ending-caught', element: <GhostOrderEndingCaught /> },
+      { path: 'scenario05-atm/ending-stopped', element: <GhostOrderEndingStopped /> },
       { path: 'scenario05-atm/ending-scammed', element: <GhostOrderEndingScammed /> },
       { path: 'scenario05-atm/reveal', element: <GhostOrderReveal /> },
       { path: 'scenario05-atm/quiz', element: <GhostOrderQuiz /> },

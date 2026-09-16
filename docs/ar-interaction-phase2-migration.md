@@ -28,10 +28,10 @@ Contract 只是用**語意**再說一次畫面本來就有的 handler；觸控�
 | Scenario 02｜網路交友 | 9 | 23 | 9 | 41 |
 | Scenario 03｜假檢警 | 10 | 15 | 4 | 29 |
 | Scenario 04｜購物詐騙 | 11 | 15 | 8 | 34 |
-| Scenario 05｜幽靈訂單 | 3 | 8 | 2 | 13 |
-| **合計** | **37** | **76** | **26** | **139** |
+| Scenario 05｜幽靈訂單 | 4 | 11 | 3 | 18 |
+| **合計** | **38** | **79** | **27** | **144** |
 
-- migrated story surfaces：**139**
+- migrated story surfaces：**144**
 - remaining un-migrated story surfaces：**0**（唯二排除項見下方「刻意排除」，並非未完成）
 - migrated surfaces with mode = triple / >2 actions：**0**
 - flow-level >2-action story nodes still in the scripts：**0**
@@ -201,6 +201,11 @@ Contract 只是用**語意**再說一次畫面本來就有的 handler；觸控�
 | SafeDeal・建立賣場 | `webapp/src/pages/scenario05/ShopCreate.jsx` | `scenario05/shop-create` | `single` | — | 建立交易 | 送出後 disabled，contract 同步。 |
 | SafeDeal・交易安全提醒 | `webapp/src/pages/scenario05/TradeInfo.jsx` | `scenario05/trade-info` | `single` | — | 返回聊天 | — |
 | 買東東官方訂單（空的） | `webapp/src/pages/scenario05/MarketplaceOrders.jsx` | `scenario05/mydondon-orders` | `single` | — | 返回聊天 | — |
+| SafeDeal・收款狀態 | `webapp/src/pages/scenario05/SafeDealPaymentStatus.jsx` | `scenario05/safedeal-payment-status` | `single` | — | 聯繫客服 | — |
+| SafeDeal 假客服（對方輸入中／身分驗證進度） | `webapp/src/pages/scenario05/SafeDealSupportChat.jsx` | `scenario05/safedeal-support` | `display` | — | — | 自動播放與模擬認證進度期間沒有可執行動作，手勢不得沿用上一個畫面的操作。 |
+| SafeDeal 假客服・玩家回覆 | `webapp/src/pages/scenario05/SafeDealSupportChat.jsx` | `scenario05/safedeal-support/<nodeId>` | `dual` | pendingChoices[0] | pendingChoices[1] | cs.flow 是唯一的轉帳決定；cs.done 只有一個回覆，走同一段程式碼的 single 分支。 |
+| SafeDeal・模擬轉帳確認 | `webapp/src/pages/scenario05/SafeDealTransfer.jsx` | `scenario05/safedeal-transfer` | `single` | — | 確認模擬轉帳 | 整個情境只會發生一次；確認後整份宣告被換掉（見下一列），手勢無法重複觸發第二次扣款。 |
+| SafeDeal・模擬轉帳已完成 | `webapp/src/pages/scenario05/SafeDealTransfer.jsx` | `scenario05/safedeal-transfer-done` | `single` | — | 返回客服對話 | — |
 | 黑皮通寄件 | `webapp/src/pages/scenario05/HpeShip.jsx` | `scenario05/hpe-ship` | `single` | — | 寄出／查看對話 | Phase 1 已接，本次未改寫，只驗證仍正確（montage 期間 disabled）。 |
 | 款項處理中 | `webapp/src/pages/scenario05/OrderGone.jsx` | `scenario05/order-gone-processing` | `display` | — | — | Phase 1 已接，本次未改寫。 |
 | 賣場已不存在 | `webapp/src/pages/scenario05/OrderGone.jsx` | `scenario05/order-gone` | `single` | — | 查看結果 | Phase 1 已接，本次未改寫。 |

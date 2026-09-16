@@ -128,9 +128,16 @@ const analysisPages = scenarioPages.filter((path) => renders(path, 'FraudClueAna
 
 // --- A. every scenario outcome is inside the system -------------------------
 //
-// The ten outcomes and five analyses, spelled out. A scenario that quietly
-// stopped rendering its 成功反詐 result, or grew a second結局 page of its own,
-// fails here.
+// Every結局 page, spelled out. A scenario that quietly stopped rendering its
+// 成功反詐 result, or grew a結局 page of its own outside the system, fails here.
+//
+// Still ten outcome STATES (rule H below pins the five x two artworks); the
+// page count is not the state count, because a page may carry both of its
+// scenario's states (03, 04) and a scenario may reach one state through more
+// than one page. Scenario 05 is the latter: a run that pays the fake
+// verification deposit and then stops before shipping has lost money but kept
+// the item, which is neither of the other two結局 - and it is still 詐騙成立,
+// so it renders the same `scammed` state and artwork as EndingScammed.
 const EXPECTED_OUTCOME_PAGES = [
   'pages/scenario01/ScammedResult.jsx',
   'pages/scenario01/StoppedResult.jsx',
@@ -139,6 +146,7 @@ const EXPECTED_OUTCOME_PAGES = [
   'pages/scenario03/Ending.jsx',            // both states, chosen by :outcome
   'pages/scenario04/OutcomeResult.jsx',     // both states, chosen by :outcome
   'pages/scenario05/EndingCaught.jsx',
+  'pages/scenario05/EndingStopped.jsx',     // 詐騙成立: deposit lost, item kept
   'pages/scenario05/EndingScammed.jsx',
 ];
 const EXPECTED_ANALYSIS_PAGES = [

@@ -55,8 +55,8 @@ const SCENARIOS = [
   {
     name: 'Scenario05 (假買家)',
     file: 'src/pages/scenario05/Quiz.jsx',
-    left: '停止交易，只依官方平台訂單與實際入帳確認是否出貨。',
-    right: '對方已傳付款畫面，先把商品寄出',
+    left: '拒絕轉帳，停止交易，透過可信管道確認付款。',
+    right: '先匯驗證金，等客服退還後再寄件。',
     removed: '請買家再傳一張付款截圖確認',
   },
 ];
