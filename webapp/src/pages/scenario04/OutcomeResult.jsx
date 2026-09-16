@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { ScenarioOutcome } from '../../components/outcome/ScenarioOutcome';
-import { ROBOT_VACUUM_PRODUCT, LUCKY_BAG_PRODUCT } from '../../apps/blackpi';
+import { ROBOT_VACUUM_PRODUCT, VEXA_FLEX_X1_PRODUCT } from '../../apps/blackpi';
 import { useT } from './i18n';
 
 // Scenario 04 詐騙成立／成功反詐. Reached straight from PlatformSupportChat's
@@ -16,7 +16,7 @@ import { useT } from './i18n';
 // The product table is read only for that amount. The 黑皮購物 stage class the
 // page used to set is gone: the simulation is over here, so BlackPi's light
 // marketplace surface must not follow the player into the結局 (spec §4.3).
-const PRODUCTS = { health: ROBOT_VACUUM_PRODUCT, luckyBag: LUCKY_BAG_PRODUCT };
+const PRODUCTS = { health: ROBOT_VACUUM_PRODUCT, luckyBag: VEXA_FLEX_X1_PRODUCT };
 
 export function OutcomeResult() {
   const { route, outcome } = useParams();

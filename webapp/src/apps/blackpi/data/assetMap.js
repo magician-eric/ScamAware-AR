@@ -45,35 +45,9 @@ export const ASSET_MAP = {
   'robot-vacuum-actual': photo('robot-vacuum-actual', '實際收到的掃把與畚箕'),
 
   // -----------------------------------------------------------------
-  // Route B - 精品驚喜福袋. The PDP carousel sells the fantasy; the
-  // unboxing set is the four cheap items that actually arrive.
-  // -----------------------------------------------------------------
-  'luckybag-main': photo('luckybag-main', '驚喜福袋商品主圖'),
-  'luckybag-premium-contents': photo('luckybag-premium-contents', '福袋精品內容示意圖'),
-  // The single most persuasive shot in the carousel - a table full of
-  // premium-looking gifts. Also the "商品頁宣稱" side of the claim-vs-actual
-  // comparison, because it is what the player actually believed they were
-  // buying.
-  'luckybag-gift-selection': photo('luckybag-gift-selection', '福袋精品禮物示意圖'),
-  'luckybag-limited': photo('luckybag-limited', '限量庫存宣傳圖'),
-  'luckybag-review': photo('luckybag-review', '買家實拍照片（評論用）'),
-  'luckybag-package': photo('luckybag-package', '尚未拆開的普通包裹'),
-  'luckybag-unboxed': photo('luckybag-unboxed', '福袋開箱內容'),
-  'luckybag-phone-holder': photo('luckybag-phone-holder', '無品牌塑膠手機架'),
-  'luckybag-socks': photo('luckybag-socks', '普通襪子'),
-  'luckybag-cup': photo('luckybag-cup', '一個普通廉價陶瓷杯'),
-  'luckybag-keychain': photo('luckybag-keychain', '普通鑰匙圈'),
-  'luckybag-actual': photo('luckybag-actual', '福袋實際收到的四件商品'),
-
-  // -----------------------------------------------------------------
-  // VEXA FLEX X1 - the foldable phone that will replace 精品驚喜福袋 as
-  // Route B's product. The photography is in; the story is not. Nothing
-  // reads these four keys yet: ./catalog.js still sells the 福袋, and the
-  // luckybag-* entries above stay until it stops.
-  //
-  // They are registered now rather than later because a shipped file no
-  // registry names fails validate-asset-ownership RULE 1 - the table is
-  // what makes a photo reachable, so the photo and its entry land together.
+  // Route B - VEXA FLEX X1 (貨不對版), claim side. These four are the
+  // listing: the PDP carousel, the home/search card and the order
+  // thumbnail, plus the 商品頁宣稱 half of the unboxing comparison.
   //
   // 1536x1536, the only size in this table that is neither 1024 nor 2048.
   // It is what the masters are; resampling to a rounder number would cost
@@ -85,15 +59,14 @@ export const ASSET_MAP = {
   'vexa-flex-x1-connectivity': photo('vexa-flex-x1-connectivity', 'VEXA FLEX X1 底部連接埠細節圖', '1536×1536'),
 
   // -----------------------------------------------------------------
-  // VEXA FLEX X1 - what actually arrives. The four shots above are the
+  // Route B - VEXA FLEX X1, actual side. The four shots above are the
   // product page's claim; these four are the parcel: two cheap phones
-  // joined by a door hinge and sold as one foldable. Same claim-vs-actual
-  // pairing the robot-vacuum-* and luckybag-* sets above already use.
+  // joined by a plastic hinge and sold as one foldable. Same claim-vs-actual
+  // pairing the robot-vacuum-* set above already uses.
   //
-  // Registered now for the same reason as the claim set, and with the same
-  // caveat - nothing reads these four keys yet either. ./catalog.js still
-  // sells the 福袋 and pages/scenario04/Unboxing.jsx still opens a parcel of
-  // luckybag-* items, so no screen changes because these landed.
+  // pages/scenario04/Unboxing.jsx shows `-actual-unboxing` as the parcel that
+  // arrived and then all four together as the photos the player keeps - which
+  // is also, by construction, what the return request attaches.
   //
   // 1254x1254 - square, which is the part this table promises its
   // consumers, but a third size again alongside 1024 and 2048. It is what
@@ -137,9 +110,9 @@ export const ASSET_MAP = {
   // of scenario04's product artwork - they are deliberately not moved into
   // src/apps/blackpi/assets/. Moving this table into the BlackPi module was a
   // question about which module owns the *code*; these are story artwork,
-  // shot for this scenario's storefront, and they belong with the other 22
+  // shot for this scenario's storefront, and they belong with the other 18
   // photos this same table resolves. Keeping them here also keeps one
-  // resolution mechanism for all 26: a runtime URL off DIR, not a bundled
+  // resolution mechanism for all 22: a runtime URL off DIR, not a bundled
   // Vite import for four of them and a URL for the rest.
   // -----------------------------------------------------------------
   'filler-generic': { label: '商品圖片', size: '600×600' },

@@ -223,7 +223,7 @@ const REGISTRIES = [
     file: assetMapCandidates[0],
     mechanism: 'scenario04 asset map',
     read: (module) => module.ASSET_MAP,
-    expected: 26,
+    expected: 22,
   }] : []),
   // Shared Character Registry - the one owner of every character's media.
   {

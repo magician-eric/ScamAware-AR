@@ -64,11 +64,17 @@ export function Checkout({ productRoute: route = null, onConfirmPayment, onBack 
             <span>{t(product.name)}</span>
             <span style={{ flex: 'none', marginLeft: 10 }}>NT${product.price.toLocaleString()}</span>
           </div>
+          {/* The picked variant, the way a real storefront prints it on the
+              order line. Only products that have one render it - it is a
+              catalog field, not a per-route branch in this screen. */}
+          {product.variant && <div className="bp-muted" style={{ marginTop: 4 }}>{t('規格 ')}{t(product.variant)}</div>}
         </div>
 
         <div className="bp-card bp-section">
           <div className="bp-score-row"><span className="bp-score-label">{t('商品金額')}</span><span>NT${product.price.toLocaleString()}</span></div>
-          <div className="bp-score-row"><span className="bp-score-label">{t('運費')}</span><span>NT${product.shipping}</span></div>
+          {/* A free-shipping product says so, rather than pricing the shipping
+              at NT$0 - the same way components/ProductCard.jsx labels it. */}
+          <div className="bp-score-row"><span className="bp-score-label">{t('運費')}</span><span>{product.shipping === 0 ? t('免運') : `NT$${product.shipping}`}</span></div>
           <div className="bp-score-row"><span className="bp-score-label" style={{ fontSize: 16 }}>{t('應付金額')}</span><strong style={{ fontSize: 18, color: 'var(--bp-error)' }}>NT${product.total.toLocaleString()}</strong></div>
         </div>
 

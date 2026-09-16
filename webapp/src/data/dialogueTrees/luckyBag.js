@@ -1,5 +1,17 @@
-// Route B (驚喜福袋) dialogue tree - same 2-choice-max structure as
+// Route B (VEXA FLEX X1) dialogue tree - same 2-choice-max structure as
 // health.js (see that file's header comment for the overall shape).
+//
+// The file, its exports and every node id keep the `luckyBag` name. That is
+// the ROUTE KEY, not the product. This route used to sell the 限量精品驚喜福袋
+// and now sells the VEXA FLEX X1 - the same way health.js names the route that
+// sells a robot vacuum, because a dialogue tree in this folder is named for
+// the route it belongs to. The key is also baked into saved localStorage state
+// and into every dialogue node id already recorded in a player's
+// dialogueHistory, so renaming it would strand in-progress saves for no
+// player-visible gain (see apps/blackpi/data/catalog.js for the same note).
+// Nothing the player reads says 福袋 any more.
+//
+// Seller voice: ordinary Taiwanese marketplace customer service. Never 「親」.
 import { toneLine } from '../../features/shopping/sellerTone';
 import { t } from '../../pages/scenario04/i18n';
 
@@ -17,8 +29,8 @@ export function buildLuckyBagPresaleTree(lang) {
     route: 'luckyBag',
     phase: 'preSale',
     messages: [
-      seller(t('您好，這批是限量精品驚喜福袋，每袋都保證有品牌商品喔。', lang)),
-      { speaker: 'seller', text: '', type: 'product-card', assetKey: 'luckybag-main' },
+      seller(t('您好，這批 VEXA FLEX X1 是品牌限時體驗活動，數量有限。', lang)),
+      { speaker: 'seller', text: '', type: 'product-card', assetKey: 'vexa-flex-x1-main' },
     ],
     autoNextNodeId: 'luckyBag.presale.stage1',
   },
@@ -29,111 +41,111 @@ export function buildLuckyBagPresaleTree(lang) {
     messages: [],
     choices: [
       {
-        id: 'brand',
-        label: t('一定有知名品牌嗎？', lang),
-        playerMessage: t('一定有知名品牌嗎？', lang),
-        nextNodeId: 'luckyBag.presale.brand',
+        id: 'genuine',
+        label: t('這是正版摺疊手機嗎？', lang),
+        playerMessage: t('請問這是 VEXA FLEX X1 正版摺疊手機嗎？', lang),
+        nextNodeId: 'luckyBag.presale.genuine',
         effects: { suspicion: 6 },
       },
       {
-        id: 'value',
-        label: t('價值真的超過五千？', lang),
-        playerMessage: t('價值真的超過五千嗎？', lang),
-        nextNodeId: 'luckyBag.presale.value',
+        id: 'screen',
+        label: t('螢幕可以完整展開嗎？', lang),
+        playerMessage: t('螢幕是可以完整展開的那種嗎？', lang),
+        nextNodeId: 'luckyBag.presale.screen',
         effects: { suspicion: 5 },
       },
     ],
   },
 
-  // brand branch -------------------------------------------------------
+  // genuine branch -----------------------------------------------------
   {
-    id: 'luckyBag.presale.brand',
+    id: 'luckyBag.presale.genuine',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('每袋至少有一件合作品牌商品，但品牌與款式無法指定。', lang))],
+    messages: [seller(t('是的！目前是品牌限時體驗活動，所以才有這個優惠價格😊', lang))],
     choices: [
       {
-        id: 'which',
-        label: t('有哪些合作品牌？', lang),
-        playerMessage: t('有哪些合作品牌？', lang),
-        nextNodeId: 'luckyBag.presale.brand.which',
+        id: 'warranty',
+        label: t('有保固卡或 IMEI 嗎？', lang),
+        playerMessage: t('可以先提供保固卡或 IMEI 嗎？', lang),
+        nextNodeId: 'luckyBag.presale.genuine.warranty',
         effects: { suspicion: 6 },
       },
       {
-        id: 'seeOthers',
-        label: t('可以看買家開箱嗎？', lang),
-        playerMessage: t('可以看其他買家的開箱嗎？', lang),
-        nextNodeId: 'luckyBag.presale.brand.seeOthers',
+        id: 'realPhoto',
+        label: t('可以看實機照片嗎？', lang),
+        playerMessage: t('可以看實機的照片嗎？', lang),
+        nextNodeId: 'luckyBag.presale.genuine.realPhoto',
         effects: { evidence: 3 },
       },
     ],
   },
   {
-    id: 'luckyBag.presale.brand.which',
+    id: 'luckyBag.presale.genuine.warranty',
     route: 'luckyBag',
     phase: 'preSale',
     messages: (state) => [
-      seller(t('合作品牌會依批次調整，為了保留驚喜感，目前不公開完整名單。', lang)),
+      seller(t('保固資料會隨機出貨一起寄出，體驗活動的機器目前無法先提供單一序號。', lang)),
       seller(toneLine(state, {
-        trusting: t('您放心，這批品質真的很不錯，很多人一次買兩袋回購。', lang),
-        cautious: t('這批今天只剩最後 12 組，很多人一次買兩袋。', lang),
-        defensive: t('這批賣得很快，已經沒剩多少組了，庫存數字是系統即時更新的。', lang),
+        trusting: t('您放心，這批的做工真的很不錯，很多客人回購第二支送家人。', lang),
+        cautious: t('這批今天只剩最後 12 台，很多客人一次下兩單。', lang),
+        defensive: t('這批賣得很快，已經沒剩多少台了，庫存數字是系統即時更新的。', lang),
       })),
     ],
     onEnterEffects: { suspicion: 10, urgency: 8, sellerPressure: 6, warningFlags: ['undefined_brand'] },
     autoNextNodeId: 'luckyBag.presale.stage3',
   },
   {
-    id: 'luckyBag.presale.brand.seeOthers',
+    id: 'luckyBag.presale.genuine.realPhoto',
     route: 'luckyBag',
     phase: 'preSale',
     messages: (state) => [
-      seller(t('圖片是過去批次的內容示意，每一袋不保證完全相同。', lang)),
+      seller(t('頁面上的圖片就是這個型號的商品圖，實際外觀仍以出貨批次為準。', lang)),
       seller(toneLine(state, {
-        trusting: t('您放心，這批品質真的很不錯，很多人一次買兩袋回購。', lang),
-        cautious: t('這批今天只剩最後 12 組，很多人一次買兩袋。', lang),
-        defensive: t('這批賣得很快，已經沒剩多少組了，庫存數字是系統即時更新的。', lang),
+        trusting: t('您放心，這批的做工真的很不錯，很多客人回購第二支送家人。', lang),
+        cautious: t('這批今天只剩最後 12 台，很多客人一次下兩單。', lang),
+        defensive: t('這批賣得很快，已經沒剩多少台了，庫存數字是系統即時更新的。', lang),
       })),
     ],
     onEnterEffects: { suspicion: 10, evidence: 6, urgency: 8, sellerPressure: 6, warningFlags: ['image_for_reference'] },
     autoNextNodeId: 'luckyBag.presale.stage3',
   },
 
-  // value branch --------------------------------------------------------
+  // screen branch -------------------------------------------------------
   {
-    id: 'luckyBag.presale.value',
+    id: 'luckyBag.presale.screen',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('是以商品原始建議售價計算，每袋商品的建議售價合計都超過 NT$5,000。', lang))],
+    messages: [seller(t('是的，8.7 吋旗艦摺疊大螢幕，商品規格與圖片皆以頁面展示為準。', lang))],
     choices: [
       {
         id: 'checkPrice',
-        label: t('原始售價可以查嗎？', lang),
-        playerMessage: t('原始售價可以查嗎？', lang),
-        nextNodeId: 'luckyBag.presale.value.check',
+        label: t('原價真的是 69,800 嗎？', lang),
+        playerMessage: t('原價真的是 NT$69,800 嗎？', lang),
+        nextNodeId: 'luckyBag.presale.screen.check',
         effects: { suspicion: 12, warningFlags: ['unverifiable_value'] },
       },
       {
         id: 'whyCheap',
-        label: t('為什麼只賣 999？', lang),
-        playerMessage: t('為什麼只賣 999？', lang),
-        nextNodeId: 'luckyBag.presale.value.why',
+        label: t('為什麼只賣 29,800？', lang),
+        playerMessage: t('為什麼只賣 NT$29,800？', lang),
+        nextNodeId: 'luckyBag.presale.screen.why',
         effects: { urgency: 6, sellerPressure: 5 },
       },
     ],
   },
   {
-    id: 'luckyBag.presale.value.check',
+    id: 'luckyBag.presale.screen.check',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('部分商品是合作通路限定款，公開通路不一定查得到相同品項。', lang))],
+    messages: [seller(t('原價是品牌公布的建議售價，這個型號在台灣還沒有正式上市通路，所以查不到相同品項。', lang))],
     autoNextNodeId: 'luckyBag.presale.stage3',
   },
   {
-    id: 'luckyBag.presale.value.why',
+    id: 'luckyBag.presale.screen.why',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('這是品牌宣傳與庫存回饋活動，數量有限，所以用福袋形式提供。', lang))],
+    messages: [seller(t('這是品牌體驗與庫存回饋活動，數量有限，所以才有這個價格。', lang))],
     autoNextNodeId: 'luckyBag.presale.stage3',
   },
 
@@ -152,13 +164,13 @@ export function buildLuckyBagPresaleTree(lang) {
     id: 'luckyBag.presale.returnRule',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('未使用、商品完整都可以依黑皮購物七天鑑賞期申請，不過福袋內容隨機，不接受因款式不喜歡退貨。', lang))],
+    messages: [seller(t('未使用、配件完整都可以依黑皮購物七天鑑賞期申請，不過開機啟用或機身有使用痕跡就不接受退貨。', lang))],
     choices: [
       {
-        id: 'noBrandCase',
-        label: t('如果完全沒有品牌商品呢？', lang),
-        playerMessage: t('如果完全沒有品牌商品呢？', lang),
-        nextNodeId: 'luckyBag.presale.returnRule.noBrand',
+        id: 'notGenuineCase',
+        label: t('如果收到的不是這款手機呢？', lang),
+        playerMessage: t('如果收到的不是這款手機呢？', lang),
+        nextNodeId: 'luckyBag.presale.returnRule.notGenuine',
         effects: { suspicion: 10, warningFlags: ['broad_brand_definition'] },
       },
       {
@@ -171,10 +183,10 @@ export function buildLuckyBagPresaleTree(lang) {
     ],
   },
   {
-    id: 'luckyBag.presale.returnRule.noBrand',
+    id: 'luckyBag.presale.returnRule.notGenuine',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('我們的合作選物也屬於品牌商品，只是有些品牌在台灣比較少見。', lang))],
+    messages: [seller(t('這批都是同一條產線出貨的摺疊機型，外觀細節仍以商品頁展示為準。', lang))],
     autoNextNodeId: 'luckyBag.presale.toCheckout',
   },
   {
@@ -200,14 +212,14 @@ export function buildLuckyBagDisputeTree(lang) {
     route: 'luckyBag',
     phase: 'dispute',
     messages: [
-      { speaker: 'buyer', text: t('你好，我收到的福袋裡完全沒有商品頁說的品牌精品，這是寄錯了嗎？', lang) },
-      seller(t('您好，福袋的內容本來就是隨機搭配，每位買家收到的商品都不同喔。', lang)),
+      { speaker: 'buyer', text: t('我收到的根本不是商品頁上的手機！這是兩支舊手機接在一起吧？', lang) },
+      seller(t('您收到的確實是雙手機摺疊款，摺疊功能正常。', lang)),
     ],
     choices: [
       {
-        id: 'demandBrand',
-        label: t('沒有品牌商品，我要退貨', lang),
-        playerMessage: t('完全沒有品牌商品，我要退貨。', lang),
+        id: 'demandReturn',
+        label: t('兩支手機各有一個充電孔，我要退貨', lang),
+        playerMessage: t('兩支手機連充電孔都各有一個！我要退貨退款。', lang),
         nextNodeId: 'luckyBag.dispute.returnPath',
         effects: { assertiveness: 8, evidence: 5 },
       },
@@ -226,15 +238,15 @@ export function buildLuckyBagDisputeTree(lang) {
     route: 'luckyBag',
     phase: 'dispute',
     messages: (state) => [seller(toneLine(state, {
-      trusting: t('品牌商品包含我們合作的選物品牌，可能您比較沒注意到，我幫您再確認一次內容。', lang),
-      cautious: t('品牌商品包含我們合作的選物品牌，不一定是大家熟悉的國際品牌。', lang),
-      defensive: t('福袋商品清單是系統依批次配發的，客服這邊只能依照系統紀錄回覆品牌類別。', lang),
+      trusting: t('不同批次外觀可能略有差異，可能您比較沒注意到，但商品確實具備摺疊功能。', lang),
+      cautious: t('不同批次外觀可能略有差異，但商品確實具備摺疊功能。', lang),
+      defensive: t('出貨批次是系統統一配發的，客服這邊只能依照系統紀錄回覆規格，商品確實具備摺疊功能。', lang),
     }))],
     choices: [
       {
         id: 'pressOn',
-        label: t('請指出哪一件是品牌商品', lang),
-        playerMessage: t('請指出哪一件是品牌商品。', lang),
+        label: t('這明明是兩支獨立手機', lang),
+        playerMessage: t('商品寫的是 8.7 吋摺疊手機，這明明是兩支獨立手機！', lang),
         nextNodeId: 'luckyBag.dispute.pressOn',
         effects: { assertiveness: 10, suspicion: 8, evidence: 5 },
       },
@@ -250,7 +262,7 @@ export function buildLuckyBagDisputeTree(lang) {
     id: 'luckyBag.dispute.pressOn',
     route: 'luckyBag',
     phase: 'dispute',
-    messages: [seller(t('手機架是合作生活品牌的商品，只是採用簡約包裝，因此沒有明顯 Logo。', lang))],
+    messages: [seller(t('這款是雙機身摺疊設計，兩邊各自獨立運作也屬於規格的一部分。', lang))],
     onEnterEffects: { suspicion: 12, evidence: 8, warningFlags: ['unverifiable_brand_claim'] },
     autoNextNodeId: 'luckyBag.dispute.toReturn',
   },
@@ -258,7 +270,7 @@ export function buildLuckyBagDisputeTree(lang) {
     id: 'luckyBag.dispute.acceptIt',
     route: 'luckyBag',
     phase: 'dispute',
-    messages: [notice(t('商品爭議提醒', lang), t('「品牌商品」的定義可能被賣家擴大解釋，建議先保存商品內容與商品頁宣稱，再決定是否申請退貨。', lang))],
+    messages: [notice(t('商品爭議提醒', lang), t('賣家可能用「不同批次」「規格差異」等說法帶過貨不對版，建議先保存實際收到的商品照片與商品頁宣稱，再決定是否申請退貨。', lang))],
     choices: [
       {
         id: 'saveData',
@@ -281,7 +293,7 @@ export function buildLuckyBagDisputeTree(lang) {
     id: 'luckyBag.dispute.returnPath',
     route: 'luckyBag',
     phase: 'dispute',
-    messages: [seller(t('可以協助您申請退貨，不過福袋內容為隨機出貨，需要倉庫確認是否符合退貨條件。', lang))],
+    messages: [seller(t('很抱歉造成您的困擾，請透過平台申請退貨，我們會協助處理。', lang))],
     choices: [
       {
         id: 'insist',

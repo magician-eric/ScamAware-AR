@@ -5,8 +5,10 @@
 // unreachable always lands the same beats regardless of which choices the
 // player picks along the way.
 //
-// Both routes (health / luckyBag) are built from this one function: the copy
-// differs where the products differ, the structure never does.
+// Both routes are built from this one function: the copy differs where the
+// products differ, the structure never does. `isHealth` picks between the
+// 智慧掃拖機器人 wording and the VEXA FLEX X1 wording - `luckyBag` is the
+// second route's legacy key, not its product (see dialogueTrees/luckyBag.js).
 import { toneLine } from '../../features/shopping/sellerTone';
 import { t } from '../../pages/scenario04/i18n';
 
@@ -40,25 +42,29 @@ export function buildDelayTree(route, lang) {
       messages: (state) => [seller(toneLine(state, {
         trusting: isHealth
           ? t('真的很不好意思讓您久等，倉庫這幾天在依序驗收，我會請他們優先處理您的訂單。', lang)
-          : t('真的很不好意思讓您久等，倉庫這幾天在確認商品是否完整，我會請他們優先處理您的訂單。', lang),
+          : t('真的很不好意思讓您久等，倉庫已經檢查過，商品摺疊功能正常，我再幫您跟他們確認一次。', lang),
         cautious: isHealth
           ? t('倉庫目前正在依序驗收，家電商品需要確認配件是否齊全，通常需要 3 至 5 個工作天。', lang)
-          : t('倉庫正在確認福袋商品與包裝是否完整，通常需要 3 至 5 個工作天。', lang),
+          : t('經檢查，商品摺疊功能正常，與您描述不符。', lang),
         defensive: isHealth
           ? t('驗收流程都是系統統一排程，家電商品需要多一道配件確認，需要 3 至 5 個工作天，無法個別加快。', lang)
-          : t('驗收流程都是系統統一排程，需要 3 至 5 個工作天，無法個別加快。', lang),
+          : t('倉庫檢查結果是商品摺疊功能正常，與您描述不符，驗收結果都是系統統一判定的。', lang),
       }))],
       // No "好，我等五天" reply: it had the player commit to a wait nobody had
       // asked them for, and led to the same beat as pressing for a date.
       choices: [
-        { id: 'pressDate', label: t('請給我確切完成日期', lang), playerMessage: t('請給我確切完成日期。', lang), nextNodeId: p('stage1.pressDate') },
+        isHealth
+          ? { id: 'pressDate', label: t('請給我確切完成日期', lang), playerMessage: t('請給我確切完成日期。', lang), nextNodeId: p('stage1.pressDate') }
+          : { id: 'pressDate', label: t('合起來不代表它是摺疊手機', lang), playerMessage: t('能把兩支手機合起來，不代表它是摺疊手機！', lang), nextNodeId: p('stage1.pressDate') },
       ],
     },
     {
       id: p('stage1.pressDate'),
       route,
       phase: 'delay',
-      messages: [seller(t('目前無法保證特定日期，但已備註優先處理。', lang))],
+      messages: [seller(isHealth
+        ? t('目前無法保證特定日期，但已備註優先處理。', lang)
+        : t('目前已提交專員複核，請您耐心等候。', lang))],
       onEnterEffects: { suspicion: 8 },
       autoNextNodeId: p('wait5'),
     },
@@ -73,13 +79,13 @@ export function buildDelayTree(route, lang) {
       messages: (state) => [seller(toneLine(state, {
         trusting: isHealth
           ? t('倉庫那邊回報外盒好像有一點拆封痕跡，我幫您跟主管確認一下，不好意思還要再等等。', lang)
-          : t('倉庫那邊回報有一件商品外包裝已經拆開，我幫您跟主管確認一下，不好意思還要再等等。', lang),
+          : t('倉庫那邊回報機身好像有一點使用痕跡，我幫您跟主管確認一下，不好意思還要再等等。', lang),
         cautious: isHealth
           ? t('倉庫回報商品外盒有拆封痕跡，目前需要主管進一步確認。', lang)
-          : t('倉庫回報其中一件商品的外包裝已拆開，目前需要確認是否符合退貨條件。', lang),
+          : t('倉庫回報機身外觀有使用痕跡，目前需要確認是否符合退貨條件。', lang),
         defensive: isHealth
           ? t('系統顯示商品外盒有拆封痕跡，這部分需要走主管覆核流程，客服無法直接判斷。', lang)
-          : t('系統顯示商品外包裝已拆開，這部分需要走主管覆核流程，客服無法直接判斷。', lang),
+          : t('系統顯示機身外觀有使用痕跡，這部分需要走主管覆核流程，客服無法直接判斷。', lang),
       }))],
       choices: [
         // Pushes back on the substance, not on a clock: no refund deadline
@@ -88,8 +94,10 @@ export function buildDelayTree(route, lang) {
         // seller's reply below already answers this framing directly.
         {
           id: 'pushBack',
-          label: t('同意退貨卻不退款，這樣不合理', lang),
-          playerMessage: t('你們已經同意退貨，卻一直沒有退款，這樣不合理。', lang),
+          label: isHealth ? t('同意退貨卻不退款，這樣不合理', lang) : t('商品收到了為什麼還不退款', lang),
+          playerMessage: isHealth
+            ? t('你們已經同意退貨，卻一直沒有退款，這樣不合理。', lang)
+            : t('商品你們已經收到了，為什麼還不退款？', lang),
           nextNodeId: p('stage2.pushBack'),
           effects: { assertiveness: 8, suspicion: 6 },
         },
@@ -99,7 +107,9 @@ export function buildDelayTree(route, lang) {
       id: p('stage2.pushBack'),
       route,
       phase: 'delay',
-      messages: [seller(t('同意寄回不代表保證退款，仍需要確認商品符合退貨條件，請您再耐心等候。', lang))],
+      messages: [seller(isHealth
+        ? t('同意寄回不代表保證退款，仍需要確認商品符合退貨條件，請您再耐心等候。', lang)
+        : t('退款審核尚未完成，請勿重複提交申請。', lang))],
       onEnterEffects: { suspicion: 10, warningFlags: ['changing_return_terms'] },
       autoNextNodeId: p('wait7'),
     },
