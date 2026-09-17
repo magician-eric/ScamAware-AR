@@ -201,7 +201,7 @@ webapp/src/pages/scenario02/PhoneDesktop.jsx:9:// A plain phone home screen with
 webapp/src/pages/scenario02/Briefing.jsx:5:const START_ROUTE = '/scenario02-romance/phone-desktop';
 webapp/src/pages/scenario02/i18nJp.js:223:  '遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。':
 webapp/src/pages/scenario02/DatingBrowse.jsx:36:// Emily's bio, keyed by the same county names the location-init system
-webapp/src/pages/scenario02/DatingBrowse.jsx:68:// location profile instead of a hardcoded "台北" - same county the 165
+webapp/src/pages/scenario02/DatingBrowse.jsx:68:// location profile instead of a hardcoded "臺北" - same county the 165
 webapp/src/pages/scenario02/DatingBrowse.jsx:73:  const county = readLocationProfile()?.region?.county;
 webapp/src/pages/scenario02/DatingBrowse.jsx:74:  const city = (CITY_NAMES[county] ?? CITY_NAMES['臺北市'])[lang] ?? CITY_NAMES['臺北市'].zh;
 webapp/src/pages/scenario02/EndingPage.jsx:38:        <p className="bition-ending-note">{t('遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。')}</p>

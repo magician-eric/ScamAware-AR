@@ -138,7 +138,7 @@ export function buildLuckyBagPresaleTree(lang) {
     id: 'luckyBag.presale.screen.check',
     route: 'luckyBag',
     phase: 'preSale',
-    messages: [seller(t('原價是品牌公布的建議售價，這個型號在台灣還沒有正式上市通路，所以查不到相同品項。', lang))],
+    messages: [seller(t('原價是品牌公布的建議售價，這個型號在臺灣還沒有正式上市通路，所以查不到相同品項。', lang))],
     autoNextNodeId: 'luckyBag.presale.stage3',
   },
   {

@@ -262,9 +262,31 @@
 .gesture-tutorial-page .gesture-tutorial-step-rule{display:block;margin-top:clamp(3px,min(1vw,.9vh),7px);padding-top:clamp(3px,min(1vw,.9vh),7px);border-top:1px solid rgba(148,196,232,.28);color:rgba(180,220,250,.94);font-size:clamp(14px,min(3.3vw,2.7vh),16px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
 .gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-step-rule{border-top-color:rgba(74,217,255,.55);color:#cdeeff}
 /* The direction cue. In the app's own cyan, so "which way" is readable from
-   across a room even if the words are not. */
-.gesture-tutorial-page .gesture-tutorial-arrow{display:block;font-size:clamp(20px,min(6.8vw,5.4vh),34px);line-height:1;color:#4ad9ff;text-shadow:0 0 22px rgba(74,217,255,.6)}
+   across a room even if the words are not. It is on every step in every state,
+   because it is what the step IS, not a state of it... */
+.gesture-tutorial-page .gesture-tutorial-arrow{display:block;width:fit-content;margin-inline:auto;font-size:clamp(20px,min(6.8vw,5.4vh),34px);line-height:1;color:#4ad9ff;text-shadow:0 0 22px rgba(74,217,255,.6)}
 .gesture-tutorial-page .gesture-tutorial-step.is-done .gesture-tutorial-arrow{color:#3ddc84;text-shadow:0 0 22px rgba(61,220,132,.55)}
+/* ...and on the step being taught, it travels - the same distance, the same
+   way, on the same timeline as the hand below it.
+
+   Literally the same: both elements name the same `@keyframes`, so they are one
+   rhythm rather than two that have to be kept in step. The arrow cannot drift
+   from the hand, and a future change to the sweep moves both or neither. Both
+   also read the same `--gesture-hand-travel`, so they cover the same ground at
+   the same moment - the arrow at the top of the panel and the hand at the
+   bottom of it are always at the same point of the wave.
+
+   `width:fit-content` + `margin-inline:auto` above is what makes that safe: the
+   glyph's box now shrink-wraps it instead of spanning the panel, so translating
+   it moves a ~34px box inside a ~168px panel rather than pushing a full-width
+   box out past the panel's edge.
+
+   Only `.is-active` carries it, so the step waiting its turn is still, the step
+   already behind the player is still, and finishing the tutorial stops the
+   arrow in exactly the same frame it stops the hand - both are switched off by
+   the same class change, in the same commit. */
+.gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-arrow{animation:gesture-tutorial-sweep-left 2.7s linear infinite}
+.gesture-tutorial-page .gesture-tutorial-step-right.is-active .gesture-tutorial-arrow{animation-name:gesture-tutorial-sweep-right}
 /* The three standing lines, fixed for the whole tutorial - none of them is a
    state and nothing switches any of them off. Three weights, because they are
    three different kinds of thing: the one-option rule finishes the mapping the
@@ -313,8 +335,8 @@
      touch target and must stay the thing a finger lands on. The hand
      demonstrates, it never intercepts. */
   pointer-events:none;
-  animation:gesture-tutorial-hand-sweep-left 2.7s linear infinite}
-.gesture-tutorial-page .gesture-tutorial-hand-right{animation-name:gesture-tutorial-hand-sweep-right}
+  animation:gesture-tutorial-sweep-left 2.7s linear infinite}
+.gesture-tutorial-page .gesture-tutorial-hand-right{animation-name:gesture-tutorial-sweep-right}
 /* The sweep, timed in segments rather than eased as one curve.
    ────────────────────────────────────────────────────────────
    2.7s per cycle: 2.2s of travel, then 0.5s standing still at the far end,
@@ -343,8 +365,13 @@
 
    Travel is symmetric about the panel's centre (±half of
    --gesture-hand-travel), which is what lets both directions share one set of
-   distances with only the sign flipped. */
-@keyframes gesture-tutorial-hand-sweep-left{
+   distances with only the sign flipped.
+
+   Two elements ride this timeline: the hand, and the direction arrow at the top
+   of the same panel. They are the same animation, not two copies of it, so
+   "in sync" is a property of the stylesheet rather than something that has to
+   be maintained. */
+@keyframes gesture-tutorial-sweep-left{
   0%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
   11.11%{transform:translateX(calc(var(--gesture-hand-travel) * .32))}
   20.37%{transform:translateX(calc(var(--gesture-hand-travel) * .19))}
@@ -355,7 +382,7 @@
   81.48%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
   100%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
 }
-@keyframes gesture-tutorial-hand-sweep-right{
+@keyframes gesture-tutorial-sweep-right{
   0%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
   11.11%{transform:translateX(calc(var(--gesture-hand-travel) * -.32))}
   20.37%{transform:translateX(calc(var(--gesture-hand-travel) * -.19))}
@@ -397,7 +424,8 @@
    Nothing about recognition, the touch fallback or completing the tutorial
    goes through the animation, so switching it off costs the player nothing. */
 @media (prefers-reduced-motion:reduce){
-  .gesture-tutorial-page .gesture-tutorial-hand{animation:none;transform:none}
+  .gesture-tutorial-page .gesture-tutorial-hand,
+  .gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-arrow{animation:none;transform:none}
 }
 /* The finished step's own line, in the track the hand has just vacated - so
    confirming a step costs no height and moves nothing. */
