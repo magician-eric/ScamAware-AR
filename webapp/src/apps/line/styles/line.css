@@ -97,11 +97,15 @@
    pitch, and in Scenario 03 they are the fake bank's name and 'security
    verification centre' line the player is supposed to weigh against the real
    thing. The 2- and 3-line clamps here were LINE-realistic and educationally
-   wrong, so the card grows to its copy instead. The domain below keeps its
-   ellipsis: a browser-style address really does truncate, and it is measured
-   to fit at every width in all three languages. */
+   wrong, so the card grows to its copy instead. Colours are the contrast pass's
+   #000: this card is read, not glanced at. */
 .line-website-card-title{font-size:var(--fs-body);font-weight:700;line-height:1.35;color:#000;overflow-wrap:anywhere}
 .line-website-card-desc{font-size:var(--fs-caption);line-height:1.45;color:#000;white-space:pre-line;overflow-wrap:anywhere}
-.line-website-card-domain{font-size:var(--fs-caption);color:#000;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Measured, not assumed: at en/320 `secure.haowei-bank.tw` needs 143px in a
+   132px box, so the ellipsis was eating the end of the fake bank's address -
+   the one thing on this card the player is being taught to look at. A
+   browser-style address bar truncating is realistic; this card is evidence,
+   so it wraps instead. Keeps the contrast pass's #000. */
+.line-website-card-domain{font-size:var(--fs-caption);color:#000;margin-top:2px;overflow-wrap:anywhere}
 .line-website-card-actions{display:grid}
 .line-website-card-actions>.btns{padding:0;margin:0}

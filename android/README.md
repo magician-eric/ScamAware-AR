@@ -322,9 +322,12 @@ app/build/outputs/apk/debug/app-debug.apk
 CI 會把它們改名成交付用的檔名放到 `android/dist/`：
 
 ```text
-android/dist/CIBAR-反詐AR體驗.apk         ← 手機安裝用
-android/dist/CIBAR-反詐AR體驗-debug.apk   ← adb／Android Studio 偵錯用
-android/dist/upload/CIBAR.apk            ← 上傳 GitHub Release 用的 ASCII 檔名副本
+android/dist/CIBAR-反詐AR體驗-<shell>-web<bundle>.apk        ← 手機安裝用
+android/dist/CIBAR-反詐AR體驗-<shell>-web<bundle>-debug.apk  ← adb／Android Studio 偵錯用
+android/dist/upload/CIBAR-<shell>-web<bundle>.apk           ← 上傳 GitHub Release 用的 ASCII 檔名副本
+
+版本號取自 `release/versions.json`（`shellVersion` 與 `webBundleVersion`），
+例如 `CIBAR-1.2.0-web1.7.6.apk`。
 ```
 
 ### 沒有 Android SDK 時怎麼跑測試
@@ -358,7 +361,7 @@ debug 金鑰簽的，憑證都不一樣；Android 不允許以不同簽章覆蓋
 
 ```bash
 adb uninstall com.bigxreality.jorjinverifier   # 未安裝過會回報 Failure，可忽略
-adb install dist/CIBAR-反詐AR體驗.apk
+adb install dist/CIBAR-反詐AR體驗-*.apk
 ```
 
 手機直接操作時：**先長按舊版「佐臻 AR 硬體驗證」解除安裝，再安裝新的 APK。**
@@ -371,8 +374,8 @@ Release 內有兩個檔案，**手機安裝只會用到第一個**：
 
 | 檔名 | 用途 |
 |---|---|
-| `CIBAR.apk` | **手機安裝用。** 桌面名稱「反詐AR體驗」。Actions artifact 內的檔名是 `CIBAR-反詐AR體驗.apk`。 |
-| `CIBAR-debug.apk` | adb / Android Studio 偵錯用（debuggable，部分 ROM 會直接拒裝）。 |
+| `CIBAR-<shell>-web<bundle>.apk` | **手機安裝用。** 桌面名稱「反詐AR體驗」。Actions artifact 內的檔名是 `CIBAR-反詐AR體驗-<shell>-web<bundle>.apk`。 |
+| `CIBAR-<shell>-web<bundle>-debug.apk` | adb / Android Studio 偵錯用（debuggable，部分 ROM 會直接拒裝）。 |
 
 **檔名裡沒有版本、commit 或 build number，而且每一版都一樣**——檔名要回答的只有「這是什麼」，
 版本則在 APK 內的 `versionName` / `versionCode` 裡（`versionCode` 每次建置遞增，
@@ -523,14 +526,14 @@ push 到 main → Build Android APK → 驗證 APK → 上傳 Artifact → 更�
 1. **GitHub Release（手機最方便）**：<https://github.com/magician-eric/ScamAware-AR/releases/tag/debug-latest>
    （`main` 用 `debug-latest`；其他分支各自發布 `debug-<branch>`，方便未合併前先拿去實機測。）
    直接用手機瀏覽器開啟，**點 Release 內文最上面的下載連結**即可安裝，不需解壓縮。
-   Release asset 的檔名是 ASCII 的 `CIBAR.apk`：GitHub 的 release-asset API 會把
+   Release asset 的檔名是 ASCII 的 `CIBAR-<shell>-web<bundle>.apk`：GitHub 的 release-asset API 會把
    `[A-Za-z0-9.+_-]` 以外的每一個字元換成點，中文檔名上傳完會變成 `CIBAR-...........apk`，
    內文裡的下載連結就失效了。中文名字改走 asset 的 label，桌面名稱仍然是 **反詐AR體驗**。
 2. **Actions Artifact**：**Actions > Build Android APK > 該次成功執行 > Artifacts >
-   CIBAR-AR-apk**。下載的是 zip，解壓縮後檔名就是 `CIBAR-反詐AR體驗.apk`。
+   CIBAR-AR-apk**。下載的是 zip，解壓縮後檔名就是 `CIBAR-反詐AR體驗-<shell>-web<bundle>.apk`。
 
-- 手機安裝用：`CIBAR.apk`（artifact 內為 `CIBAR-反詐AR體驗.apk`）
-- adb／Android Studio 偵錯用：`CIBAR-debug.apk`（artifact 內為 `CIBAR-反詐AR體驗-debug.apk`）
+- 手機安裝用：`CIBAR-<shell>-web<bundle>.apk`（artifact 內為 `CIBAR-反詐AR體驗-<shell>-web<bundle>.apk`）
+- adb／Android Studio 偵錯用：`CIBAR-<shell>-web<bundle>-debug.apk`（artifact 內為 `CIBAR-反詐AR體驗-<shell>-web<bundle>-debug.apk`）
 - Gradle 原始位置：`app/build/outputs/apk/<buildType>/app-<buildType>.apk`
 
 舊的線上版／線下版 `applicationId` 不同（`…jorjinverifier.online`／`…jorjinverifier.offline`），
