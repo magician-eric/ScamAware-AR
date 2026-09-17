@@ -1,0 +1,50 @@
+/* The shared inactivity hint - one line, in a band of its own along the
+   bottom of the stage.
+   ────────────────────────────────────────────────────────────────────────
+   IT RESERVES ITS BAND RATHER THAN COVERING ANYTHING. Measured across the
+   run, nearly every screen in this app runs its content to within ~22px of
+   the stage's bottom edge - the quiz's 返回掃描 button, a scenario briefing's
+   CTA, a chat's last bubble. A strip simply laid over that edge would sit on
+   top of them. So while the hint is up the stage carries
+   `has-interaction-hint` (shell/AppShell.jsx) and gives up the band's height
+   from its own bottom padding; every stage variant lays its screen out inside
+   the stage's content box, so the screen is inset into what is left and
+   nothing is hidden.
+
+   The band eases in and out instead of appearing, so the screen it shares the
+   stage with never jumps. The rule is on the base `.app.ar-stage` selector so
+   the easing applies in both directions, and the width is only ever
+   `padding-bottom` - no screen's own padding, spacing or scrolling is touched.
+
+   The variable sits on the stage so the two halves cannot drift: the band the
+   stage gives up and the strip that fills it are the same number, written
+   once. The specificity (0,3,0) is deliberate - it has to win over the
+   full-bleed variants that zero the stage's padding outright
+   (.ar-stage.police-stage, .line-stage, .video-stage and the rest). Those
+   variants get a band while the hint is up and go straight back to full bleed
+   when it goes.
+
+   PINNED, NOT FLOATING. `position: fixed` inside a stage that always carries a
+   transform (shell/useFitStage.js sets one on every fit) makes the stage
+   itself the containing block, so the strip is placed against the stage's own
+   bottom edge, is scaled with the stage, and does NOT scroll away on the
+   screens whose stage variant scrolls (.ar-stage.scroll-stage and friends).
+
+   NOT A CONTROL. `pointer-events: none` on the strip and on its line: a
+   finger, a stylus or a mouse passes straight through to whatever is
+   underneath. Every screen's existing tap targets keep working exactly as they
+   did. */
+.app.ar-stage{--interaction-hint-band:0px;transition:padding-bottom .28s ease-out}
+.app.ar-stage.has-interaction-hint{--interaction-hint-band:clamp(54px,9vh,78px);padding-bottom:var(--interaction-hint-band)}
+.interaction-hint{position:fixed;left:0;right:0;bottom:0;z-index:40;height:var(--interaction-hint-band);display:flex;align-items:center;justify-content:center;padding:0 clamp(10px,3vw,18px);box-sizing:border-box;pointer-events:none;background:linear-gradient(180deg,rgba(2,9,22,0) 0%,rgba(2,9,22,.62) 38%,rgba(2,9,22,.88) 100%)}
+/* Sized to be read on the glasses from across a room rather than squeezed in:
+   the app's own body scale, on a plate solid enough to hold up over a photo, a
+   chat or a video frame. */
+.interaction-hint-line{margin:0;max-width:100%;box-sizing:border-box;padding:clamp(7px,1.4vh,10px) clamp(12px,3.2vw,18px);border:1px solid rgba(122,205,255,.42);border-radius:999px;background:rgba(6,20,40,.94);color:#e8f5ff;font-size:clamp(13px,min(3.7vw,3vh),17px);font-weight:700;line-height:1.35;letter-spacing:.01em;text-align:center;line-break:strict;text-shadow:0 2px 10px rgba(0,0,0,.8);box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;animation:interaction-hint-in .28s ease-out both}
+/* It fades in where it will sit rather than sliding into place, so nothing on
+   the screen appears to move when it arrives. */
+@keyframes interaction-hint-in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .app.ar-stage{transition:none}
+  .interaction-hint-line{animation:none}
+}

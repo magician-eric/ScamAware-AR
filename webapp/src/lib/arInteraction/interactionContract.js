@@ -66,13 +66,21 @@ const { LEFT, RIGHT } = AR_GESTURES;
 // Which keys each mode may carry. Anything else in a declaration is a
 // contract violation - this is where a third choice, an UP/DOWN action or a
 // scroll action would surface.
+//
+// `presenting` is the one key here that no dispatch ever reads. A screen sets
+// it while it is playing something the player is meant to watch through - a
+// pitch video, a clip - and its ONLY effect is to hold the shared inactivity
+// hint's clock (see components/hints/InteractionHint.jsx). It does not
+// disable anything: a screen that declares an action while presenting still
+// runs that action on a wave or a tap, at any moment, exactly as before.
+// `disabled` is the key that makes an action unavailable; this one never is.
 const ALLOWED_KEYS = {
-  [DISPLAY]: ['mode', 'surfaceId', 'disabled'],
-  [SINGLE]: ['mode', 'surfaceId', 'disabled', 'action'],
-  [DUAL]: ['mode', 'surfaceId', 'disabled', 'left', 'right'],
+  [DISPLAY]: ['mode', 'surfaceId', 'disabled', 'presenting'],
+  [SINGLE]: ['mode', 'surfaceId', 'disabled', 'presenting', 'action'],
+  [DUAL]: ['mode', 'surfaceId', 'disabled', 'presenting', 'left', 'right'],
 };
 
-const EMPTY = Object.freeze({ mode: DISPLAY, declaredMode: DISPLAY, surfaceId: null, left: null, right: null });
+const EMPTY = Object.freeze({ mode: DISPLAY, declaredMode: DISPLAY, surfaceId: null, left: null, right: null, presenting: false });
 
 // The single active registration, plus a revision counter that changes every
 // time the *interaction* changes - which is not the same thing as every time
@@ -101,6 +109,65 @@ let tokenSeq = 0;
 let signature = null;
 let signatureKnown = false;
 
+// Read-only observers of the resolved geometry. They are told THAT it moved,
+// never what to do about it: nothing here hands out a handler, and an observer
+// cannot veto, delay or redirect a dispatch. The one consumer today is the
+// shared inactivity hint, which needs to know when the screen the player is
+// looking at became operable so it can start counting from that moment rather
+// than from a render.
+//
+// Notification is driven by the same signature the revision counter already
+// uses, so an observer hears exactly what the counter hears: a registration, a
+// release, or a real change of geometry - and NOT a re-render that produced
+// new handler closures for the same geometry.
+const observers = new Set();
+let notifying = false;
+
+function notifyObservers() {
+  // An observer that reacts by reading the contract back (which is what a React
+  // subscriber does) must not re-enter this. The read it makes finds the
+  // signature already settled, so it emits nothing; the guard is here so that
+  // an observer which re-declares a screen synchronously cannot recurse either.
+  if (notifying) return;
+  notifying = true;
+  try {
+    observers.forEach((observer) => {
+      try {
+        observer();
+      } catch (error) {
+        // A broken observer is a bug in the observer. It must never turn into
+        // a failed registration or a dropped gesture.
+        if (typeof console !== 'undefined') console.error('[ar-interaction] observer threw', error);
+      }
+    });
+  } finally {
+    notifying = false;
+  }
+}
+
+// Subscribe to "the interaction changed". Returns an unsubscribe function.
+//
+// The callback takes no arguments on purpose: the contract stays the single
+// source of truth, so an observer reads the current state back through
+// `getCurrentARInteraction()` rather than being handed a copy that could then
+// be held on to and go stale.
+export function subscribeARInteraction(observer) {
+  if (typeof observer !== 'function') throw new TypeError('subscribeARInteraction(observer): observer must be a function');
+  observers.add(observer);
+  return () => observers.delete(observer);
+}
+
+// "Take a fresh reading of the active screen's declaration."
+//
+// A screen re-declares by re-rendering, not by calling anything here (its
+// `read` getter is pulled, never pushed), so nothing would otherwise notice a
+// quiz that has just been answered until the next gesture. `useARInteraction`
+// calls this after every render of a declaring screen; it resolves the current
+// declaration and notifies only if the geometry actually moved.
+export function notifyARInteractionChanged() {
+  readActive();
+}
+
 // What "the same interaction" means, as one comparable string.
 function signatureOf(resolved, isActive) {
   if (!isActive) return null;
@@ -110,6 +177,7 @@ function signatureOf(resolved, isActive) {
     resolved.mode,
     resolved.left !== null,
     resolved.right !== null,
+    resolved.presenting,
   ].join('|');
 }
 
@@ -165,7 +233,7 @@ function resolve(declaration) {
     right = callable(value.action, disabled);
   }
 
-  return { mode: left || right ? declaredMode : DISPLAY, declaredMode, surfaceId, left, right };
+  return { mode: left || right ? declaredMode : DISPLAY, declaredMode, surfaceId, left, right, presenting: value.presenting === true };
 }
 
 function readActive() {
@@ -179,6 +247,10 @@ function readActive() {
   } else if (next !== signature) {
     signature = next;
     revision += 1;
+    // Announced after the counter has already moved, so an observer that reads
+    // the contract back inside the notification sees the state it is being
+    // told about rather than the one before it.
+    notifyObservers();
   }
   return resolved;
 }
@@ -197,6 +269,7 @@ export function registerARInteraction(read) {
   active = { token, read };
   revision += 1;
   signatureKnown = false;
+  notifyObservers();
   return token;
 }
 
@@ -209,6 +282,7 @@ export function releaseARInteraction(token) {
   active = null;
   revision += 1;
   signatureKnown = false;
+  notifyObservers();
   return true;
 }
 
@@ -231,6 +305,11 @@ export function getCurrentARInteraction() {
     declaredMode: resolved.declaredMode,
     leftAvailable: resolved.left !== null,
     rightAvailable: resolved.right !== null,
+    // Whether the screen is playing something through right now. Nothing in
+    // the dispatch path reads this - a presenting screen's declared action is
+    // as callable as any other - and the only consumer is the shared
+    // inactivity hint, which does not start counting while it is true.
+    presenting: resolved.presenting,
     surfaceId: resolved.surfaceId,
     revision,
   };
@@ -271,4 +350,6 @@ export function resetARInteractionContract() {
   tokenSeq = 0;
   signature = null;
   signatureKnown = false;
+  observers.clear();
+  notifying = false;
 }

@@ -631,7 +631,7 @@ test('the snapshot is readable data only - no handler is ever exposed', () => {
   const snapshot = getCurrentARInteraction();
   assert.deepEqual(
     Object.keys(snapshot).sort(),
-    ['active', 'declaredMode', 'leftAvailable', 'mode', 'revision', 'rightAvailable', 'surfaceId'],
+    ['active', 'declaredMode', 'leftAvailable', 'mode', 'presenting', 'revision', 'rightAvailable', 'surfaceId'],
   );
   Object.values(snapshot).forEach((value) => assert.notEqual(typeof value, 'function'));
   mounted.unmount();
