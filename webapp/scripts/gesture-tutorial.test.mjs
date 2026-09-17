@@ -911,7 +911,7 @@ test('both directions are the same picture, moved the other way - never a mirror
   assert.match(handCss, /\.gesture-tutorial-hand\{[^}]*object-fit:contain/);
   assert.match(handCss, /\.gesture-tutorial-hand\{[^}]*width:var\(--gesture-hand-size\);height:var\(--gesture-hand-size\)/);
   // Every keyframe in both sweeps is a pure horizontal translate.
-  const sweeps = CSS.match(/@keyframes gesture-tutorial-hand-sweep-(?:left|right)\{[\s\S]*?\n\}/g) ?? [];
+  const sweeps = CSS.match(/@keyframes gesture-tutorial-sweep-(?:left|right)\{[\s\S]*?\n\}/g) ?? [];
   assert.equal(sweeps.length, 2);
   sweeps.forEach((sweep) => {
     [...sweep.matchAll(/transform:([^;}]+)/g)].forEach(([, value]) => {
@@ -949,10 +949,10 @@ test('the hand is on the live step only, and nothing is left waving at the end',
 
 test('the sweep slows across the middle, holds at the end, and never runs backwards', () => {
   // The cycle: 2.2s of travel + 0.5s held at the far end = 2.7s.
-  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-hand-sweep-left 2\.7s linear infinite/);
-  assert.match(CSS, /\.gesture-tutorial-hand-right\{animation-name:gesture-tutorial-hand-sweep-right\}/);
+  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-sweep-left 2\.7s linear infinite/);
+  assert.match(CSS, /\.gesture-tutorial-hand-right\{animation-name:gesture-tutorial-sweep-right\}/);
 
-  ['gesture-tutorial-hand-sweep-left', 'gesture-tutorial-hand-sweep-right'].forEach((name) => {
+  ['gesture-tutorial-sweep-left', 'gesture-tutorial-sweep-right'].forEach((name) => {
     const stops = sweepStops(name);
     const progress = pathProgress(stops);
     const CYCLE = 2.7;
@@ -1008,12 +1008,12 @@ test('the sweep slows across the middle, holds at the end, and never runs backwa
 
   // The two directions are the same rhythm with the sign flipped - not two
   // separately tuned animations.
-  const left = pathProgress(sweepStops('gesture-tutorial-hand-sweep-left'));
-  const right = pathProgress(sweepStops('gesture-tutorial-hand-sweep-right'));
+  const left = pathProgress(sweepStops('gesture-tutorial-sweep-left'));
+  const right = pathProgress(sweepStops('gesture-tutorial-sweep-right'));
   assert.deepEqual(left, right, 'both directions must share one timing profile');
   assert.deepEqual(
-    sweepStops('gesture-tutorial-hand-sweep-left').map((s) => -s.offset),
-    sweepStops('gesture-tutorial-hand-sweep-right').map((s) => s.offset),
+    sweepStops('gesture-tutorial-sweep-left').map((s) => -s.offset),
+    sweepStops('gesture-tutorial-sweep-right').map((s) => s.offset),
     'the right sweep is the left one negated - the picture is not flipped, the travel is',
   );
 });
@@ -1051,9 +1051,11 @@ test('a player who asked for less motion still gets the hand, standing still', (
   // and the scan screen's block closes with `}}` on a single line - so this
   // finds the tutorial's own rule and walks back to the at-rule holding it,
   // rather than matching the first block in the file.
-  const OFF = '.gesture-tutorial-page .gesture-tutorial-hand{animation:none;transform:none}';
+  const OFF = '.gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-arrow{animation:none;transform:none}';
   const at = CSS.indexOf(OFF);
   assert.notEqual(at, -1, 'the tutorial must stop the sweep under prefers-reduced-motion');
+  // Both riders of the timeline, switched off by the one rule.
+  assert.ok(CSS.slice(0, at).endsWith('.gesture-tutorial-page .gesture-tutorial-hand,\n  '), 'the hand must be switched off by the same rule as the arrow');
   const opener = CSS.lastIndexOf('@media', at);
   assert.ok(CSS.startsWith('@media (prefers-reduced-motion:reduce){', opener), 'and it must be prefers-reduced-motion that stops it');
   const reduced = CSS.slice(opener, CSS.indexOf('\n}', at) + 2);
@@ -1080,4 +1082,98 @@ test('the shipped hand is the delivered master, losslessly re-containered', asyn
   assert.equal(master.readUInt32BE(16), 1254, 'the master keeps its delivered width');
   assert.equal(master.readUInt32BE(20), 1254, 'the master keeps its delivered height');
   assert.ok((await read('asset-sources/README.md')).includes('shared/ui/gesture/hand.png'), 'the master must be listed with what it derived into');
+});
+
+// =============================================================================
+// 7. the direction arrow rides the hand's timeline
+// =============================================================================
+//
+// The cue at the top of each panel used to be a still glyph. It now travels
+// with the hand below it. What matters is that "in sync" is structural rather
+// than maintained: the two elements name the SAME animation and read the SAME
+// travel distance, so they cannot drift, and a future change to the sweep moves
+// both or neither.
+
+test('the arrow and the hand are one animation, not two kept in step', () => {
+  // The hand names the timeline...
+  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-sweep-left 2\.7s linear infinite/);
+  assert.match(CSS, /\.gesture-tutorial-hand-right\{animation-name:gesture-tutorial-sweep-right\}/);
+  // ...and the arrow names the same one, with the same duration and easing.
+  assert.match(CSS, /\.gesture-tutorial-step\.is-active \.gesture-tutorial-arrow\{animation:gesture-tutorial-sweep-left 2\.7s linear infinite\}/);
+  assert.match(CSS, /\.gesture-tutorial-step-right\.is-active \.gesture-tutorial-arrow\{animation-name:gesture-tutorial-sweep-right\}/);
+
+  // Exactly two @keyframes for the whole tutorial: one per direction, shared.
+  const names = [...CSS.matchAll(/@keyframes (gesture-tutorial-[\w-]+)\{/g)].map(([, n]) => n);
+  assert.deepEqual(names.sort(), ['gesture-tutorial-sweep-left', 'gesture-tutorial-sweep-right'],
+    'a second set of keyframes for the arrow is exactly how the two would drift apart');
+
+  // And both read the same travel, so they cover the same ground at once.
+  const arrowRule = CSS.slice(CSS.indexOf('.gesture-tutorial-step.is-active .gesture-tutorial-arrow{'));
+  assert.equal(/--gesture-arrow-travel|--arrow-travel/.test(CSS), false, 'the arrow must not get a travel distance of its own');
+  assert.ok(arrowRule.length > 0);
+});
+
+test('the arrow moves only on the step being taught, and stops when it stops', () => {
+  // The animation is carried by `.is-active`, which is the same class the hand's
+  // presence is keyed on (see the page: the hand renders when `live`). So the
+  // step waiting its turn is still, and finishing a step stops both in the same
+  // class change.
+  // The BASE rule, read by its own full selector so the `.is-active` one below
+  // it is not mistaken for it.
+  const base = CSS.match(/\.gesture-tutorial-page \.gesture-tutorial-arrow\{([^}]*)\}/);
+  assert.ok(base, 'the arrow keeps its own base rule');
+  assert.equal(/animation/.test(base[1]), false,
+    'the base arrow rule must not animate - a waiting or finished step would move too');
+  assert.match(CSS, /\.gesture-tutorial-step\.is-active \.gesture-tutorial-arrow\{animation:/);
+
+  const page = mountTutorial();
+  // WAIT_LEFT: the left step is the live one, and it is the only one with a hand.
+  assert.equal(activeSideOf(page.output), 'left');
+  assert.deepEqual(handSidesOf(page.output), ['left']);
+
+  wave('LEFT');
+  assert.equal(activeSideOf(page.output), 'right', 'the live step moves...');
+  assert.deepEqual(handSidesOf(page.output), ['right'], '...and the hand with it');
+
+  wave('RIGHT');
+  // COMPLETE: no step is live, so no arrow carries the animation and no hand is
+  // left on the page. Both stop together because both are the same class away.
+  assert.equal(activeSideOf(page.output), null);
+  assert.deepEqual(handsOf(page.output), []);
+  assert.equal(stepsOf(page.output).every((n) => !n.props.className.includes('is-active')), true,
+    'a finished tutorial has no active step, so nothing is still sweeping');
+  page.unmount();
+});
+
+test('the travelling arrow cannot push its panel out of shape', () => {
+  // The glyph's box shrink-wraps it now. Without that it would span the panel,
+  // and translating a full-width box by half the travel would push it past the
+  // panel's edge.
+  assert.match(CSS, /\.gesture-tutorial-arrow\{[^}]*width:fit-content/);
+  assert.match(CSS, /\.gesture-tutorial-arrow\{[^}]*margin-inline:auto/);
+  // Still its own line, and still centred, so the panel reads as it did.
+  assert.match(CSS, /\.gesture-tutorial-arrow\{[^}]*display:block/);
+
+  // It is decorative and inert, exactly as before: no handler, hidden from
+  // assistive tech, and the panel underneath stays the touch target.
+  const page = mountTutorial();
+  const [arrow] = nodesWithClass(page.output, 'gesture-tutorial-arrow');
+  assert.equal(arrow.props['aria-hidden'], 'true');
+  assert.equal(arrow.props.onClick, undefined);
+  // A tap still completes the step it sits in.
+  assert.equal(press(page, 'left'), true);
+  assert.equal(activeSideOf(page.output), 'right');
+  page.unmount();
+});
+
+test('the cue is a presentation change and nothing else was touched', async () => {
+  // The arrow is a presentation change and must stay one: recognition, the
+  // bridge, the state machine and the run-time hint are all untouched.
+  const machine = stripComments(SOURCES.machine);
+  assert.equal(/arrow|animation|keyframe|sweep/i.test(machine), false, 'the state machine must know nothing about the cue');
+  assert.equal(/arrow|animation|keyframe|sweep/i.test(stripComments(SOURCES.adapter)), false, 'nor the input adapter');
+  const bridge = stripComments(await read('src/lib/arInteraction/gestureBridge.js'));
+  assert.equal(/arrow|sweep|keyframe/i.test(bridge), false, 'nor the Gesture Bridge');
+  const hint = stripComments(await read('src/components/hints/InteractionHint.jsx'));
+  assert.equal(/arrow|sweep|keyframe/i.test(hint), false, 'nor the run-time inactivity hint');
 });

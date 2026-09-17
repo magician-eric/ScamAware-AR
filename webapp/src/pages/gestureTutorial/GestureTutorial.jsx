@@ -93,11 +93,17 @@ const STEPS = Object.freeze([
 // this page having actually completed the left step and then the right one,
 // or does not leave it.
 //
-// The hand demonstration added on top of that changes none of it. It is one
-// <img> per live step with a CSS animation on it, it is never a control, it
-// never reads or writes the state machine, and it is not a gate: the step it
-// sits in is completed by a wave or a tap at any moment of the loop, mid-
-// sweep as readily as at either end.
+// The demonstration added on top of that changes none of it. It is one <img>
+// and one arrow glyph per live step, both carried by a CSS animation, neither
+// is ever a control, neither reads or writes the state machine, and it is not
+// a gate: the step it sits in is completed by a wave or a tap at any moment of
+// the loop, mid-sweep as readily as at either end.
+//
+// The arrow and the hand are one animation, not two: they name the same
+// `@keyframes` and read the same travel distance (see the
+// .gesture-tutorial-arrow rules in ../entryScreens.css), so the cue at the top
+// of the panel and the hand at the bottom are always at the same point of the
+// same wave, and both stop in the same frame the step stops being live.
 //
 // It also does not declare itself to the AR Interaction Contract, on purpose
 // - see ./tutorialStateMachine.js for why LEFT and RIGHT are steps here, not
@@ -182,6 +188,9 @@ export function GestureTutorial() {
                 disabled={!live}
                 onClick={() => advance(step.gesture)}
               >
+                {/* The direction cue. It is on every step in every state -
+                    it is what the step IS - and on the step being taught it
+                    travels with the hand, on the same timeline. */}
                 <span className="gesture-tutorial-arrow" aria-hidden="true">{step.arrow}</span>
                 <span className="gesture-tutorial-step-title">{t[step.key].title}</span>
                 <span className="gesture-tutorial-step-instruction">{t[step.key].instruction}</span>
