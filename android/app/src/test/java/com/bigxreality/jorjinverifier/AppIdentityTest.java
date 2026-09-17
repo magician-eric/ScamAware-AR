@@ -292,20 +292,25 @@ public class AppIdentityTest {
     // ------------------------------------------------------------------ what CI publishes
 
     /**
-     * The published filename has exactly one job: say what this is. It used to also carry the
-     * version, the commit and the run number, and there used to be four of them.
+     * The published filename says what this is and which version it is. The commit and the run
+     * number stay out of it - those are in the release notes, and there is still exactly one APK.
      *
      * <p>The release asset is ASCII on purpose, and that is not a preference: GitHub's release-asset
      * API replaces every character outside {@code [A-Za-z0-9.+_-]} with a dot, so an asset uploaded
      * as {@code CIBAR-反詐AR體驗.apk} arrives as {@code CIBAR-...........apk} and the direct
      * download links in the notes stop resolving. The product's own name travels as the asset label
-     * and as the filename in the Actions artifact.
+     * and as the filename in the Actions artifact. {@code .} and {@code -} are both inside that
+     * character set, which is why a version suffix can ride along on the ASCII name intact.
      */
     @Test public void oneApkIsPublished() throws IOException {
         String workflow = read("../../.github/workflows/build-android.yml");
-        assertTrue("交付檔名就是產品名", workflow.contains("DELIVERY=\"CIBAR-" + APP_NAME + "\""));
+        assertTrue("交付檔名是產品名加版本號",
+                workflow.contains("DELIVERY=\"CIBAR-" + APP_NAME + "-${VER}\""));
+        assertTrue("ASCII 檔名也要帶版本號", workflow.contains("ASCII=\"CIBAR-${VER}\""));
+        assertTrue("版本號取自 release/versions.json，不是寫死的",
+                workflow.contains("VER=\"${SHELL_VERSION}-web${WEB_VERSION}\""));
         assertTrue("release asset 用 ASCII 檔名，附上中文 label",
-                workflow.contains("\"dist/upload/CIBAR.apk#${DELIVERY}.apk"));
+                workflow.contains("\"dist/upload/${ASCII}.apk#${DELIVERY}.apk"));
         assertTrue("dist/ 只能有兩支，多出來的要讓建置失敗",
                 workflow.contains("dist/ 出現了預期外的檔名"));
         assertTrue("必須擋下 online / offline variant 復活",

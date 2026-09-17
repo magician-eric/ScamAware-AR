@@ -128,8 +128,17 @@ jobs:
           # [A-Za-z0-9.+_-] with a dot, so an asset uploaded as CIBAR-反詐AR體驗.apk arrives as
           # CIBAR-...........apk and the download links in the notes stop resolving. The Chinese
           # name travels as the asset's label instead, which is what the release page displays.
-          DELIVERY="CIBAR-反詐AR體驗"
+          # Both names carry the version, so a phone with three of these side by side says
+          # which is which without opening any of them. The ASCII one stays ASCII: the
+          # release-assets API rewrites everything outside [A-Za-z0-9.+_-] to a dot, and
+          # "." and "-" are both in that set, so a version suffix survives the trip intact.
+          SHELL_VERSION="$(jq -r .shellVersion ../release/versions.json)"
+          WEB_VERSION="$(jq -r .webBundleVersion ../release/versions.json)"
+          VER="${SHELL_VERSION}-web${WEB_VERSION}"
+          DELIVERY="CIBAR-反詐AR體驗-${VER}"
+          ASCII="CIBAR-${VER}"
           echo "delivery=$DELIVERY" >> "$GITHUB_OUTPUT"
+          echo "ascii=$ASCII" >> "$GITHUB_OUTPUT"
           for type in release debug; do
             APK="$(find app/build/outputs/apk -name "app-${type}.apk" | head -1)"
             if [ -z "$APK" ]; then
@@ -140,7 +149,7 @@ jobs:
             SUFFIX=""
             [ "$type" = "debug" ] && SUFFIX="-debug"
             cp "$APK" "dist/${DELIVERY}${SUFFIX}.apk"
-            cp "$APK" "dist/upload/CIBAR${SUFFIX}.apk"
+            cp "$APK" "dist/upload/${ASCII}${SUFFIX}.apk"
             BADGING="$("$AAPT2" dump badging "$APK")"
             echo "${type}: $(basename "$APK") -> ${DELIVERY}${SUFFIX}.apk"
             if [ "$type" = "release" ]; then
@@ -425,13 +434,14 @@ jobs:
           fi
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
           DL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG"
+          ASCII='${{ steps.apks.outputs.ascii }}'
           {
             printf '# 手機安裝：就這一支\n\n'
-            printf '**[⬇️ 下載 `CIBAR.apk`](%s/CIBAR.apk)** —— 桌面名稱 **%s**\n\n' "$DL" "$LABEL"
+            printf '**[⬇️ 下載 `%s.apk`](%s/%s.apk)** —— 桌面名稱 **%s**\n\n' "$ASCII" "$DL" "$ASCII" "$LABEL"
             printf '用手機直接點上面的連結就會下載，不必捲到下面的 Assets。\n\n'
-            printf '> `CIBAR-debug.apk` 只給 adb、Android Studio 偵錯用（它是 debuggable，'
+            printf '> `%s-debug.apk` 只給 adb、Android Studio 偵錯用（它是 debuggable，' "$ASCII"
             printf '部分 ROM 會直接拒裝）。手機安裝請認上面那一個連結。\n\n'
-            printf '> 檔名是 ASCII 的 `CIBAR.apk`：GitHub 的 release asset 會把非 ASCII 字元換成點，'
+            printf '> 檔名是 ASCII 的 `%s.apk`（版本號在檔名裡）：GitHub 的 release asset 會把非 ASCII 字元換成點，' "$ASCII"
             printf '下載連結就會失效。下載後的桌面名稱仍然是 **%s**，' "$LABEL"
             printf 'Actions artifact 內的檔名也是 `%s.apk`。\n\n' "$DELIVERY"
             printf -- '---\n\n'
@@ -484,7 +494,7 @@ jobs:
                 "$PACKAGE" "$PACKAGE"
           } > release-notes.md
           head -6 release-notes.md
-          grep -q "CIBAR.apk" release-notes.md
+          grep -q "${ASCII}.apk" release-notes.md
           echo "release notes: $(wc -l < release-notes.md) lines"
       - name: Publish rolling debug release
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -503,11 +513,12 @@ jobs:
             exit 1
           fi
           DELIVERY='${{ steps.apks.outputs.delivery }}'
+          ASCII='${{ steps.apks.outputs.ascii }}'
           VERSION_NAME='${{ steps.apks.outputs.version_name }}'
           gh release delete "$RELEASE_TAG" --yes --cleanup-tag || true
           gh release create "$RELEASE_TAG" \
-            "dist/upload/CIBAR.apk#${DELIVERY}.apk（手機安裝用這一個）" \
-            "dist/upload/CIBAR-debug.apk#${DELIVERY}-debug.apk（adb 偵錯用）" \
+            "dist/upload/${ASCII}.apk#${DELIVERY}.apk（手機安裝用這一個）" \
+            "dist/upload/${ASCII}-debug.apk#${DELIVERY}-debug.apk（adb 偵錯用）" \
             --title "反詐AR體驗 ${VERSION_NAME%%+*}" \
             --notes-file release-notes.md \
             --prerelease
