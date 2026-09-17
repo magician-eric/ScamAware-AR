@@ -98,18 +98,26 @@ dual({
   // 0 to the branch LEFT is bound to, and this is the line that says so.
   indexBridge: "onChoose={(i) => chooseNeed(i === 0 ? 'A' : 'B')}",
 });
+// The two endings are named constants in WithdrawFail.jsx rather than the same
+// string typed twice, so the wave and the button cannot drift onto different
+// routes - which is also what lets
+// scripts/gesture-never-replaces-pointer.test.mjs see that they agree. The
+// tokens pinned here are the constants at their two USE sites: `to={SCAMMED}>`
+// appears only on the button, never on the `const SCAMMED = ...` line, so the
+// left-is-drawn-first check below still reads the drawn order and not the
+// declaration order.
 dual({
   surfaceId: 'scenario01/withdraw-fail/final-decision',
   declaredIn: 'src/pages/scenario01/WithdrawFail.jsx',
-  leftBinding: "left: () => navigate('/scenario01-investment/scammed-result'),",
-  rightBinding: "right: () => navigate('/scenario01-investment/stopped-result'),",
+  leftBinding: 'left: () => navigate(SCAMMED),',
+  rightBinding: 'right: () => navigate(STOPPED),',
   drawnIn: 'src/pages/scenario01/WithdrawFail.jsx',
   css: 'src/styles/global.css',
   selectors: ['.btns', '.btns.btns-dual'],
   axis: 'row',
   binding: 'pair',
-  leftToken: '/scenario01-investment/scammed-result">',
-  rightToken: '/scenario01-investment/stopped-result">',
+  leftToken: 'to={SCAMMED}>',
+  rightToken: 'to={STOPPED}>',
 });
 
 // ----------------------------------------------------------- scenario 02

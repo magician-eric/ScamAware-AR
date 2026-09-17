@@ -97,10 +97,10 @@ test('DRAW: swapping the two controls in the drawing file fails the audit', () =
   // the button now drawn on the right.
   const rows = auditVisualOrder(ROOT, {
     'src/pages/scenario01/WithdrawFail.jsx': [
-      "<Button variant=\"secondary\" to=\"/scenario01-investment/stopped-result\">",
-      "<Button variant=\"danger\" to=\"/scenario01-investment/scammed-result\">",
-      'left: () => navigate(\'/scenario01-investment/scammed-result\'),',
-      'right: () => navigate(\'/scenario01-investment/stopped-result\'),',
+      '<Button variant="secondary" to={STOPPED}>',
+      '<Button variant="danger" to={SCAMMED}>',
+      'left: () => navigate(SCAMMED),',
+      'right: () => navigate(STOPPED),',
     ].join('\n'),
   });
   const row = rows.find((entry) => entry.surfaceId === 'scenario01/withdraw-fail/final-decision');
