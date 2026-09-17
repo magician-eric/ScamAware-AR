@@ -165,7 +165,7 @@ Two consequences worth knowing:
   through one dynamic `import()`, so they are their own chunks — the entry
   bundle grew by about 5 kB.
 
-**Cost:** ~1.2 MB of JS (≈300 kB gzipped) plus a 0.68 MB dataset, all lazy, all
+**Cost:** ~1.2 MB of JS (≈300 kB gzipped) plus a 0.83 MB dataset, all lazy, all
 only on `/ar-scan`.
 
 **`canvas` note.** `mind-ar` depends on `canvas` for its Node-side offline
@@ -311,11 +311,19 @@ apparent target sizes by roughly a third at the near end.
 **Compile scale.** `COMPILE_SCALE` in `compile-image-targets.mjs` resizes the
 sources before compiling, because MindAR builds its feature pyramid from the
 size it is given. It was 3 for the previous, much smaller sources (94×93 to
-205×170). The current sources are 249×355 to 300×443 and need no upscaling:
+205×170). The current sources are 249×355 to 1359×1157 and need no upscaling:
 measured over 21 poses per target, scales 1, 2 and 3 all recognise 105/105 with
 no misidentifications, so it is 1 — which is also 0.8 MB less dataset and 90 s
 less compile time. Re-check it when the sources change; the recognition test is
 what tells you.
+
+`scenario3.png` is the outlier in that range — the authority card's artwork as
+it was supplied, several times the size of the other four. Because
+`COMPILE_SCALE` is global, a single oversized source is not something to fix
+with it; the question is only whether that source compiles into a dataset that
+works. It does: swept at its own size it is 21/21, and downscaled to 400×341 it
+is also 21/21, so the larger source stays and the dataset carries the 0.16 MB
+its extra feature points cost.
 
 ---
 

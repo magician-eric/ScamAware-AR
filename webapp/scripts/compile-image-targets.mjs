@@ -46,10 +46,16 @@ const MANIFEST_FILE = OUTPUT_FILE.replace(/\.mind$/, '.manifest.json');
 // This was 3 for the previous target set, whose images were 94x93 to 205x170 -
 // smaller than they ever appear inside the 256x256 detection crop, so they had
 // to be upscaled to give the pyramid levels at that size. The current sources
-// are 249x355 to 300x443 and need none of that. Measured over 21 poses per
+// are 249x355 to 1359x1157 and need none of that. Measured over 21 poses per
 // target (apparent size 0.14 to 0.85 of frame height, rotations 0/+14/-25):
 // scales 1, 2 and 3 all recognise 105/105 with no misidentifications, so the
 // larger ones buy nothing and cost 0.8MB of download and 90s of compile time.
+//
+// The spread is wider than it looks: scenario3.png is the artwork as it was
+// supplied, several times the size of the other four. Compiled at its own
+// size it also sweeps 105/105 with nothing misidentified, so it is left
+// alone; downscaling it to 400x341 measures identically and only trades
+// 0.16MB of dataset for a derived file nobody asked for.
 //
 // Re-check this when the sources change. A set of small images needs it back
 // above 1; the recognition test is what tells you.
