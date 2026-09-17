@@ -103,7 +103,7 @@
 
 /* ---- shared image placeholder / avatar ---------------------------------- */
 .go-ph{position:relative;background:#e4e6e9;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8a8f96;overflow:hidden;text-align:center;padding:4px}
-.go-ph-label{font-size:10px;line-height:1.3;padding:0 4px}
+.go-ph-label{font-size:var(--fs-caption);line-height:1.3;padding:0 4px}
 img.go-ph{display:block;padding:0;object-fit:cover}
 .go-avatar{--go-avatar-size:36px;position:relative;display:inline-flex;flex:none;width:var(--go-avatar-size);height:var(--go-avatar-size);border-radius:50%;overflow:hidden;background:#e8d5c4}
 .go-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 24%}
@@ -138,7 +138,7 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 
 .md-feed{padding:14px 14px calc(16px + env(safe-area-inset-bottom));gap:0}
 .md-home-feed{padding:14px;gap:14px}
-.md-home-search{flex:none;height:42px;border-radius:12px;background:var(--md-surface);border:1px solid var(--md-line);display:flex;align-items:center;gap:9px;padding:0 12px;color:var(--md-text-3);font-size:13px}
+.md-home-search{flex:none;min-height:42px;border-radius:12px;background:var(--md-surface);border:1px solid var(--md-line);display:flex;align-items:center;gap:9px;padding:8px 12px;color:var(--md-text-3);font-size:var(--fs-body-sm)}
 .md-home-search span{flex:1}
 /* The feed's single call to action. It is one <button>: the whole banner is
    the tap target, so nothing inside it may look like a separate control - the
@@ -146,8 +146,8 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .md-home-sell{flex:none;width:100%;appearance:none;border:0;font-family:inherit;text-align:left;cursor:pointer;background:linear-gradient(135deg,var(--md-blue),#6e9cff);color:#fff;border-radius:18px;padding:26px 20px 20px;display:flex;flex-direction:column;gap:7px;box-shadow:0 10px 26px rgba(37,99,235,.24);transition:transform .12s ease,box-shadow .12s ease}
 .md-home-sell:active{transform:scale(.99);box-shadow:0 6px 16px rgba(37,99,235,.2)}
 .md-home-sell strong{font-size:24px;font-weight:900;line-height:1.25;letter-spacing:-.01em}
-.md-home-sell-sub{font-size:13px;opacity:.92;line-height:1.5}
-.md-home-sell-action{align-self:flex-end;margin-top:5px;font-size:13.5px;font-weight:800;letter-spacing:.01em}
+.md-home-sell-sub{font-size:var(--fs-body-sm);opacity:.92;line-height:1.5}
+.md-home-sell-action{align-self:flex-end;margin-top:5px;font-size:var(--fs-body-sm);font-weight:800;letter-spacing:.01em}
 
 /* ---- MyDonDon 刊登商品・選擇要出售的商品 (pushed screen, no tab bar) ----
    A pushed screen inside the app, so it wears the app's back-header, its
@@ -158,17 +158,17 @@ img.go-ph{display:block;padding:0;object-fit:cover}
    taller, wider or differently inset than the other whatever the copy or the
    photo's aspect ratio. */
 .md-subheader{flex:none;display:flex;align-items:center;gap:4px;min-height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 14px 6px 4px;background:var(--md-surface);border-bottom:1px solid var(--md-line)}
-.md-subheader-title{font-size:16px;font-weight:800;color:var(--md-text)}
+.md-subheader-title{font-size:var(--fs-title-sm);font-weight:800;color:var(--md-text)}
 
 .md-pick-page{padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
 .md-pick-h1{font-size:20px;font-weight:900;line-height:1.35;margin:0}
-.md-pick-sub{font-size:13px;color:var(--md-text-2);line-height:1.6;margin:6px 0 0}
+.md-pick-sub{font-size:var(--fs-body-sm);color:var(--md-text-2);line-height:1.6;margin:6px 0 0}
 .md-pick-list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:16px}
 
 /* MyDonDon's own primary button - e.g. MyDonDonOrders.jsx's explicit
    "返回對話", which the player must tap themselves (no auto-navigate) once
    they've actually read "沒有新的訂單". */
-.md-btn{appearance:none;border:0;border-radius:12px;min-height:52px;padding:0 18px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;background:var(--md-blue);color:#fff;margin-top:16px}
+.md-btn{appearance:none;border:0;border-radius:12px;min-height:52px;padding:0 18px;font-size:var(--fs-body-lg);font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;background:var(--md-blue);color:#fff;margin-top:16px}
 .md-btn:active{filter:brightness(.94)}
 
 .md-pick{width:100%;min-width:0;appearance:none;font-family:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--md-surface);border:1px solid var(--md-line);border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:stretch;gap:10px;box-shadow:0 1px 3px rgba(16,24,40,.05);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;overflow-wrap:anywhere}
@@ -177,8 +177,8 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .md-pick:disabled{opacity:.45;cursor:default}
 .md-pick-img{width:100%;height:auto;aspect-ratio:1;flex:none;border-radius:10px}
 .md-pick-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.md-pick-name{font-size:15px;font-weight:700;line-height:1.4}
-.md-pick-desc{font-size:12px;color:var(--md-text-2);line-height:1.5}
+.md-pick-name{font-size:var(--fs-body-lg);font-weight:700;line-height:1.4}
+.md-pick-desc{font-size:var(--fs-caption);color:var(--md-text-2);line-height:1.5}
 .md-pick-price{font-size:17px;font-weight:800;color:var(--md-blue);margin-top:2px}
 
 /* The buyer's message as a phone notification (MyDonDonPushNotice), not as
@@ -192,53 +192,55 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .md-push:active{background:#F1F5FF}
 .md-push-avatar{flex:none}
 .md-push-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.md-push-meta{display:flex;align-items:baseline;gap:6px;font-size:10.5px;color:var(--md-text-3)}
+.md-push-meta{display:flex;align-items:baseline;gap:6px;font-size:var(--fs-caption);color:var(--md-text-3)}
 .md-push-meta b{font-weight:800;color:var(--md-blue)}
 .md-push-meta span{margin-left:auto}
-.md-push-name{font-size:13.5px;font-weight:800;color:var(--md-navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-push-preview{font-size:12.5px;color:var(--md-text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.md-push-name{font-size:var(--fs-body-sm);font-weight:800;color:var(--md-navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.md-push-preview{font-size:var(--fs-caption);color:var(--md-text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .md-post{border:1px solid var(--md-line);border-radius:14px;overflow:hidden;background:var(--md-surface)}
 .md-post-head{display:flex;gap:10px;align-items:center;padding:12px 14px}
+/* Off the --fs-* ladder: an initial centred in a 34px avatar circle, not copy. */
 .md-post-avatar{width:34px;height:34px;border-radius:50%;background:var(--md-blue-tint);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--md-blue);flex:none}
-.md-post-author{font-size:13.5px;font-weight:700}
-.md-post-meta{font-size:11px;color:var(--md-text-3)}
+.md-post-author{font-size:var(--fs-body-sm);font-weight:700}
+.md-post-meta{font-size:var(--fs-caption);color:var(--md-text-3)}
 .md-post-hero{height:190px}
 .md-post-hero .go-ph{border-radius:0;height:100%}
 .md-post-hero img.go-ph{width:100%}
 .md-post-body{padding:12px 14px}
-.md-post-name{font-size:15.5px;font-weight:700}
-.md-post-desc{font-size:12.5px;color:var(--md-text-2);margin:3px 0 6px;line-height:1.5}
+.md-post-name{font-size:var(--fs-body-lg);font-weight:700}
+.md-post-desc{font-size:var(--fs-caption);color:var(--md-text-2);margin:3px 0 6px;line-height:1.5}
 .md-post-price{font-size:18px;font-weight:800;color:var(--md-blue)}
-.md-post-stats{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:11.5px;color:var(--md-text-3);border-top:1px solid var(--md-line);padding-top:10px}
+.md-post-stats{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:var(--fs-caption);color:var(--md-text-3);border-top:1px solid var(--md-line);padding-top:10px}
 .md-post-stats span{display:inline-flex;align-items:center;gap:4px}
 
 .md-bottom-nav{flex:none;display:flex;background:var(--md-surface);border-top:1px solid var(--md-line);padding-bottom:env(safe-area-inset-bottom)}
-.md-nav-btn{flex:1;min-width:0;border:0;background:none;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 7px;font-size:10.5px;color:var(--md-text-3)}
+.md-nav-btn{flex:1;min-width:0;border:0;background:none;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 7px;font-size:var(--fs-caption);color:var(--md-text-3)}
 .md-nav-btn.active{color:var(--md-blue);font-weight:700}
 .md-nav-btn[aria-disabled="true"]{cursor:default}
 .md-nav-icon{position:relative;display:inline-flex}
+/* Off the --fs-* ladder: a count inside a 16px tab-bar badge, not copy. */
 .md-nav-badge{position:absolute;top:-5px;right:-9px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--md-red);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
 
 /* ---- MyDonDon one-to-one chat (no tab bar below it) --------------------- */
 .md-chat-header{flex:none;display:flex;align-items:center;gap:10px;min-height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 6px 4px;background:var(--md-surface);border-bottom:1px solid var(--md-line)}
 .md-chat-identity{min-width:0;flex:1}
-.md-chat-name{font-size:15px;font-weight:700;overflow-wrap:anywhere}
-.md-chat-sub{font-size:11px;color:var(--md-text-3);overflow-wrap:anywhere}
+.md-chat-name{font-size:var(--fs-body-lg);font-weight:700;overflow-wrap:anywhere}
+.md-chat-sub{font-size:var(--fs-caption);color:var(--md-text-3);overflow-wrap:anywhere}
 .md-online-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#12B76A;margin-right:4px;vertical-align:1px}
 .md-chat-brand{flex:none;margin-left:auto;opacity:.95}
 .md-chat-intro{align-self:center;text-align:center;padding:2px 0 4px}
-.md-chat-intro-name{font-size:13.5px;font-weight:700;margin-top:6px}
-.md-chat-intro-meta{font-size:10.5px;color:var(--md-text-3);line-height:1.6}
+.md-chat-intro-name{font-size:var(--fs-body-sm);font-weight:700;margin-top:6px}
+.md-chat-intro-meta{font-size:var(--fs-caption);color:var(--md-text-3);line-height:1.6}
 
 .md-chat-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;background:var(--md-bg)}
 .md-chat-scroll::-webkit-scrollbar{display:none}
-.md-chat-timestamp{align-self:center;color:var(--md-text-3);font-size:10.5px;line-height:1;padding:4px 8px}
-.md-system-row{align-self:center;text-align:center;font-size:10.5px;color:var(--md-text-2);background:var(--md-bubble);border-radius:10px;padding:3px 10px}
+.md-chat-timestamp{align-self:center;color:var(--md-text-3);font-size:var(--fs-caption);line-height:1;padding:4px 8px}
+.md-system-row{align-self:center;text-align:center;font-size:var(--fs-caption);color:var(--md-text-2);background:var(--md-bubble);border-radius:10px;padding:3px 10px}
 .md-msg-row{display:flex}
 .md-msg-row.theirs{justify-content:flex-start}
 .md-msg-row.mine{justify-content:flex-end}
-.md-bubble{max-width:80%;padding:10px 13px;font-size:14px;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
+.md-bubble{max-width:80%;padding:10px 13px;font-size:var(--fs-body);line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
 .md-bubble.theirs{background:var(--md-bubble);border-radius:4px 16px 16px 16px;color:var(--md-text)}
 .md-bubble.mine{background:var(--md-blue);color:#fff;border-radius:16px 4px 16px 16px}
 
@@ -253,21 +255,24 @@ img.go-ph{display:block;padding:0;object-fit:cover}
    party's colours precisely because it is not MyDonDon's own content, while
    the chat around it stays MyDonDon (spec section 25). */
 .md-link-card{max-width:82%}
-.md-link-card-lead{font-size:14px;line-height:1.55;color:var(--md-text);margin-bottom:6px}
+.md-link-card-lead{font-size:var(--fs-body);line-height:1.55;color:var(--md-text);margin-bottom:6px}
 .md-msg-row.mine .md-link-card-lead{color:var(--md-text);text-align:right}
 .md-link-card-body{background:var(--md-surface);border:1px solid var(--md-line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .md-link-card-icon{width:38px;height:38px;border-radius:9px;background:var(--sq-purple);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .md-link-card-info{min-width:0}
-.md-link-card-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.md-link-card-url{font-size:11px;color:var(--md-text-2)}
+/* Was nowrap+ellipsis, which at 320px left this title about 167px next to
+   its 38px icon - enough for roughly eleven Chinese characters of what the
+   fake buyer is sending the player to. It wraps now; the card grows. */
+.md-link-card-title{font-size:var(--fs-body-sm);font-weight:700;overflow-wrap:anywhere}
+.md-link-card-url{font-size:var(--fs-caption);color:var(--md-text-2)}
 
 /* A centred empty-state card - reused by MyDonDon's own "no orders" screen
    (MyDonDonOrders.jsx). */
 .md-quoted-card{max-width:88%;background:var(--md-surface);border:1px solid var(--sq-line);border-radius:12px;overflow:hidden;box-shadow:0 5px 16px rgba(31,42,55,.12)}
 .md-quoted-card-body{padding:16px 14px;text-align:center}
 .md-quoted-card-icon{width:40px;height:40px;border-radius:50%;background:#FDECEB;color:#C2453A;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
-.md-quoted-card-title{font-size:15px;font-weight:800;color:var(--md-text)}
-.md-quoted-card-body p{font-size:12px;color:var(--md-text-2);line-height:1.6;margin:6px 0 0}
+.md-quoted-card-title{font-size:var(--fs-body-lg);font-weight:800;color:var(--md-text)}
+.md-quoted-card-body p{font-size:var(--fs-caption);color:var(--md-text-2);line-height:1.6;margin:6px 0 0}
 
 /* =======================================================================
    Browser chrome - mounted by websites only (黑皮通 official, fake support).
@@ -279,7 +284,7 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .wb-icon-btn:active{background:rgba(0,0,0,.08)}
 .wb-icon-display{cursor:default;pointer-events:none}
 .wb-omnibox{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;background:#fff;border-radius:999px;height:30px;padding:0 12px;color:#39414B}
-.wb-domain{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:system-ui,-apple-system,sans-serif}
+.wb-domain{font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:system-ui,-apple-system,sans-serif}
 
 /* =======================================================================
    SafeDeal (safe-deal.tw) - the fake external trading site. Its own clean,
@@ -292,14 +297,15 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .sq-brand{display:flex;align-items:center;gap:7px}
 .sq-brand-icon{flex:none;opacity:.95}
 .sq-wordmark{font-size:18px;font-weight:900;letter-spacing:.02em}
+/* Off the --fs-* ladder: the small half of the fake site's wordmark lockup. */
 .sq-brand-tag{font-size:11px;opacity:.82;margin-top:3px}
-.sq-section{font-size:12.5px;font-weight:600;margin-top:8px;opacity:.95}
+.sq-section{font-size:var(--fs-caption);font-weight:600;margin-top:8px;opacity:.95}
 .sq-page{padding:14px 14px calc(20px + env(safe-area-inset-bottom));gap:0}
 
 .sq-field{background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:12px 14px;margin-top:10px}
 .sq-field:first-child{margin-top:0}
-.sq-field-label{font-size:11px;color:var(--sq-text-2);font-weight:700;letter-spacing:.06em;margin-bottom:5px}
-.sq-field-value{font-size:14.5px;color:var(--sq-text)}
+.sq-field-label{font-size:var(--fs-caption);color:var(--sq-text-2);font-weight:700;letter-spacing:.06em;margin-bottom:5px}
+.sq-field-value{font-size:var(--fs-body);color:var(--sq-text)}
 .sq-field-value.strong{font-weight:700}
 /* Carrier row: the name, then 黑皮通's own delivery mark. Wraps rather than
    overflowing once the label is long (EN/JP run wider than the zh original). */
@@ -312,10 +318,10 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 
 .sq-card{background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:14px;margin-top:10px}
 .sq-card:first-child{margin-top:0}
-.sq-card-title{font-size:12.5px;font-weight:800;color:var(--sq-text-2);letter-spacing:.04em;margin-bottom:10px}
-.sq-card p{font-size:12.5px;line-height:1.75;margin:0 0 8px;color:var(--sq-text)}
+.sq-card-title{font-size:var(--fs-caption);font-weight:800;color:var(--sq-text-2);letter-spacing:.04em;margin-bottom:10px}
+.sq-card p{font-size:var(--fs-caption);line-height:1.75;margin:0 0 8px;color:var(--sq-text)}
 .sq-card p:last-child{margin-bottom:0}
-.sq-card .sq-card-help{font-size:12px;color:var(--sq-text-2);line-height:1.7;margin-top:10px}
+.sq-card .sq-card-help{font-size:var(--fs-caption);color:var(--sq-text-2);line-height:1.7;margin-top:10px}
 
 /* "交易安全提醒" card only (TradeInfo.jsx) - title/body/help text forced to
    plain readable black regardless of the surrounding grey/brand tones the
@@ -327,14 +333,14 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 
 .sq-alert{display:flex;gap:10px;background:#FDECEB;border:1px solid #F3B6B0;padding:14px}
 .sq-alert-icon{color:#D92D20;flex:none}
-.sq-alert-title{font-size:15px;font-weight:800;color:#8C2318}
-.sq-alert-code{font-size:11px;color:#8C2318;opacity:.85;margin-top:6px;font-family:monospace}
-.sq-fields div{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:8px 0;border-top:1px solid var(--sq-line)}
+.sq-alert-title{font-size:var(--fs-body-lg);font-weight:800;color:#8C2318}
+.sq-alert-code{font-size:var(--fs-caption);color:#8C2318;opacity:.85;margin-top:6px;font-family:monospace}
+.sq-fields div{display:flex;justify-content:space-between;gap:12px;font-size:var(--fs-caption);padding:8px 0;border-top:1px solid var(--sq-line)}
 .sq-fields div:first-child{border-top:0}
 .sq-fields dt{color:var(--sq-text-2);flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 .sq-fields dd{margin:0;font-weight:700;text-align:right;flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 
-.sq-btn{appearance:none;border:0;border-radius:10px;min-height:50px;padding:0 18px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;background:var(--sq-purple);color:#fff;margin-top:16px;margin-bottom:calc(8px + env(safe-area-inset-bottom))}
+.sq-btn{appearance:none;border:0;border-radius:10px;min-height:50px;padding:0 18px;font-size:var(--fs-body-lg);font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;width:100%;background:var(--sq-purple);color:#fff;margin-top:16px;margin-bottom:calc(8px + env(safe-area-inset-bottom))}
 .sq-btn:active{filter:brightness(.94)}
 .sq-btn:disabled{opacity:.5;cursor:not-allowed}
 .sq-btn.sq-btn-outline{background:#fff;border:1.5px solid var(--sq-purple);color:var(--sq-purple-deep)}
@@ -344,7 +350,7 @@ img.go-ph{display:block;padding:0;object-fit:cover}
    a site-wide `p:not(.gugo-app *)` colour whose specificity (0,1,1) would
    otherwise beat a bare single class and wash these out to --muted. */
 .sq-success .sq-success-title{font-size:17px;font-weight:800;color:var(--sq-text);margin:0}
-.sq-success .sq-success-sub{font-size:13px;color:var(--sq-text-2);margin:0}
+.sq-success .sq-success-sub{font-size:var(--fs-body-sm);color:var(--sq-text-2);margin:0}
 @keyframes goFadeIn{from{opacity:0}to{opacity:1}}
 
 /* ---- SafeDeal 客服中心: the fake support desk, and the simulated transfer
@@ -356,10 +362,10 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .sq-msg-row{display:flex}
 .sq-msg-row.theirs{justify-content:flex-start}
 .sq-msg-row.mine{justify-content:flex-end}
-.sq-bubble{max-width:82%;padding:10px 13px;font-size:14px;line-height:1.6;white-space:pre-line;overflow-wrap:anywhere;border-radius:12px}
+.sq-bubble{max-width:82%;padding:10px 13px;font-size:var(--fs-body);line-height:1.6;white-space:pre-line;overflow-wrap:anywhere;border-radius:12px}
 .sq-bubble.theirs{background:#fff;border:1px solid var(--sq-line);color:var(--sq-text)}
 .sq-bubble.mine{background:var(--sq-purple);color:#fff}
-.sq-chat-note{align-self:center;text-align:center;font-size:10.5px;color:var(--sq-text-2);background:var(--sq-purple-tint);border-radius:10px;padding:3px 10px}
+.sq-chat-note{align-self:center;text-align:center;font-size:var(--fs-caption);color:var(--sq-text-2);background:var(--sq-purple-tint);border-radius:10px;padding:3px 10px}
 .sq-typing{align-self:flex-start;display:flex;gap:4px;background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:12px 16px}
 .sq-typing i{width:6px;height:6px;border-radius:999px;background:#C3BBE6;animation:goTypingDot 1s infinite ease-in-out}
 .sq-typing i:nth-child(2){animation-delay:.12s}
@@ -368,17 +374,17 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 /* The simulated 身分驗證 readout. It asks for nothing - there is no field
    here, and the scenario never collects real personal data - so the whole
    "check" is these two rows. */
-.sq-chat-progress{align-self:stretch;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:11px 13px;font-size:12.5px;color:var(--sq-text-2);overflow-wrap:anywhere}
+.sq-chat-progress{align-self:stretch;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:11px 13px;font-size:var(--fs-caption);color:var(--sq-text-2);overflow-wrap:anywhere}
 .sq-chat-progress.is-done{color:var(--sq-purple-deep);font-weight:700}
 .sq-chat-progress-track{flex:none;position:relative;width:56px;height:5px;border-radius:999px;background:var(--sq-purple-tint);overflow:hidden}
 .sq-chat-progress-track i{position:absolute;inset:0 auto 0 0;width:45%;border-radius:999px;background:var(--sq-purple);animation:sqProgressSweep 1.1s ease-in-out infinite}
 @keyframes sqProgressSweep{0%{transform:translateX(-100%)}100%{transform:translateX(222%)}}
 
 /* ---- the simulated transfer screen (SafeDealTransfer.jsx) --------------- */
-.sq-sim-banner{display:flex;align-items:center;gap:8px;background:#FFF6E6;border:1px solid #F0C978;border-radius:12px;padding:11px 13px;font-size:12px;font-weight:700;line-height:1.5;color:#7A4A05;overflow-wrap:anywhere}
+.sq-sim-banner{display:flex;align-items:center;gap:8px;background:#FFF6E6;border:1px solid #F0C978;border-radius:12px;padding:11px 13px;font-size:var(--fs-caption);font-weight:700;line-height:1.5;color:#7A4A05;overflow-wrap:anywhere}
 .sq-sim-banner svg{flex:none}
 .sq-sim-amount{font-size:26px;letter-spacing:.01em;color:var(--sq-purple-deep);overflow-wrap:anywhere}
-.sq-sim-done{display:flex;align-items:center;gap:8px;margin-top:10px;background:var(--sq-purple-tint);border:1px solid var(--sq-line);border-radius:12px;padding:12px 13px;font-size:13.5px;font-weight:700;color:var(--sq-purple-deep);overflow-wrap:anywhere}
+.sq-sim-done{display:flex;align-items:center;gap:8px;margin-top:10px;background:var(--sq-purple-tint);border:1px solid var(--sq-line);border-radius:12px;padding:12px 13px;font-size:var(--fs-body-sm);font-weight:700;color:var(--sq-purple-deep);overflow-wrap:anywhere}
 .sq-sim-done svg{flex:none}
 
 /* =======================================================================
@@ -386,7 +392,7 @@ img.go-ph{display:block;padding:0;object-fit:cover}
    believable pause before the fake trading site fails to load
    (OrderGone.jsx) - kept neutral navy, not colour-coded to any verdict.
    ======================================================================= */
-.bk-processing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--bk-navy);font-size:14px}
+.bk-processing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--bk-navy);font-size:var(--fs-body)}
 .bk-spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(18,48,91,.2);border-top-color:var(--bk-navy);animation:goSpin .8s linear infinite}
 @keyframes goSpin{to{transform:rotate(360deg)}}
 
@@ -396,9 +402,9 @@ img.go-ph{display:block;padding:0;object-fit:cover}
    ======================================================================= */
 .go-choices{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;transition:opacity .16s ease}
 .go-choices-leaving{opacity:0}
-.go-choices-prompt{margin:0 2px;font-size:10.5px}
+.go-choices-prompt{margin:0 2px;font-size:var(--fs-caption)}
 .go-choice-list{display:flex;flex-direction:column;gap:8px}
-.go-choice-btn{width:100%;min-height:52px;height:auto;text-align:left;padding:10px 14px;font-size:14px;line-height:1.4;cursor:pointer;font-family:inherit;overflow-wrap:anywhere;transition:transform .1s ease,background-color .12s ease}
+.go-choice-btn{width:100%;min-height:52px;height:auto;text-align:left;padding:10px 14px;font-size:var(--fs-body);line-height:1.4;cursor:pointer;font-family:inherit;overflow-wrap:anywhere;transition:transform .1s ease,background-color .12s ease}
 .go-choice-btn:active{transform:scale(.98)}
 .go-choice-btn:disabled{opacity:.45;cursor:not-allowed}
 

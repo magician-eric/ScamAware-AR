@@ -67,7 +67,7 @@
   box-shadow:0 10px 26px rgba(0,0,0,.35);
 }
 .meetu-desktop-app-icon img{width:70%;height:70%;object-fit:contain}
-.meetu-desktop-app-label{font-size:12px;font-weight:600}
+.meetu-desktop-app-label{font-size:var(--fs-caption);font-weight:600}
 
 /* App landing/splash (screens/MeetULandingScreen.jsx) - MeetU's own brand
    pitch before the player ever sees a swipe card. */
@@ -86,11 +86,11 @@
   border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.14);margin:0 -12px;
 }
 .meetu-landing-title{font-size:clamp(22px,6vw,28px);font-weight:800;margin:0 0 8px}
-.meetu-landing-sub{color:var(--meetu-text-2);font-size:14.5px;margin:0 0 26px}
+.meetu-landing-sub{color:var(--meetu-text-2);font-size:var(--fs-body);margin:0 0 26px}
 .meetu-landing-stats{display:flex;justify-content:center;gap:36px}
 .meetu-landing-stat{display:flex;flex-direction:column;align-items:center;gap:2px}
 .meetu-landing-stat strong{font-size:22px;font-weight:800;color:var(--meetu-primary)}
-.meetu-landing-stat span{font-size:12px;color:var(--meetu-text-2)}
+.meetu-landing-stat span{font-size:var(--fs-caption);color:var(--meetu-text-2)}
 .meetu-landing-cta{flex:none;padding:0 0 calc(14px + env(safe-area-inset-bottom))}
 
 /* Header (explore page) */
@@ -120,12 +120,14 @@
 .meetu-profile-name-row{display:flex;align-items:baseline;gap:8px}
 .meetu-profile-name{font-size:32px;font-weight:700}
 .meetu-profile-age{font-size:28px;font-weight:400}
-.meetu-profile-distance{display:flex;align-items:center;gap:6px;font-size:14px;color:rgba(255,255,255,.82);margin-top:2px}
+.meetu-profile-distance{display:flex;align-items:center;gap:6px;font-size:var(--fs-body);color:rgba(255,255,255,.82);margin-top:2px}
 .meetu-online-dot{width:6px;height:6px;border-radius:50%;background:var(--meetu-online);flex:none}
-.meetu-profile-job{font-size:15px;font-weight:600;margin-top:8px}
-.meetu-profile-bio{font-size:14px;line-height:1.5;margin:4px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meetu-profile-job{font-size:var(--fs-body-lg);font-weight:600;margin-top:8px}
+/* The scammer's cover story, on the card the player swipes. Clamped to three
+   lines it lost the end of the English bio at 360 and 393. */
+.meetu-profile-bio{font-size:var(--fs-body);line-height:1.5;margin:4px 0 10px;overflow-wrap:anywhere}
 .meetu-profile-tags{display:flex;gap:8px;flex-wrap:wrap}
-.meetu-profile-tag{background:rgba(255,255,255,.18);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 13px;font-size:12.5px;font-weight:600}
+.meetu-profile-tag{background:rgba(255,255,255,.18);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 13px;font-size:var(--fs-caption);font-weight:600}
 
 .meetu-swipe-actions{flex:none;display:flex;justify-content:center;align-items:center;gap:34px;padding:16px 0}
 .meetu-swipe-btn{width:64px;height:64px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;box-shadow:var(--meetu-shadow);transition:transform .15s ease}
@@ -137,8 +139,8 @@
 .meetu-interstitial{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 28px;gap:2px}
 .meetu-interstitial-icon{color:var(--meetu-primary);margin-bottom:14px}
 .meetu-interstitial h2{font-size:19px;font-weight:700;margin:0 0 10px}
-.meetu-interstitial p{font-size:14.5px;line-height:1.6;color:var(--meetu-text-2);margin:0 0 4px;max-width:320px}
-.meetu-interstitial-meta{color:var(--meetu-text-2);font-size:13.5px}
+.meetu-interstitial p{font-size:var(--fs-body);line-height:1.6;color:var(--meetu-text-2);margin:0 0 4px;max-width:320px}
+.meetu-interstitial-meta{color:var(--meetu-text-2);font-size:var(--fs-body-sm)}
 .meetu-interstitial .profile-avatar{margin-bottom:14px}
 .meetu-interstitial-actions{width:min(280px,100%)}
 .meetu-interstitial .meetu-primary-btn,.meetu-interstitial .meetu-secondary-btn{width:100%;margin:18px 0 0}
@@ -156,17 +158,17 @@
 .meetu-match-wordmark{display:flex;justify-content:center;margin:2px 0 10px;max-width:78vw;animation:meetuMatchRise 400ms ease-out 220ms backwards}
 .meetu-match-wordmark .meetu-logo{filter:drop-shadow(0 2px 10px rgba(0,0,0,.4))}
 .meetu-match-title{font-size:clamp(26px,6vw,36px);font-weight:800;color:#fff;animation:meetuMatchRise 400ms ease-out 300ms backwards}
-.meetu-match-sub{color:rgba(255,255,255,.78);font-size:15px;animation:meetuMatchRise 400ms ease-out 380ms backwards}
-.meetu-match-btn{margin-top:14px;border:0;border-radius:14px;padding:14px 32px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:15px;cursor:pointer;animation:meetuMatchRise 400ms ease-out 460ms backwards}
+.meetu-match-sub{color:rgba(255,255,255,.78);font-size:var(--fs-body-lg);animation:meetuMatchRise 400ms ease-out 380ms backwards}
+.meetu-match-btn{margin-top:14px;border:0;border-radius:14px;padding:14px 32px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:var(--fs-body-lg);cursor:pointer;animation:meetuMatchRise 400ms ease-out 460ms backwards}
 @keyframes meetuMatchFade{from{opacity:0}to{opacity:1}}
 @keyframes meetuMatchPop{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
 @keyframes meetuMatchRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
 /* Suggested-reply pills */
 .meetu-suggested-replies{padding:10px 16px 14px}
-.meetu-suggested-label{font-size:12px;color:var(--meetu-text-2);margin-bottom:8px}
+.meetu-suggested-label{font-size:var(--fs-caption);color:var(--meetu-text-2);margin-bottom:8px}
 .meetu-suggested-pills{display:flex;flex-wrap:wrap;gap:8px}
-.meetu-suggested-pill{height:42px;padding:0 18px;border-radius:999px;border:1px solid #E4E4EA;background:#fff;color:var(--meetu-text);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.meetu-suggested-pill{min-height:42px;padding:9px 18px;max-width:100%;border-radius:999px;border:1px solid #E4E4EA;background:#fff;color:var(--meetu-text);font-size:var(--fs-body);font-weight:600;line-height:1.3;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
 /* A two-pill reply row is a `dual` decision, so it is drawn as a LEFT and a
    RIGHT. Both of MeetU's conversations reach one: 主線對象的對話
    (.meetu-chat-page, scenario02/dating-chat/choice) and the two 路人配對小對話
@@ -196,18 +198,18 @@
 @keyframes meetuChatLeave{to{transform:translateX(-100%);opacity:0}}
 .meetu-chat-header{flex:none;display:flex;align-items:center;gap:10px;height:64px;padding:0 16px;background:var(--meetu-card);border-bottom:1px solid var(--meetu-line)}
 .meetu-chat-header-info{flex:1;min-width:0}
-.meetu-chat-header-name{font-weight:700;font-size:15px}
-.meetu-chat-header-status{font-size:12px;color:var(--meetu-online)}
+.meetu-chat-header-name{font-weight:700;font-size:var(--fs-body-lg)}
+.meetu-chat-header-status{font-size:var(--fs-caption);color:var(--meetu-online)}
 .meetu-chat-header .meetu-logo{flex:none}
 .meetu-chat-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:14px 14px 6px;display:flex;flex-direction:column}
 .meetu-chat-scroll::-webkit-scrollbar{display:none}
 .meetu-msg-row{display:flex;flex-direction:column;align-items:flex-start;margin:3px 0}
 .meetu-msg-row.mine{align-items:flex-end}
-.meetu-msg{max-width:78%;padding:10px 14px;font-size:15px;line-height:1.45;white-space:pre-line}
+.meetu-msg{max-width:78%;padding:10px 14px;font-size:var(--fs-body-lg);line-height:1.45;white-space:pre-line}
 .meetu-msg.them{background:#FFDCE5;color:var(--meetu-text);border-radius:18px 18px 18px 5px}
 .meetu-msg.me{background:#fff;color:var(--meetu-text);border-radius:18px 18px 5px 18px;box-shadow:0 1px 2px rgba(23,23,27,.08)}
-.meetu-msg.system{align-self:center;background:rgba(119,119,128,.12);color:var(--meetu-text-2);font-size:13px;padding:6px 14px;border-radius:999px}
-.meetu-msg-time{font-size:11px;color:#A6A6AF;margin-top:2px}
+.meetu-msg.system{align-self:center;background:rgba(119,119,128,.12);color:var(--meetu-text-2);font-size:var(--fs-body-sm);padding:6px 14px;border-radius:999px}
+.meetu-msg-time{font-size:var(--fs-caption);color:#A6A6AF;margin-top:2px}
 .meetu-typing{align-self:flex-start;display:flex;gap:4px;background:#FFDCE5;border-radius:18px 18px 18px 5px;padding:12px 16px;margin:3px 0}
 .meetu-typing i{width:6px;height:6px;border-radius:999px;background:#B5B5BE;animation:meetuTypingDot 1s infinite ease-in-out}
 .meetu-typing i:nth-child(2){animation-delay:.12s}
@@ -218,10 +220,10 @@
    it; `apps/line` now declares its own `lineTypingDot` the same way. */
 @keyframes meetuTypingDot{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-4px);opacity:1}}
 .meetu-chat-footer{flex:none;background:var(--meetu-card);border-top:1px solid var(--meetu-line)}
-.meetu-primary-btn{display:block;width:calc(100% - 32px);margin:14px 16px;border:0;border-radius:14px;padding:14px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
-.meetu-secondary-btn{display:block;width:calc(100% - 32px);margin:0 16px 10px;border:1px solid var(--meetu-line);border-radius:14px;padding:14px;background:#fff;color:var(--meetu-text);font-weight:600;font-size:15px;cursor:pointer}
+.meetu-primary-btn{display:block;width:calc(100% - 32px);margin:14px 16px;border:0;border-radius:14px;padding:14px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:var(--fs-body-lg);cursor:pointer}
+.meetu-secondary-btn{display:block;width:calc(100% - 32px);margin:0 16px 10px;border:1px solid var(--meetu-line);border-radius:14px;padding:14px;background:#fff;color:var(--meetu-text);font-weight:600;font-size:var(--fs-body-lg);cursor:pointer}
 .meetu-declined-box{padding:14px 16px 4px}
-.meetu-declined-box p{font-size:13px;color:var(--meetu-text-2);margin:0 0 12px}
+.meetu-declined-box p{font-size:var(--fs-body-sm);color:var(--meetu-text-2);margin:0 0 12px}
 
-.meetu-mini-chat-closing{flex:none;text-align:center;padding:16px;color:var(--meetu-text-2);font-size:14px;background:var(--meetu-card);border-top:1px solid var(--meetu-line)}
-.meetu-continue-btn{margin-top:10px;border:0;border-radius:14px;padding:12px 28px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.meetu-mini-chat-closing{flex:none;text-align:center;padding:16px;color:var(--meetu-text-2);font-size:var(--fs-body);background:var(--meetu-card);border-top:1px solid var(--meetu-line)}
+.meetu-continue-btn{margin-top:10px;border:0;border-radius:14px;padding:12px 28px;background:var(--meetu-gradient);color:#fff;font-weight:700;font-size:var(--fs-body);cursor:pointer}

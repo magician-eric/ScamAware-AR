@@ -46,6 +46,24 @@
   --color-brand-gray: #8a94a6;
   --color-brand-white: #ffffff;
 
+  /* The readability pass, in the one form this module can read it. The rest of
+     the app raises its sizes through the --fs-* ladder in styles/global.css;
+     here the sizes arrive as Tailwind utilities, so the same three steps are
+     re-pointed at the tokens the utilities already read. The mapping is the
+     ladder's, step for step:
+
+       text-xs    12px -> 14px    (--fs-caption)
+       text-sm    14px -> 16px    (--fs-body)
+       text-base  16px -> 18px    (--fs-title-sm)
+
+     text-lg and up are untouched, exactly as the plain-CSS half leaves
+     anything already 17px or larger. Each step keeps the unitless line-height
+     Tailwind pairs with it, so the leading grows with the type instead of
+     staying put and crowding it. */
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+
   --font-zh: "Noto Sans TC", "Inter", sans-serif;
   --font-en: "Inter", "Noto Sans TC", sans-serif;
   --font-jp: "Noto Sans JP", "Inter", sans-serif;

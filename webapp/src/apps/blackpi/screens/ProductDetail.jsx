@@ -448,7 +448,7 @@ export function ProductDetail({ productRoute: route = null, onContactSeller, onB
           </div>
           <div className="bp-pdp-section">
             <h3>{t('商品特色')}</h3>
-            <ul style={{ margin: 0, paddingLeft: 18, color: 'var(--bp-text-secondary)', fontSize: 12.5, lineHeight: 1.8 }}>
+            <ul style={{ margin: 0, paddingLeft: 18, color: 'var(--bp-text-secondary)', fontSize: 'var(--fs-caption)', lineHeight: 1.8 }}>
               {product.claims.map((c) => <li key={c}>{t(c)}</li>)}
             </ul>
           </div>
@@ -465,15 +465,15 @@ export function ProductDetail({ productRoute: route = null, onContactSeller, onB
                     {Array.from({ length: r.rating }).map((_, i) => (
                       <Star key={i} size={11} fill="var(--bp-gold)" color="var(--bp-gold)" />
                     ))}
-                    <span style={{ fontSize: 11.5, color: 'var(--bp-text-tertiary)' }}>{t(r.name)}</span>
+                    <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--bp-text-tertiary)' }}>{t(r.name)}</span>
                     {r.purchased && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 11, color: 'var(--bp-success)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 'var(--fs-caption)', color: 'var(--bp-success)' }}>
                         <BadgeCheck size={11} /> {t('已購買')}
                       </span>
                     )}
-                    {r.date && <span style={{ fontSize: 11, color: 'var(--bp-text-tertiary)' }}>{r.date}</span>}
+                    {r.date && <span style={{ fontSize: 'var(--fs-caption)', color: 'var(--bp-text-tertiary)' }}>{r.date}</span>}
                   </div>
-                  <p style={{ margin: 0, fontSize: 12.5, color: 'var(--bp-text-secondary)' }}>{t(r.text)}</p>
+                  <p style={{ margin: 0, fontSize: 'var(--fs-caption)', color: 'var(--bp-text-secondary)' }}>{t(r.text)}</p>
                   {r.photo && (
                     <div style={{ marginTop: 6 }}>
                       <AssetImage assetKey={r.photo} label={getAsset(r.photo).label} size="200×200" className="bp-review-thumb" />

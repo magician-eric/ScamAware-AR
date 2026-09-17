@@ -30,7 +30,7 @@
   margin-bottom: 18px;
 }
 .gugo-brand{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
-.gugo-brand-subtitle{color:#8a94a6;font-size:11px;font-weight:600;letter-spacing:.04em}
+.gugo-brand-subtitle{color:#8a94a6;font-size:var(--fs-caption);font-weight:600;letter-spacing:.04em}
 
 /* ---- Profit / asset overview (資產總覽). Dark navy cards with a gold
    hairline border, gold as the sole accent/glow colour, and the Taiwan
@@ -42,7 +42,7 @@
 .profit-card{background:linear-gradient(165deg,rgba(26,34,56,.75),rgba(13,18,33,.85));border:1px solid rgba(212,175,55,.18);border-radius:22px;padding:18px;backdrop-filter:blur(14px);box-shadow:0 12px 30px rgba(0,0,0,.35)}
 .profit-asset-card{position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(212,175,55,.14),rgba(13,18,33,.5) 60%);border:1px solid rgba(212,175,55,.32)}
 .profit-asset-card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0 35%,rgba(212,175,55,.14) 48%,transparent 62%);animation:chartSweep 6s ease-out infinite;pointer-events:none}
-.profit-asset-label{color:#8a94a6;font-size:13px}
+.profit-asset-label{color:#8a94a6;font-size:var(--fs-body-sm)}
 .profit-asset-value{font-size:clamp(28px,9vw,34px);font-weight:900;color:#fff;margin-top:6px;letter-spacing:.01em}
 .profit-badge{margin-top:14px;padding:8px 14px;border-radius:999px;background:rgba(239,77,77,.14);border:1px solid rgba(239,77,77,.55);color:#ff8080;font-size:clamp(18px,5vw,22px);font-weight:900;box-shadow:0 0 24px rgba(239,77,77,.22);display:inline-block}
 .profit-badge.is-loss{background:rgba(0,179,126,.14);border-color:rgba(0,179,126,.55);color:#4fe0ad;box-shadow:0 0 24px rgba(0,179,126,.22)}
@@ -59,19 +59,19 @@
 .profit-quick-actions-footer{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:stretch;justify-content:space-between;padding:0 4px calc(0px + env(safe-area-inset-bottom));background:rgba(13,18,33,.95);backdrop-filter:blur(16px);border-top:1px solid rgba(212,175,55,.15)}
 .profit-quick-action{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 4px;color:#8a94a6}
 .profit-quick-action svg{color:#d4af37}
-.profit-quick-action span{font-size:11px;font-weight:500}
+.profit-quick-action span{font-size:var(--fs-caption);font-weight:500}
 
 .profit-return-breakdown{margin-top:16px;display:flex;flex-direction:column}
 .profit-return-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:12px 0;border-top:1px solid rgba(212,175,55,.14)}
 .profit-return-row:first-child{border-top:1px solid rgba(212,175,55,.14)}
-.profit-return-label{color:#fff;font-size:13px;font-weight:700}
-.profit-return-date{color:#8a94a6;font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
+.profit-return-label{color:#fff;font-size:var(--fs-body-sm);font-weight:700}
+.profit-return-date{color:#8a94a6;font-size:var(--fs-caption);margin-top:2px;font-variant-numeric:tabular-nums}
 .profit-return-value{text-align:right}
 .profit-return-value strong{display:block;color:#ff8080;font-weight:800;font-size:17px}
-.profit-return-value span{display:block;color:#ff8080;font-size:12px;font-weight:600;margin-top:2px}
+.profit-return-value span{display:block;color:#ff8080;font-size:var(--fs-caption);font-weight:600;margin-top:2px}
 .profit-return-value.is-loss strong,.profit-return-value.is-loss span{color:#4fe0ad}
 
-.chart-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#8a94a6;font-size:14px;letter-spacing:.08em}
+.chart-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#8a94a6;font-size:var(--fs-body);letter-spacing:.08em}
 .chart-top strong{color:#d4af37;text-shadow:0 0 12px rgba(212,175,55,.75)}
 .gugo-candlestick-chart{width:100%;height:auto;display:block;margin:8px 0;min-height:160px}
 .gugo-chart-grid path{stroke:rgba(212,175,55,.08);stroke-width:1}

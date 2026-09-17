@@ -36,7 +36,7 @@ export function Messages({
           <button key={thread.id} type="button" className="bp-list-row" style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, cursor: 'pointer' }} onClick={thread.onClick}>
             <div className="bp-chat-avatar" style={{ width: 44, height: 44 }}>{thread.name[0]}</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{thread.name}</div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--fs-body)' }}>{thread.name}</div>
               <div className="bp-muted">{thread.preview}</div>
             </div>
           </button>

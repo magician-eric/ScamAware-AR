@@ -37,7 +37,7 @@ export function SimPhoneHome() {
         >
           <ShoppingBag size={28} />
         </button>
-        <span style={{ fontSize: 12 }}>{t('黑皮購物')}</span>
+        <span style={{ fontSize: 'var(--fs-caption)' }}>{t('黑皮購物')}</span>
       </div>
     </div>
   );

@@ -26,6 +26,8 @@
   background:#f4f5f7;color:#16181d;
 }
 .phone-shell-dark{background:#0c0f14;color:#fff}
+/* Off the --fs-* ladder: simulated device chrome. Its whole job is to look like a
+   real status bar, and a status bar set in body copy stops looking like one. */
 .phone-shell-statusbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:6px;height:26px;padding:env(safe-area-inset-top) 12px 0;font-size:10px;font-weight:700;color:#16181d;opacity:.85;box-sizing:content-box}
 .phone-shell-dark .phone-shell-statusbar{color:#fff}
 .phone-shell-statusbar-title{flex:1;text-align:center;font-weight:600;opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

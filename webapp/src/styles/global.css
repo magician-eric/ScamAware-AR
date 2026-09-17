@@ -30,6 +30,7 @@
  *   @keyframes chartSweep / bitionBlink - Coin Winner + GuGo Invest
  *   @keyframes lineVideoSpin            - Coin Winner + Scenario 02
  *   --phone-shell-home-indicator-height - read by two different owners
+ *   --fs-* type scale                   - one readable size ladder, app-wide
  */
 /* The bare h1/h2/p rules below carry `:not(.gugo-app *)`.
  *
@@ -50,6 +51,41 @@
  * they still win - by specificity where they have more of it, and by source
  * order where they tie.
  */
+/* The one readable type scale, and the only place a size on it changes.
+ *
+ * CIBAR is played by middle-aged and older visitors through AR glasses, and
+ * the sizes this app grew up with - 10px to 16px literals spread across
+ * twenty-one stylesheets - were too small to read there. Every one of those
+ * literals now resolves through a token below, so the ladder moves in one
+ * edit instead of three hundred.
+ *
+ * Left column is the size before this change, right column is the size now:
+ *
+ *   --fs-caption   9 / 10 / 10.5 / 11 / 11.5 / 12 / 12.5px  ->  14px
+ *   --fs-body-sm   13 / 13.5px                              ->  15px
+ *   --fs-body      14 / 14.5px                              ->  16px
+ *   --fs-body-lg   15 / 15.5px                              ->  17px
+ *   --fs-title-sm  16px                                     ->  18px
+ *
+ * Anything already 17px or larger keeps the size it had. Headings, big
+ * numbers and hero buttons were readable before this change, and growing
+ * them is how a phone-sized simulation stops looking like one.
+ *
+ * Three kinds of glyph deliberately do NOT read this ladder, because the
+ * rule is about text somebody reads rather than about every character on
+ * screen: a character inside a fixed-size circle or square (avatar initials,
+ * cart and tab-bar count badges, reaction icons, the notification app icon,
+ * the document seal), a brand wordmark or logo lockup, and simulated device
+ * chrome (the phone status bar). Scaling those bursts the shape drawn around
+ * them without making one sentence easier to read. Each exception carries
+ * that reason where it sits, and pages/entryScreens.css's tester-only scan
+ * diagnostics overlay is held back for the same kind of reason.
+ *
+ * The GuGo Invest App module is Tailwind rather than plain CSS, so it reads
+ * the same ladder through its own `@theme` text sizes - see
+ * apps/gugo-invest/app/styles/index.css.
+ */
+:root{--fs-caption:14px;--fs-body-sm:15px;--fs-body:16px;--fs-body-lg:17px;--fs-title-sm:18px}
 :root{--bg:#06162d;--bg2:#0b2447;--card:rgba(255,255,255,.08);--line:rgba(255,255,255,.18);--text:#f6fbff;--muted:#b9c7d9;--accent:#25d0ff;--danger:#ff4d6d;--ok:#39d98a;--warn:#ffd166}*{box-sizing:border-box;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}html{height:100%;height:100dvh}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#000;color:var(--text);height:100%;height:100dvh;overflow:hidden;display:grid;place-items:center}
 /* Real phone viewports (below the tablet/desktop breakpoint) always render
    full-bleed at the device's own actual size - no fixed aspect-ratio canvas,
@@ -81,7 +117,7 @@
    sign anything is wrong. Elements that deliberately want to flex/shrink (.chat, .phone-frame)
    set their own flex-shrink via `flex:1` further down and still win, since
    they're later in the cascade at equal specificity. */
-.app>*{flex-shrink:0}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;letter-spacing:.08em;color:#fff}.home-link{color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:999px}.hero,.card{background:var(--card);border-radius:20px;padding:clamp(14px,3.5vh,22px);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(10px)}h1:not(.gugo-app *){font-size:clamp(22px,6.4vw,32px);line-height:1.15;margin:10px 0}h2:not(.gugo-app *){font-size:clamp(18px,4.6vw,24px);margin:0 0 10px}p:not(.gugo-app *){color:var(--muted);line-height:1.5;font-size:clamp(13px,3.6vw,15px)}/* .btns.btns-dual (AUD-06): opt-in modifier making the pair two equal columns, for the screens whose AR Interaction Contract is `dual` - there LEFT and RIGHT are the whole decision, and a stacked pair gives the player on the glasses nothing on screen saying which wave is which. A modifier and NOT a change to .btns itself: most .btns groups are a single button, or a primary + secondary that are not a LEFT/RIGHT pair, and widening the base rule would restyle all of them. No media query, mirroring .antifraud-quiz-choices in components/ui/ScenarioFinalDecision.css - the pair must not restack vertically anywhere in the portrait range (320px-430px), because left-is-one-thing / right-is-the-other is the geometry being taught; labels wrap and the buttons grow taller instead. */.btns{display:grid;gap:10px;margin-top:14px}.btns.btns-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.btns.btns-dual>.btn{width:100%;min-width:0;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}.btn{appearance:none;border:0;border-radius:14px;padding:clamp(12px,2.6vh,16px) 16px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:white;font-size:clamp(14px,3.8vw,16px);font-weight:800;text-decoration:none;text-align:center;cursor:pointer}.btn.secondary{background:rgba(255,255,255,.09);border:1px solid var(--line)}.btn.danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}.warning{background:#19040a;border:1px solid var(--danger);border-radius:20px;padding:clamp(16px,4vh,22px);max-width:560px;margin:0 auto}.mini{font-size:13px;color:var(--muted)}
+.app>*{flex-shrink:0}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;letter-spacing:.08em;color:#fff}.home-link{color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:999px}.hero,.card{background:var(--card);border-radius:20px;padding:clamp(14px,3.5vh,22px);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(10px)}h1:not(.gugo-app *){font-size:clamp(22px,6.4vw,32px);line-height:1.15;margin:10px 0}h2:not(.gugo-app *){font-size:clamp(18px,4.6vw,24px);margin:0 0 10px}p:not(.gugo-app *){color:var(--muted);line-height:1.5;font-size:clamp(15px,4.2vw,17px)}/* .btns.btns-dual (AUD-06): opt-in modifier making the pair two equal columns, for the screens whose AR Interaction Contract is `dual` - there LEFT and RIGHT are the whole decision, and a stacked pair gives the player on the glasses nothing on screen saying which wave is which. A modifier and NOT a change to .btns itself: most .btns groups are a single button, or a primary + secondary that are not a LEFT/RIGHT pair, and widening the base rule would restyle all of them. No media query, mirroring .antifraud-quiz-choices in components/ui/ScenarioFinalDecision.css - the pair must not restack vertically anywhere in the portrait range (320px-430px), because left-is-one-thing / right-is-the-other is the geometry being taught; labels wrap and the buttons grow taller instead. */.btns{display:grid;gap:10px;margin-top:14px}.btns.btns-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.btns.btns-dual>.btn{width:100%;min-width:0;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}.btn{appearance:none;border:0;border-radius:14px;padding:clamp(12px,2.6vh,16px) 16px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:white;font-size:clamp(16px,4.3vw,18px);font-weight:800;text-decoration:none;text-align:center;cursor:pointer}.btn.secondary{background:rgba(255,255,255,.09);border:1px solid var(--line)}.btn.danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}.warning{background:#19040a;border:1px solid var(--danger);border-radius:20px;padding:clamp(16px,4vh,22px);max-width:560px;margin:0 auto}.mini{font-size:var(--fs-body-sm);color:var(--muted)}
 [hidden]{display:none!important}
 /* Shared by two App modules, so it stays in the shared layer rather than
    moving into either: Coin Winner's .bition-asset-card (apps/coin-winner/

@@ -37,7 +37,7 @@ export function Register() {
 
       <Card className="mt-8 space-y-4 p-4">
         <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-brand-gray">
+          <label className="mb-1.5 flex items-center gap-1.5 text-[14px] font-semibold text-brand-gray">
             <Phone size={13} />
             {t("onboarding.phone")}
           </label>
@@ -46,7 +46,7 @@ export function Register() {
           >{DEMO_PHONE}</div>
         </div>
         <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-brand-gray">
+          <label className="mb-1.5 flex items-center gap-1.5 text-[14px] font-semibold text-brand-gray">
             <Lock size={13} />
             {t("onboarding.password")}
           </label>

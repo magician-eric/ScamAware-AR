@@ -28,28 +28,28 @@ export function Portfolio() {
 
       <div className="flex-1 space-y-4 px-4 py-4">
         <Card className="p-4">
-          <div className="text-[11px] text-brand-gray">{t("portfolio.totalAssets")}</div>
+          <div className="text-[14px] text-brand-gray">{t("portfolio.totalAssets")}</div>
           <div className="mt-1 text-2xl font-bold text-brand-white">
             {formatInt(totalAssets)} <span className="text-sm font-medium text-brand-gray">{t("common.twd")}</span>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-center">
             <div>
-              <div className="text-[10px] text-brand-gray">{t("portfolio.availableCash")}</div>
+              <div className="text-[14px] text-brand-gray">{t("portfolio.availableCash")}</div>
               <div className="mt-0.5 text-sm font-semibold text-brand-white">{formatInt(cash)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-brand-gray">{t("portfolio.todayPnl")}</div>
+              <div className="text-[14px] text-brand-gray">{t("portfolio.todayPnl")}</div>
               <div className={`mt-0.5 text-sm font-semibold ${directionColorClass(todayPnl)}`}>{formatSigned(todayPnl, 0)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-brand-gray">{t("portfolio.cumulativePnl")}</div>
+              <div className="text-[14px] text-brand-gray">{t("portfolio.cumulativePnl")}</div>
               <div className={`mt-0.5 text-sm font-semibold ${directionColorClass(cumulativePnl)}`}>{formatSigned(cumulativePnl, 0)}</div>
             </div>
           </div>
         </Card>
 
         <Card className="p-4">
-          <div className="mb-3 text-[11px] font-semibold text-brand-gray">{t("portfolio.allocation")}</div>
+          <div className="mb-3 text-[14px] font-semibold text-brand-gray">{t("portfolio.allocation")}</div>
           <div className="flex items-center gap-4">
             <DonutChart slices={slices} />
             <div className="min-w-0 flex-1 space-y-1.5">
@@ -69,7 +69,7 @@ export function Portfolio() {
         </Card>
 
         <Card className="p-3">
-          <div className="mb-1 text-[11px] font-semibold text-brand-gray">{t("portfolio.holdings")}</div>
+          <div className="mb-1 text-[14px] font-semibold text-brand-gray">{t("portfolio.holdings")}</div>
           {rows.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-10 text-center">
               <Wallet size={32} className="text-brand-gray" />
@@ -86,7 +86,7 @@ export function Portfolio() {
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-brand-white">{getStockName(stock, i18n.language)}</div>
-                  <div className="text-[11px] text-brand-gray">
+                  <div className="text-[14px] text-brand-gray">
                     {formatInt(holding.quantity)} {t("portfolio.qty")} · {t("portfolio.avgCost")} {formatNumber(holding.avgCost)}
                   </div>
                 </div>

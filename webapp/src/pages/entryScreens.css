@@ -31,10 +31,31 @@
 .ar-stage.scenario-menu-stage{padding:0;overflow-y:auto;background:#000713;display:flex;align-items:flex-start;justify-content:center;justify-content:safe center}
 .scenario-selection-page{position:relative;width:100%;max-width:928px;margin:0 auto;aspect-ratio:941/1672;overflow:hidden;background:#020916}
 .scenario-selection-background{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
-.scenario-selection-heading{position:absolute;top:23%;left:6%;width:88%;text-align:center;color:#fff;z-index:2}
-.scenario-selection-category{margin:0 0 5px;font-size:clamp(13px,3.3vw,17px);color:rgba(217,239,255,.8)}
-.scenario-selection-title{margin:0 0 5px;font-size:clamp(20px,5.6vw,30px);font-weight:800;line-height:1.2}
-.scenario-selection-description{margin:0;font-size:clamp(12px,3vw,15px);color:rgba(217,239,255,.75);line-height:1.35}
+/* The artwork decides where this text may go: the masthead and 刑事熊 occupy
+   the top fifth and the first scenario button is pinned at 38%, so the
+   heading lives in the band between them. At a size a 60-year-old can read
+   the description runs to two lines in all three languages on a 320px
+   screen, so the block starts half a percent higher than it used to and its
+   two gaps are 3px rather than 5px - just enough that the second line ends
+   above the first button instead of under it, while the first line stays
+   clear of 刑事熊 above. The buttons' own 38/50.15/62.3/74.45/86.6% contract
+   with the artwork is NOT moved, and neither is this block's left/width. */
+.scenario-selection-heading{position:absolute;top:22%;left:6%;width:88%;text-align:center;color:#fff;z-index:2}
+.scenario-selection-category{margin:0 0 3px;font-size:clamp(15px,3.9vw,17px);color:rgba(217,239,255,.8)}
+.scenario-selection-title{margin:0 0 3px;font-size:clamp(20px,5.6vw,30px);font-weight:800;line-height:1.2}
+.scenario-selection-description{margin:0;font-size:clamp(14px,3.5vw,17px);color:rgba(217,239,255,.75)}
+/* Leading and gaps, set from the page so that they actually apply. The base
+   rules in styles/global.css are `h1:not(.gugo-app *)` and
+   `p:not(.gugo-app *)`, and that :not() makes each of them (0,1,1) - more
+   specific than any of the three bare classes above, which is why the sizes
+   there are the base rules' and not these, and why the heading was carrying
+   the base h1's 10px margins rather than the 3px written above it. Tighter
+   than the base on purpose: the band this block sits in is fixed by the
+   artwork at both ends, and at 320px the description is two lines in all
+   three languages once it is set at a size a 60-year-old can read. */
+.scenario-selection-page .scenario-selection-category,
+.scenario-selection-page .scenario-selection-description{line-height:1.3}
+.scenario-selection-page .scenario-selection-title{margin:0 0 3px}
 .scenario-button-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
 .scenario-overlay-button{position:absolute;left:8%;width:84%;height:10.5%;pointer-events:auto;padding:1.4% 2.4%;box-sizing:border-box}
 .scenario-overlay-button:nth-child(1){top:38%}
@@ -47,7 +68,7 @@
 .scenario-button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media (hover:hover){.scenario-button:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 10px 24px rgba(0,115,255,.35),inset 0 1px 0 rgba(255,255,255,.2)}}
 .scenario-button-title{font-size:clamp(22px,6.2vw,38px);line-height:1.15;font-weight:800;letter-spacing:.02em;color:#fff}
-.scenario-button-subtitle{margin-top:4px;font-size:clamp(15px,4vw,25px);line-height:1.2;font-weight:600;color:rgba(217,239,255,.92)}
+.scenario-button-subtitle{margin-top:4px;font-size:clamp(17px,4.5vw,25px);line-height:1.2;font-weight:600;color:rgba(217,239,255,.92)}
 
 /* Language-select page: same background artwork + overlay-button approach
    as ScenarioMenu, three buttons instead of five so they get more vertical
@@ -110,7 +131,7 @@
    the box when no camera element was mounted at all. */
 .ar-scan-camera-host{position:absolute;inset:0}
 .ar-scan-camera-box .ar-camera-frame{width:100%;height:100%;object-fit:cover;display:block}
-.ar-scan-camera-error{margin:0;padding:0 10%;color:rgba(255,255,255,.75);font-size:clamp(12px,3.2vw,15px);text-align:center;line-height:1.4}
+.ar-scan-camera-error{margin:0;padding:0 10%;color:rgba(255,255,255,.75);font-size:clamp(14px,3.7vw,17px);text-align:center;line-height:1.4}
 .ar-scan-offer-ring{position:absolute;inset:0;box-shadow:inset 0 0 0 4px #3ddc84;pointer-events:none}
 .ar-scan-hero-img{position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
 .ar-scan-below-camera{position:absolute;left:6%;width:88%;z-index:3;text-align:center}
@@ -120,13 +141,13 @@
    status message; ArScanHome.jsx says why. */
 .ar-scan-prompt{padding-top:6%}
 .ar-scan-title{margin:0;color:#fff;font-weight:800;font-size:clamp(18px,5vw,26px);line-height:1.35}
-.ar-scan-hint{margin:8px 0 0;color:rgba(226,240,255,.72);font-size:clamp(12px,3.4vw,15px);line-height:1.4}
+.ar-scan-hint{margin:8px 0 0;color:rgba(226,240,255,.72);font-size:clamp(14px,3.9vw,17px);line-height:1.4}
 /* An offer is a sentence of story, not a four-word instruction, and it arrives
    with a second button under it. The area below the camera cutout is fixed
    (the artwork decides where it starts), so the offer state tightens rather
    than pushing the manual fallback off the bottom of the glasses' display. */
 .ar-scan-prompt-offer{padding-top:3%}
-.ar-scan-prompt-offer .ar-scan-title{font-size:clamp(16px,4.2vw,22px);line-height:1.3}
+.ar-scan-prompt-offer .ar-scan-title{font-size:clamp(18px,4.7vw,22px);line-height:1.3}
 /* The one transition on this screen, and it is short on purpose: the prompt
    changes the instant a card is recognised, and an animation long enough to
    notice would be an animation the player is waiting on. Nothing here delays
@@ -140,13 +161,13 @@
    there. The CTA is the brighter of the two - it is the story action, and the
    RIGHT gesture runs it - and the fallback drops to an outline so a player is
    never choosing between two equally loud buttons. */
-.ar-scan-enter-button,.ar-scan-manual-button{margin:14px auto 0;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 16px;box-sizing:border-box;border-radius:14px;font-size:clamp(15px,4vw,19px);font-weight:700;cursor:pointer;font-family:inherit}
+.ar-scan-enter-button,.ar-scan-manual-button{margin:14px auto 0;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 16px;box-sizing:border-box;border-radius:14px;font-size:clamp(17px,4.5vw,19px);font-weight:700;cursor:pointer;font-family:inherit}
 .ar-scan-enter-button{border:1px solid rgba(75,183,255,.7);background:linear-gradient(135deg,#15bdf4,#526cf5);color:#fff;box-shadow:0 8px 22px rgba(21,189,244,.28)}
 .ar-scan-manual-button{border:1px solid rgba(75,183,255,.7);background:linear-gradient(135deg,#15bdf4,#526cf5);color:#fff}
 /* With a CTA above it the fallback steps back; on its own it keeps the filled
    look the screen has always had. */
 .ar-scan-enter-button{margin-top:12px;min-height:50px}
-.ar-scan-enter-button~.ar-scan-manual-button{margin-top:8px;background:rgba(8,22,46,.66);border-color:rgba(122,175,230,.5);color:rgba(226,240,255,.82);font-weight:600;min-height:40px;padding:10px 16px;font-size:clamp(12px,3.4vw,15px)}
+.ar-scan-enter-button~.ar-scan-manual-button{margin-top:8px;background:rgba(8,22,46,.66);border-color:rgba(122,175,230,.5);color:rgba(226,240,255,.82);font-weight:600;min-height:40px;padding:10px 16px;font-size:clamp(14px,3.9vw,17px)}
 .ar-scan-enter-button:active,.ar-scan-manual-button:active{transform:scale(.98)}
 .ar-scan-button-arrow{font-size:1.1em}
 
@@ -159,7 +180,11 @@
    through the glasses' display while the wearer is also trying to point
    the camera at a card, and it must not cover the camera cutout it is
    reporting on. pointer-events:none so it can never swallow the tap on
-   the manual-selection button underneath it. */
+   the manual-selection button underneath it.
+
+   Off the --fs-* ladder for that last reason: the readability pass raised
+   every size a player reads, and this is the one overlay whose size is set
+   by how little of the artwork it is allowed to cover. */
 .ar-scan-diag{position:absolute;top:0;left:0;z-index:4;max-width:100%;padding:6px 8px;box-sizing:border-box;background:rgba(2,6,16,.82);color:#cfe4ff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:clamp(9px,2.4vw,12px);line-height:1.35;pointer-events:none;overflow-wrap:anywhere}
 .ar-scan-diag-title{color:#7ea6cc;letter-spacing:.08em;margin-bottom:2px}
 .ar-scan-diag-line{display:block}
@@ -210,7 +235,7 @@
    into the background. */
 .gesture-tutorial-page .gesture-tutorial-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,9,22,.5) 0%,rgba(2,9,22,.72) 40%,rgba(2,9,22,.78) 72%,rgba(2,9,22,.5) 100%);pointer-events:none}
 .gesture-tutorial-page .gesture-tutorial-content{position:absolute;top:25%;bottom:7%;left:4%;width:92%;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.6vh,18px);text-align:center;color:#fff}
-.gesture-tutorial-page .gesture-tutorial-heading{margin:0;color:rgba(217,239,255,.92);font-size:clamp(15px,min(5vw,4vh),22px);font-weight:700;line-height:1.2;letter-spacing:.16em;text-shadow:0 2px 12px rgba(0,0,0,.85)}
+.gesture-tutorial-page .gesture-tutorial-heading{margin:0;color:rgba(217,239,255,.92);font-size:clamp(17px,min(5.5vw,4.4vh),22px);font-weight:700;line-height:1.2;letter-spacing:.16em;text-shadow:0 2px 12px rgba(0,0,0,.85)}
 /* The two steps, side by side in the direction each one teaches: the left
    step is the left-hand panel and the right step the right-hand one, so the
    panel a player reaches for is already on the side they have to wave to.
@@ -229,12 +254,12 @@
 .gesture-tutorial-page .gesture-tutorial-step.is-done{border-color:rgba(61,220,132,.72);background:rgba(8,34,26,.55);opacity:.82}
 .gesture-tutorial-page .gesture-tutorial-step:disabled{cursor:default}
 .gesture-tutorial-page .gesture-tutorial-step:not(:disabled){cursor:pointer}
-.gesture-tutorial-page .gesture-tutorial-step-title{display:block;font-size:clamp(16px,min(5.4vw,4.2vh),24px);font-weight:800;line-height:1.2;letter-spacing:.02em;text-shadow:0 3px 18px rgba(0,0,0,.9)}
-.gesture-tutorial-page .gesture-tutorial-step-instruction{display:block;color:rgba(226,242,255,.94);font-size:clamp(11px,min(3.1vw,2.5vh),15px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
+.gesture-tutorial-page .gesture-tutorial-step-title{display:block;font-size:clamp(18px,min(5.9vw,4.6vh),24px);font-weight:800;line-height:1.2;letter-spacing:.02em;text-shadow:0 3px 18px rgba(0,0,0,.9)}
+.gesture-tutorial-page .gesture-tutorial-step-instruction{display:block;color:rgba(226,242,255,.94);font-size:clamp(14px,min(3.6vw,2.9vh),17px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
 /* What the wave picks once the run starts. Separated from the instruction
    above it by a hairline rather than a gap: the two say different kinds of
    thing (how to move, and what it does) and must not read as one paragraph. */
-.gesture-tutorial-page .gesture-tutorial-step-rule{display:block;margin-top:clamp(3px,min(1vw,.9vh),7px);padding-top:clamp(3px,min(1vw,.9vh),7px);border-top:1px solid rgba(148,196,232,.28);color:rgba(180,220,250,.94);font-size:clamp(10px,min(2.8vw,2.3vh),14px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
+.gesture-tutorial-page .gesture-tutorial-step-rule{display:block;margin-top:clamp(3px,min(1vw,.9vh),7px);padding-top:clamp(3px,min(1vw,.9vh),7px);border-top:1px solid rgba(148,196,232,.28);color:rgba(180,220,250,.94);font-size:clamp(14px,min(3.3vw,2.7vh),16px);font-weight:600;line-height:1.35;text-shadow:0 2px 12px rgba(0,0,0,.85);line-break:strict}
 .gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-step-rule{border-top-color:rgba(74,217,255,.55);color:#cdeeff}
 /* The direction cue. In the app's own cyan, so "which way" is readable from
    across a room even if the words are not. It is on every step in every state,
@@ -270,13 +295,13 @@
    the tap hint is the quiet reassurance that a finger works too. */
 .gesture-tutorial-page .gesture-tutorial-notes{display:flex;flex-direction:column;align-items:center;gap:clamp(3px,min(1.2vw,1vh),9px);width:100%}
 .gesture-tutorial-page .gesture-tutorial-notes p{margin:0;line-height:1.4;line-break:strict;text-shadow:0 2px 12px rgba(0,0,0,.9)}
-.gesture-tutorial-page .gesture-tutorial-single-rule{color:rgba(180,220,250,.96);font-size:clamp(11px,min(3.2vw,2.6vh),16px);font-weight:700}
-.gesture-tutorial-page .gesture-tutorial-reminder{color:rgba(255,214,138,.96);font-size:clamp(11px,min(3.3vw,2.7vh),17px);font-weight:700}
-.gesture-tutorial-page .gesture-tutorial-pointer-hint{color:rgba(214,232,248,.88);font-size:clamp(10px,min(2.9vw,2.4vh),14px);font-weight:600}
+.gesture-tutorial-page .gesture-tutorial-single-rule{color:rgba(180,220,250,.96);font-size:clamp(14px,min(3.7vw,3vh),18px);font-weight:700}
+.gesture-tutorial-page .gesture-tutorial-reminder{color:rgba(255,214,138,.96);font-size:clamp(14px,min(3.8vw,3.1vh),17px);font-weight:700}
+.gesture-tutorial-page .gesture-tutorial-pointer-hint{color:rgba(214,232,248,.88);font-size:clamp(14px,min(3.4vw,2.8vh),16px);font-weight:600}
 /* The announcement row: the step that has just landed, then the tutorial
    being over. It holds its row while it is empty so finishing a step does not
    shift the panels above it. */
-.gesture-tutorial-page .gesture-tutorial-status{margin:0;min-height:1.4em;color:#3ddc84;font-size:clamp(13px,min(4vw,3.2vh),19px);font-weight:800;line-height:1.4;line-break:strict;text-shadow:0 2px 14px rgba(0,0,0,.9)}
+.gesture-tutorial-page .gesture-tutorial-status{margin:0;min-height:1.4em;color:#3ddc84;font-size:clamp(15px,min(4.5vw,3.6vh),19px);font-weight:800;line-height:1.4;line-break:strict;text-shadow:0 2px 14px rgba(0,0,0,.9)}
 .gesture-tutorial-page .gesture-tutorial-dots{display:flex;align-items:center;justify-content:center;gap:clamp(10px,min(3vw,2.5vh),20px)}
 .gesture-tutorial-page .gesture-tutorial-dot{width:clamp(10px,min(3vw,2.5vh),16px);height:clamp(10px,min(3vw,2.5vh),16px);flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.88);background:transparent;box-shadow:0 2px 10px rgba(0,0,0,.65)}
 .gesture-tutorial-page .gesture-tutorial-dot.is-done{background:#fff}
@@ -404,4 +429,4 @@
 }
 /* The finished step's own line, in the track the hand has just vacated - so
    confirming a step costs no height and moves nothing. */
-.gesture-tutorial-page .gesture-tutorial-step-success{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3ddc84;font-size:clamp(11px,min(3.2vw,2.6vh),15px);font-weight:800;line-height:1.25;text-align:center;line-break:strict;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+.gesture-tutorial-page .gesture-tutorial-step-success{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3ddc84;font-size:clamp(14px,min(3.7vw,3vh),17px);font-weight:800;line-height:1.25;text-align:center;line-break:strict;text-shadow:0 2px 12px rgba(0,0,0,.9)}

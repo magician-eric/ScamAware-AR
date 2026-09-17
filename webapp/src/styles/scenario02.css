@@ -42,17 +42,17 @@
    the buttons grow taller instead, which is why min-height becomes a floor
    (height:auto) and the long 我已了解，仍要繼續 label is allowed to break. */
 .bition-warning-actions.is-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.bition-warning-actions.is-dual .bition-warn-btn{min-width:0;height:auto;padding:12px 10px;text-align:center;overflow-wrap:anywhere}
-.bition-warn-btn{min-height:56px;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border:0}
+.bition-warn-btn{min-height:56px;border-radius:16px;font-size:var(--fs-title-sm);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border:0}
 .bition-warn-btn-stop{background:linear-gradient(135deg,#ff4d6d,#a9183c);color:#fff}
 .bition-warn-btn-hotline{background:linear-gradient(135deg,#2b7fff,#1a4fc4);color:#fff}
-.bition-warn-btn-continue{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#9db4d4;font-weight:600;font-size:14px}
+.bition-warn-btn-continue{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#9db4d4;font-weight:600;font-size:var(--fs-body)}
 
 /* 165 hotline overlay - no real tel: link anywhere, purely educational. */
 .hotline165-overlay{position:fixed;inset:0;z-index:10000;background:rgba(2,6,14,.86);display:flex;align-items:center;justify-content:center;padding:24px}
 .hotline165-card{width:min(360px,100%);background:#0b1729;border:1px solid rgba(43,127,255,.4);border-radius:22px;padding:28px 22px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4)}
 .hotline165-icon{width:64px;height:64px;border-radius:50%;background:rgba(43,127,255,.16);border:1px solid rgba(43,127,255,.5);color:#6db2ff;display:grid;place-items:center;margin:0 auto 14px}
 .hotline165-card h2{color:#fff;font-size:20px;margin:0 0 10px}
-.hotline165-card p{color:#c9d6ea;font-size:14px;line-height:1.6;margin-bottom:18px}
+.hotline165-card p{color:#c9d6ea;font-size:var(--fs-body);line-height:1.6;margin-bottom:18px}
 
 .bition-ending-note{max-width:100%}
 
@@ -66,7 +66,7 @@
 .meetu-warning-marquee-icon{flex:none}
 .meetu-warning-marquee-track{flex:1;min-width:0;overflow:hidden}
 .meetu-warning-marquee-inner{display:flex;width:max-content;animation:meetu-marquee-scroll 13s linear infinite}
-.meetu-warning-marquee-text{flex:none;white-space:nowrap;padding-right:56px;font-size:13px;font-weight:700;letter-spacing:.01em}
+.meetu-warning-marquee-text{flex:none;white-space:nowrap;padding-right:56px;font-size:var(--fs-body-sm);font-weight:700;letter-spacing:.01em}
 @keyframes meetu-marquee-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion: reduce){.meetu-warning-marquee-inner{animation:none}.meetu-warning-marquee-text:nth-child(2){display:none}}
 /* RiskAnalysis.jsx's own disclosure-list styling used to sit here. That page

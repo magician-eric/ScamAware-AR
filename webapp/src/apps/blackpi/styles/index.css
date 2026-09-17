@@ -51,20 +51,21 @@
 .bp-page{padding:0 16px 16px}
 .bp-section{margin-top:14px}
 .bp-h1{font-size:20px;font-weight:900;margin:0 0 6px}
-.bp-h2{font-size:16px;font-weight:700;margin:0 0 10px;color:var(--bp-text)}
-.bp-muted{color:var(--bp-text-secondary);font-size:13px;line-height:1.6}
-.bp-tertiary{color:var(--bp-text-tertiary);font-size:12px}
+.bp-h2{font-size:var(--fs-title-sm);font-weight:700;margin:0 0 10px;color:var(--bp-text)}
+.bp-muted{color:var(--bp-text-secondary);font-size:var(--fs-body-sm);line-height:1.6}
+.bp-tertiary{color:var(--bp-text-tertiary);font-size:var(--fs-caption)}
 
 /* ---- header / topbar ------------------------------------------------ */
 .bp-header{flex:none;display:flex;align-items:center;gap:10px;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 16px 0;background:var(--bp-surface);border-bottom:1px solid var(--bp-border)}
-.bp-header-title{flex:1;font-weight:700;font-size:16px;text-align:center}
+.bp-header-title{flex:1;font-weight:700;font-size:var(--fs-title-sm);text-align:center}
 .bp-icon-btn{width:44px;height:44px;min-width:44px;border:0;background:none;color:var(--bp-text);display:grid;place-items:center;border-radius:999px;cursor:pointer}
 .bp-icon-btn:active{background:var(--bp-surface-dim)}
 .bp-logo{display:flex;align-items:center;gap:6px;font-weight:900;font-size:17px;letter-spacing:.02em;color:var(--bp-primary-dark)}
+/* Off the --fs-* ladder: the letter inside the 26px brand tile is the logo, not copy. */
 .bp-logo .bp-logo-mark{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,var(--bp-primary),var(--bp-primary-dark));display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900}
 
 /* ---- buttons ------------------------------------------------------- */
-.bp-btn{appearance:none;border:0;border-radius:14px;height:44px;padding:0 20px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--bp-primary);color:#fff}
+.bp-btn{appearance:none;border:0;border-radius:14px;min-height:44px;padding:10px 20px;font-size:var(--fs-body-lg);font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--bp-primary);color:#fff}
 .bp-btn:active{transform:scale(.98)}
 .bp-btn.bp-btn-block{width:100%}
 .bp-btn.bp-btn-secondary{background:var(--bp-surface);color:var(--bp-primary-dark);border:1px solid var(--bp-primary)}
@@ -73,12 +74,12 @@
 .bp-btn.bp-btn-danger{background:var(--bp-error);color:#fff}
 .bp-btn:disabled{opacity:.45;cursor:not-allowed}
 .bp-btn-pill{border-radius:999px}
-.bp-btn-sm{height:36px;padding:0 14px;font-size:13px;border-radius:999px}
+.bp-btn-sm{min-height:36px;padding:8px 14px;font-size:var(--fs-body-sm);border-radius:999px}
 .bp-btn-stack{display:grid;gap:10px;margin-top:14px}
 
 /* ---- search bar ------------------------------------------------------ */
 .bp-searchbar{display:flex;align-items:center;gap:8px;height:40px;background:var(--bp-surface-dim);border:1px solid var(--bp-border);border-radius:999px;padding:0 14px;color:var(--bp-text-tertiary);cursor:default}
-.bp-searchbar input{flex:1;border:0;background:none;outline:0;font-size:14px;color:var(--bp-text);font-family:inherit}
+.bp-searchbar input{flex:1;border:0;background:none;outline:0;font-size:var(--fs-body);color:var(--bp-text);font-family:inherit}
 .bp-searchbar input::placeholder{color:var(--bp-text-tertiary)}
 /* Placeholder-style prompt span inside the pill - keeps it single-line even
    with longer English copy, truncating instead of wrapping to a second line
@@ -93,10 +94,18 @@
 .bp-product-card:focus-visible{outline:3px solid var(--bp-primary-dark);outline-offset:2px}
 .bp-product-card .bp-media{width:100%;aspect-ratio:1/1;border-radius:12px 12px 0 0}
 .bp-product-info{padding:10px}
-.bp-product-name{font-size:13px;line-height:1.4;color:var(--bp-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.8em}
-.bp-product-price{margin-top:6px;font-size:15px;font-weight:900;color:var(--bp-error)}
-.bp-product-price small{font-size:11px;font-weight:400;color:var(--bp-text-tertiary);margin-left:4px}
-.bp-product-meta{margin-top:2px;font-size:11px;color:var(--bp-text-tertiary)}
+/* Product names are not decoration here: which product the player is buying
+   is the whole of Scenario 04, and the 商品資訊 is what the dispute later turns
+   on. They used to be clamped to two lines, which at the readable type sizes
+   cut the English and Japanese names of both story products on every width -
+   e.g. the robot vacuum's name needed 126px of line box inside a 76px one at
+   en/320. None of these four is clamped any more; the card, the row and the
+   page all grow to fit the name instead. `min-height` stays where it was, so a
+   short name still sits on the same baseline as the card beside it. */
+.bp-product-name{font-size:var(--fs-body-sm);line-height:1.4;color:var(--bp-text);overflow-wrap:anywhere;min-height:2.8em}
+.bp-product-price{margin-top:6px;font-size:var(--fs-body-lg);font-weight:900;color:var(--bp-error)}
+.bp-product-price small{font-size:var(--fs-caption);font-weight:400;color:var(--bp-text-tertiary);margin-left:4px}
+.bp-product-meta{margin-top:2px;font-size:var(--fs-caption);color:var(--bp-text-tertiary)}
 .bp-list-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--bp-border)}
 .bp-list-row:last-child{border-bottom:0}
 .bp-list-row .bp-media{width:76px;height:76px;flex:none}
@@ -110,7 +119,7 @@
 .bp-img.bp-img-contain{object-fit:contain}
 .bp-ph{position:relative;background:var(--bp-surface-dim);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--bp-text-tertiary);text-align:center;padding:6px}
 .bp-ph.bp-ph-dashed{border:1.5px dashed #c8e2e0}
-.bp-ph-label{font-size:11px;line-height:1.35;padding:0 6px;color:var(--bp-text-secondary)}
+.bp-ph-label{font-size:var(--fs-caption);line-height:1.35;padding:0 6px;color:var(--bp-text-secondary)}
 
 /* Square photo blocks that size themselves rather than inheriting a box
    from a parent - the unboxing stages, the PDP review thumbnails and the
@@ -129,15 +138,16 @@
    scenery should have. `.active` stays exactly as it was: the current screen's
    tab still looks selected, because looking selected is all it ever does. */
 .bp-bottom-nav{flex:none;display:flex;justify-content:space-around;align-items:center;height:calc(58px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-top:1px solid var(--bp-border);pointer-events:none;-webkit-user-select:none;user-select:none}
-.bp-nav-btn{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--bp-text-tertiary);font-size:10.5px;min-width:44px;min-height:44px;justify-content:center;cursor:default;pointer-events:none}
+.bp-nav-btn{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--bp-text-tertiary);font-size:var(--fs-caption);min-width:44px;min-height:44px;justify-content:center;cursor:default;pointer-events:none}
 .bp-nav-btn.active{color:var(--bp-primary-dark);font-weight:700}
 
 /* ---- toast --------------------------------------------------------- */
-.bp-toast{position:absolute;left:16px;right:16px;bottom:calc(74px + env(safe-area-inset-bottom));background:rgba(34,34,34,.92);color:#fff;font-size:13px;padding:12px 16px;border-radius:12px;text-align:center;z-index:40;animation:bpToastIn .25s ease-out}
+.bp-toast{position:absolute;left:16px;right:16px;bottom:calc(74px + env(safe-area-inset-bottom));background:rgba(34,34,34,.92);color:#fff;font-size:var(--fs-body-sm);padding:12px 16px;border-radius:12px;text-align:center;z-index:40;animation:bpToastIn .25s ease-out}
 @keyframes bpToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ---- chat ------------------------------------------------------------ */
 .bp-chat-header{flex:none;display:flex;align-items:center;gap:10px;min-height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0 4px;background:var(--bp-surface);border-bottom:1px solid var(--bp-border)}
+/* Off the --fs-* ladder: an initial centred in a 36px avatar circle, not copy. */
 .bp-chat-avatar{width:36px;height:36px;border-radius:50%;background:var(--bp-primary-tint);color:var(--bp-primary-dark);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
 .bp-chat-avatar.gold{background:var(--bp-gold-light);color:var(--bp-gold-deep)}
 /* A named person's avatar is their photo, so the circle carries no tint or
@@ -148,20 +158,20 @@
    .bp-logo-mark, so the platform's own bot is branded rather than initialled. */
 .bp-chat-avatar.brand{background:linear-gradient(135deg,var(--bp-primary),var(--bp-primary-dark));color:#fff}
 .bp-chat-titles{flex:1;min-width:0}
-.bp-chat-name{font-weight:700;font-size:14.5px}
+.bp-chat-name{font-weight:700;font-size:var(--fs-body)}
 /* Job title under a named person's name (see ChatScreen's headerRole). */
-.bp-chat-role{font-size:12px;font-weight:700;color:var(--bp-primary-dark);line-height:1.35}
-.bp-chat-sub{font-size:11.5px;color:var(--bp-text-tertiary)}
+.bp-chat-role{font-size:var(--fs-caption);font-weight:700;color:var(--bp-primary-dark);line-height:1.35}
+.bp-chat-sub{font-size:var(--fs-caption);color:var(--bp-text-tertiary)}
 .bp-chat-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:14px 12px 8px;display:flex;flex-direction:column;background:var(--bp-bg)}
 .bp-chat-scroll::-webkit-scrollbar{display:none}
 .bp-msg-row{display:flex;margin:4px 0;gap:6px;align-items:flex-end}
 .bp-msg-row.mine{justify-content:flex-end}
 .bp-msg-row.theirs{justify-content:flex-start}
-.bp-bubble{max-width:76%;padding:10px 14px;font-size:14.5px;line-height:1.5;white-space:pre-line;border-radius:18px}
+.bp-bubble{max-width:76%;padding:10px 14px;font-size:var(--fs-body);line-height:1.5;white-space:pre-line;border-radius:18px}
 .bp-bubble.theirs{background:var(--bp-surface);color:var(--bp-text);border-bottom-left-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .bp-bubble.mine{background:var(--bp-primary);color:#fff;border-bottom-right-radius:5px}
-.bp-msg-status{font-size:10.5px;color:var(--bp-text-tertiary);align-self:flex-end;margin-bottom:2px;white-space:nowrap}
-.bp-system-row{align-self:center;background:rgba(34,34,34,.06);color:var(--bp-text-secondary);font-size:12px;padding:5px 14px;border-radius:999px;margin:10px 0}
+.bp-msg-status{font-size:var(--fs-caption);color:var(--bp-text-tertiary);align-self:flex-end;margin-bottom:2px;white-space:nowrap}
+.bp-system-row{align-self:center;background:rgba(34,34,34,.06);color:var(--bp-text-secondary);font-size:var(--fs-caption);padding:5px 14px;border-radius:999px;margin:10px 0}
 .bp-typing{align-self:flex-start;display:flex;gap:4px;background:var(--bp-surface);border-radius:18px 18px 18px 5px;padding:12px 16px;margin:4px 0}
 .bp-typing i{width:6px;height:6px;border-radius:999px;background:#B9C4C3;animation:bpTypingDot 1s infinite ease-in-out}
 .bp-typing i:nth-child(2){animation-delay:.12s}
@@ -169,7 +179,7 @@
 @keyframes bpTypingDot{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-4px);opacity:1}}
 .bp-chat-choices{flex:none;background:var(--bp-surface);border-top:1px solid var(--bp-border);padding:8px 12px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;transition:opacity .16s ease}
 .bp-chat-choices-leaving{opacity:0}
-.bp-chat-choices-prompt{margin:0 2px 2px;font-size:11.5px;color:var(--bp-text-tertiary)}
+.bp-chat-choices-prompt{margin:0 2px 2px;font-size:var(--fs-caption);color:var(--bp-text-tertiary)}
 /* S04 remaining audit, same rule AUD-06 applied to the four standalone dual
    decisions: a two-reply row IS the screen's AR Interaction Contract - every
    Scenario 04 chat (賣家/爭議/退貨確認/退款延遲/平台客服) declares `dual` with
@@ -190,7 +200,14 @@
    column too - a 2-col grid would strand the third button alone under the
    left column with an empty gap on the right. */
 .bp-choice-grid.bp-choice-grid-stack{grid-template-columns:minmax(0,1fr)}
-.bp-choice-btn{width:100%;min-width:0;text-align:center;background:var(--bp-surface);border:1.5px solid var(--bp-border);border-radius:14px;padding:11px 12px;font-size:13.5px;line-height:1.35;color:var(--bp-text);cursor:pointer;font-family:inherit;min-height:48px;display:flex;align-items:center;justify-content:center;transition:transform .1s ease,background-color .12s ease;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* No clamp and no clipping: this is a choice the player picks from, and a
+   half-shown option is a decision made blind. (The `-webkit-line-clamp:2`
+   that used to sit here never did anything - it needs `display:-webkit-box`
+   and this rule is `display:flex` - but the `overflow:hidden` next to it was
+   real, and would have started cutting labels as soon as one outgrew the
+   button.) The button grows downward instead; min-height keeps the tap
+   target. */
+.bp-choice-btn{width:100%;min-width:0;text-align:center;background:var(--bp-surface);border:1.5px solid var(--bp-border);border-radius:14px;padding:11px 12px;font-size:var(--fs-body-sm);line-height:1.35;color:var(--bp-text);cursor:pointer;font-family:inherit;min-height:48px;display:flex;align-items:center;justify-content:center;transition:transform .1s ease,background-color .12s ease;overflow-wrap:anywhere}
 .bp-choice-btn:active{transform:scale(.98);background:var(--bp-primary-tint);border-color:var(--bp-primary)}
 .bp-choice-btn:disabled{opacity:.4;cursor:not-allowed}
 .bp-choice-btn-2up{display:-webkit-box}
@@ -198,13 +215,13 @@
 /* ---- in-world app safety notice (replaces old "本情境將引導你…" prompts) - */
 .bp-app-notice{align-self:center;display:flex;gap:10px;max-width:88%;background:#FFF7E6;border:1px solid #F2D48C;border-radius:14px;padding:12px 14px;margin:10px 0;color:#7A4E00}
 .bp-app-notice svg{flex:none;margin-top:1px;color:#B77900}
-.bp-app-notice-title{font-weight:700;font-size:13px;margin-bottom:2px}
-.bp-app-notice-body{font-size:12.5px;line-height:1.6;color:#6b5320}
+.bp-app-notice-title{font-weight:700;font-size:var(--fs-body-sm);margin-bottom:2px}
+.bp-app-notice-body{font-size:var(--fs-caption);line-height:1.6;color:#6b5320}
 .bp-product-msg-card{background:var(--bp-surface);border:1px solid var(--bp-border);border-radius:14px;padding:10px;max-width:76%;display:flex;gap:10px}
 .bp-product-msg-card .bp-media{width:56px;height:56px;flex:none}
 .bp-product-msg-info{min-width:0}
-.bp-product-msg-name{font-size:12.5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.bp-product-msg-price{margin-top:4px;font-size:13px;font-weight:800;color:var(--bp-error)}
+.bp-product-msg-name{font-size:var(--fs-caption);line-height:1.4;overflow-wrap:anywhere}
+.bp-product-msg-price{margin-top:4px;font-size:var(--fs-body-sm);font-weight:800;color:var(--bp-error)}
 
 /* ---- 詐騙疑點分析 (scenario04 ending) ---------------------------------- */
 /* Large type, high contrast, everything visible at once: this page is read on
@@ -221,11 +238,11 @@
    bubble colour, so it reads as the storefront reporting a status - not as a
    message from the seller or the player. */
 .bp-shop-status{align-self:center;max-width:88%;text-align:center;background:var(--bp-surface);border:1px solid var(--bp-border);border-radius:14px;padding:14px 18px;margin:12px 0}
-.bp-shop-status-title{font-size:13.5px;font-weight:700;color:var(--bp-text)}
-.bp-shop-status-body{margin-top:4px;font-size:12.5px;line-height:1.6;color:var(--bp-text-secondary)}
+.bp-shop-status-title{font-size:var(--fs-body-sm);font-weight:700;color:var(--bp-text)}
+.bp-shop-status-body{margin-top:4px;font-size:var(--fs-caption);line-height:1.6;color:var(--bp-text-secondary)}
 
 /* ---- shop unreachable banner ------------------------------------------ */
-.bp-shop-closed-banner{background:#FDECEC;border:1px solid #F3C7C7;color:var(--bp-error);font-size:12.5px;padding:10px 14px;border-radius:12px;margin:8px 12px;text-align:center;font-weight:700}
+.bp-shop-closed-banner{background:#FDECEC;border:1px solid #F3C7C7;color:var(--bp-error);font-size:var(--fs-caption);padding:10px 14px;border-radius:12px;margin:8px 12px;text-align:center;font-weight:700}
 
 /* ---- order timeline ---------------------------------------------------- */
 .bp-timeline{display:grid;gap:0;margin-top:6px}
@@ -238,16 +255,16 @@
 .bp-timeline-step.done::before{background:var(--bp-primary)}
 .bp-timeline-step.current .bp-timeline-dot{background:#fff;border-color:var(--bp-primary);box-shadow:0 0 0 4px var(--bp-primary-tint)}
 .bp-timeline-content{flex:1;padding-top:1px}
-.bp-timeline-label{font-size:14px;font-weight:700;color:var(--bp-text)}
+.bp-timeline-label{font-size:var(--fs-body);font-weight:700;color:var(--bp-text)}
 /* Carrier lockup on the 配送中 step: the HPE mark sits inline with the label
    without stretching the row's line-height. */
 .bp-timeline-carrier{display:inline-flex;align-items:center;gap:5px}
 .bp-timeline-carrier .bp-timeline-carrier-icon{flex:none;width:auto;height:15px;margin:0;display:block}
 .bp-timeline-step:not(.done):not(.current) .bp-timeline-label{color:var(--bp-text-tertiary);font-weight:500}
-.bp-timeline-time{font-size:11.5px;color:var(--bp-text-tertiary);margin-top:2px}
+.bp-timeline-time{font-size:var(--fs-caption);color:var(--bp-text-tertiary);margin-top:2px}
 
 /* ---- status badge / pill ------------------------------------------------ */
-.bp-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.bp-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:var(--fs-caption);font-weight:700}
 .bp-badge.ok{background:#E5F3E6;color:var(--bp-success)}
 .bp-badge.warn{background:#FDEEDF;color:var(--bp-warning)}
 .bp-badge.err{background:#FBE6E6;color:var(--bp-error)}
@@ -265,7 +282,7 @@
 .bp-cva-photo{width:100%;aspect-ratio:1/1;border-radius:14px;border:1.5px solid transparent}
 .bp-cva-side.claim .bp-cva-photo{border-color:var(--bp-gold-light)}
 .bp-cva-side.actual .bp-cva-photo{border-color:#F3C7C7}
-.bp-cva-cap{font-size:12px;font-weight:800;color:var(--bp-text-secondary)}
+.bp-cva-cap{font-size:var(--fs-caption);font-weight:800;color:var(--bp-text-secondary)}
 .bp-cva-side.claim .bp-cva-cap{color:var(--bp-gold-deep)}
 .bp-cva-side.actual .bp-cva-cap{color:var(--bp-error)}
 .bp-cva-arrow{display:grid;place-items:center;width:26px;height:26px;border-radius:999px;background:var(--bp-surface-dim);color:var(--bp-text-tertiary);transform:rotate(90deg)}
@@ -273,13 +290,13 @@
 .bp-cva-table{margin:0;display:grid;gap:6px}
 .bp-cva-head{display:none}
 .bp-cva-row{display:grid;grid-template-columns:1fr;gap:4px;background:var(--bp-surface-dim);border-radius:12px;padding:8px 10px}
-.bp-cva-row dt,.bp-cva-row dd{margin:0;min-width:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.bp-cva-row dt,.bp-cva-row dd{margin:0;min-width:0;font-size:var(--fs-body-sm);line-height:1.5;overflow-wrap:anywhere}
 .bp-cva-row dt{font-weight:700;color:var(--bp-gold-deep)}
 .bp-cva-row dd{font-weight:700;color:var(--bp-error)}
-.bp-cva-inline-label{display:block;font-size:11px;font-weight:700;color:var(--bp-text-tertiary)}
+.bp-cva-inline-label{display:block;font-size:var(--fs-caption);font-weight:700;color:var(--bp-text-tertiary)}
 
 @media (min-width:340px){
-  .bp-cva-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 10px;font-size:11.5px;font-weight:800;color:var(--bp-text-tertiary)}
+  .bp-cva-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 10px;font-size:var(--fs-caption);font-weight:800;color:var(--bp-text-tertiary)}
   .bp-cva-head span:last-child{color:var(--bp-text-secondary)}
   .bp-cva-row{grid-template-columns:1fr 1fr;gap:10px;align-items:start}
   .bp-cva-inline-label{display:none}
@@ -298,7 +315,7 @@
 .bp-unboxing-result{max-width:440px;margin:0 auto}
 .bp-unboxing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .bp-unboxing-item{min-width:0;margin:0;display:flex;flex-direction:column;gap:5px}
-.bp-unboxing-item figcaption{font-size:13px;line-height:1.35;font-weight:700;color:var(--bp-text);text-align:center}
+.bp-unboxing-item figcaption{font-size:var(--fs-body-sm);line-height:1.35;font-weight:700;color:var(--bp-text);text-align:center}
 .bp-unboxing-thumb{display:block;width:100%;aspect-ratio:1/1;border-radius:14px}
 .bp-unboxing-reaction{text-align:center;margin:12px 0 0}
 @keyframes bpRevealIn{0%{opacity:0;transform:translateY(6px)}60%{transform:translateY(0)}70%{transform:translateX(-3px)}85%{transform:translateX(2px)}100%{opacity:1;transform:translateX(0)}}
@@ -316,9 +333,9 @@
 .bp-return-section:first-child{padding-top:12px}
 .bp-return-section:last-child{border-bottom:0}
 .bp-return-section .bp-h2{margin:0 0 14px}
-.bp-return-reason{display:block;font-size:16px;line-height:1.5;color:var(--bp-text)}
+.bp-return-reason{display:block;font-size:var(--fs-title-sm);line-height:1.5;color:var(--bp-text)}
 .bp-return-detail{margin:7px 0 0;line-height:1.65;overflow-wrap:anywhere}
-.bp-return-evidence-row{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 0;font-size:14px;font-weight:600}
+.bp-return-evidence-row{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 0;font-size:var(--fs-body);font-weight:600}
 .bp-return-evidence-row>svg{flex:none;color:var(--bp-success)}
 .bp-return-evidence-row.missing>svg{color:var(--bp-warning)}
 .bp-return-evidence-row .bp-badge{flex:none;margin-left:auto}
@@ -329,7 +346,7 @@
    single-thumbnail grid variant) was removed, since the screen was restating
    a product page the player has already seen and paying a scroll for it. */
 .bp-return-attachment{padding:6px 0 0}
-.bp-return-attachment-head{display:flex;align-items:center;gap:9px;min-width:0;font-size:14px;font-weight:600}
+.bp-return-attachment-head{display:flex;align-items:center;gap:9px;min-width:0;font-size:var(--fs-body);font-weight:600}
 .bp-return-attachment-head>svg{flex:none;color:var(--bp-success)}
 .bp-return-attachment-head.missing>svg{color:var(--bp-warning)}
 .bp-return-attachment-head .bp-badge{flex:none;margin-left:auto}
@@ -344,7 +361,7 @@
    the button clears the home indicator / browser chrome on iPhone and Android
    and is simply unpadded on desktop, where the inset resolves to 0. */
 .bp-return-cta-bar{flex:none;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--bp-surface);border-top:1px solid var(--bp-border)}
-.bp-return-success{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;color:var(--bp-success);font-size:15px;font-weight:800;animation:bpRevealIn .2s ease-out}
+.bp-return-success{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;color:var(--bp-success);font-size:var(--fs-body-lg);font-weight:800;animation:bpRevealIn .2s ease-out}
 /* Short viewports (iPhone SE and anything else under ~720px of stage) are the
    only place where the two photo rows plus the two text blocks still ran past
    the fold. Landscape-cropping the thumbnails buys back both rows' worth of
@@ -366,10 +383,10 @@
 .bp-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
 .bp-modal{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:340px}
 .bp-modal h3{margin:0 0 10px;font-size:17px}
-.bp-modal p{margin:0 0 16px;color:var(--bp-text-secondary);font-size:13.5px;line-height:1.6}
+.bp-modal p{margin:0 0 16px;color:var(--bp-text-secondary);font-size:var(--fs-body-sm);line-height:1.6}
 
 /* ---- low-key simulation disclaimer + phase progress ---------------------- */
-.bp-sim-disclaimer{font-size:11.5px;color:var(--bp-text-tertiary);text-align:center;margin:10px 0 0}
+.bp-sim-disclaimer{font-size:var(--fs-caption);color:var(--bp-text-tertiary);text-align:center;margin:10px 0 0}
 
 /* ---- phase mood shifts (spec section 24) -------------------------------- */
 .blackpi-app.bp-mood-dispute{filter:saturate(.92)}
@@ -380,10 +397,11 @@
 /* ---- ending score cards -------------------------------------------------- */
 .bp-score-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--bp-border)}
 .bp-score-row:last-child{border-bottom:0}
-.bp-score-label{font-size:14px;font-weight:600}
+.bp-score-label{font-size:var(--fs-body);font-weight:600}
 .bp-score-note{max-width:60%;text-align:right}
 
 /* ---- debug panel ---------------------------------------------------------- */
+/* Off the --fs-* ladder: a developer panel, never rendered for a player. */
 .bp-debug-panel{position:absolute;inset:0;background:rgba(10,20,20,.94);color:#dff;z-index:999;overflow-y:auto;padding:16px;font-size:12px;font-family:monospace}
 .bp-debug-panel h3{color:#0ABAB5;margin:14px 0 6px}
 .bp-debug-panel button{margin:2px;background:#0ABAB5;color:#032;border:0;border-radius:6px;padding:6px 8px;font-size:11px;cursor:pointer}
@@ -397,12 +415,12 @@
    button.bp-searchbar rules, because there is no such element to style. */
 .bp-searchbar{border:1px solid #DCEDEE;box-shadow:0 1px 5px rgba(10,186,181,.07)}
 .bp-searchbar svg{color:var(--bp-primary-dark);flex:none}
-.bp-searchbar-cta{margin-left:auto;flex:none;display:flex;align-items:center;gap:2px;color:var(--bp-primary-dark);font-size:12.5px;font-weight:700}
+.bp-searchbar-cta{margin-left:auto;flex:none;display:flex;align-items:center;gap:2px;color:var(--bp-primary-dark);font-size:var(--fs-caption);font-weight:700}
 
 /* ---- home hero row (two story products) ------------------------------ */
-.bp-hero-badge{position:absolute;top:8px;left:8px;background:rgba(34,34,34,.72);color:#fff;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;z-index:1}
+.bp-hero-badge{position:absolute;top:8px;left:8px;background:rgba(34,34,34,.72);color:#fff;font-size:var(--fs-caption);font-weight:700;padding:3px 8px;border-radius:999px;z-index:1}
 .bp-product-card{position:relative}
-.bp-product-card-hero .bp-product-name{font-size:13.5px;font-weight:600}
+.bp-product-card-hero .bp-product-name{font-size:var(--fs-body-sm);font-weight:600}
 .bp-product-card-highlighted{
   box-sizing:border-box;
   border:2px solid var(--bp-primary);
@@ -422,8 +440,8 @@
 .bp-compact-row:last-child{border-bottom:0}
 .bp-compact-row:active{background:var(--bp-surface-dim)}
 .bp-compact-thumb{width:58px;height:58px;flex:none;border-radius:11px}
-.bp-compact-name{flex:1;min-width:0;font-size:13.5px;line-height:1.4;color:var(--bp-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.bp-compact-price{flex:none;font-size:13px;font-weight:800;color:var(--bp-error)}
+.bp-compact-name{flex:1;min-width:0;font-size:var(--fs-body-sm);line-height:1.4;color:var(--bp-text);overflow-wrap:anywhere}
+.bp-compact-price{flex:none;font-size:var(--fs-body-sm);font-weight:800;color:var(--bp-error)}
 
 /* ---- product detail page (PDP) ---------------------------------------- */
 /* The hero is PINNED: screens/ProductDetail.jsx renders it as a flex:none
@@ -469,7 +487,8 @@
 .bp-pdp-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px}
 .bp-pdp-dot{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.6);border:0;padding:0;cursor:pointer}
 .bp-pdp-dot.active{background:#fff;width:16px}
-.bp-pdp-page-indicator{position:absolute;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);color:#fff;font-size:11px;padding:2px 8px;border-radius:999px;z-index:2}
+.bp-pdp-page-indicator{position:absolute;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);color:#fff;font-size:var(--fs-caption);padding:2px 8px;border-radius:999px;z-index:2}
+/* Off the --fs-* ladder: a count in a 15px badge, whose line-height IS the badge. */
 .bp-cart-badge{position:absolute;top:-3px;right:-3px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:var(--bp-error);color:#fff;font-size:10px;line-height:15px;text-align:center;font-weight:700}
 
 .bp-pdp-body{padding:14px 16px 0}
@@ -493,38 +512,38 @@
 .bp-compact-row.is-decorative,
 .bp-list-row.is-decorative,
 .bp-searchbar.is-decorative{pointer-events:none;cursor:default}
-.bp-pdp-title{font-size:19px;font-weight:700;line-height:1.4;margin:8px 0 6px;color:var(--bp-text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.bp-pdp-meta-row{display:flex;align-items:center;gap:12px;color:var(--bp-text-secondary);font-size:13px}
+.bp-pdp-title{font-size:19px;font-weight:700;line-height:1.4;margin:8px 0 6px;color:var(--bp-text);overflow-wrap:anywhere}
+.bp-pdp-meta-row{display:flex;align-items:center;gap:12px;color:var(--bp-text-secondary);font-size:var(--fs-body-sm)}
 .bp-pdp-meta-row strong{color:var(--bp-text)}
 
 .bp-pdp-promo{display:flex;align-items:center;gap:10px;margin:14px 0 0;padding:10px 12px;border-radius:12px;background:var(--bp-gold-light);color:var(--bp-gold-deep)}
-.bp-pdp-promo-title{font-weight:800;font-size:13px}
-.bp-pdp-promo-sub{font-size:12px;opacity:.85}
+.bp-pdp-promo-title{font-weight:800;font-size:var(--fs-body-sm)}
+.bp-pdp-promo-sub{font-size:var(--fs-caption);opacity:.85}
 
 .bp-pdp-info-card{margin-top:14px;background:var(--bp-surface);border:1px solid var(--bp-border);border-radius:14px;padding:4px 14px}
-.bp-pdp-info-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bp-border);font-size:13px}
+.bp-pdp-info-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bp-border);font-size:var(--fs-body-sm)}
 .bp-pdp-info-row:last-child{border-bottom:0}
-.bp-pdp-info-row strong{display:block;font-size:13px;color:var(--bp-text)}
-.bp-pdp-info-row span{color:var(--bp-text-secondary);font-size:12.5px}
+.bp-pdp-info-row strong{display:block;font-size:var(--fs-body-sm);color:var(--bp-text)}
+.bp-pdp-info-row span{color:var(--bp-text-secondary);font-size:var(--fs-caption)}
 .bp-pdp-info-row svg{color:var(--bp-primary-dark);flex:none}
 
 .bp-pdp-spec{margin-top:14px;background:var(--bp-surface);border:1px solid var(--bp-border);border-radius:14px;overflow:hidden}
-.bp-pdp-spec-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:none;border:0;font-size:14px;font-weight:700;color:var(--bp-text);cursor:pointer;min-height:44px}
+.bp-pdp-spec-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:none;border:0;font-size:var(--fs-body);font-weight:700;color:var(--bp-text);cursor:pointer;min-height:44px}
 .bp-pdp-spec-body{padding:0 14px 14px}
-.bp-pdp-spec-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;color:var(--bp-text-secondary)}
+.bp-pdp-spec-row{display:flex;justify-content:space-between;padding:6px 0;font-size:var(--fs-caption);color:var(--bp-text-secondary)}
 .bp-pdp-spec-row strong{color:var(--bp-text);font-weight:600}
 
 .bp-pdp-shop-row{margin-top:14px;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bp-surface);border:1px solid var(--bp-border);border-radius:14px}
 .bp-pdp-shop-avatar{width:40px;height:40px;border-radius:50%;background:var(--bp-primary-tint);color:var(--bp-primary-dark);display:grid;place-items:center;font-weight:800;flex:none}
-.bp-pdp-shop-name{font-weight:700;font-size:14px}
-.bp-pdp-shop-meta{font-size:12px;color:var(--bp-text-secondary);margin-top:2px}
+.bp-pdp-shop-name{font-weight:700;font-size:var(--fs-body)}
+.bp-pdp-shop-meta{font-size:var(--fs-caption);color:var(--bp-text-secondary);margin-top:2px}
 
 .bp-pdp-section{margin-top:16px}
-.bp-pdp-section h3{font-size:14px;font-weight:700;margin:0 0 6px}
-.bp-pdp-section p{font-size:12.5px;line-height:1.7;color:var(--bp-text-secondary);margin:0}
+.bp-pdp-section h3{font-size:var(--fs-body);font-weight:700;margin:0 0 6px}
+.bp-pdp-section p{font-size:var(--fs-caption);line-height:1.7;color:var(--bp-text-secondary);margin:0}
 
 .bp-pdp-bottom-bar{flex:none;display:flex;align-items:stretch;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bp-surface);border-top:1px solid var(--bp-border)}
-.bp-pdp-chat-btn{flex:none;width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;color:var(--bp-text-secondary);background:none;border:0;cursor:pointer;min-height:44px}
+.bp-pdp-chat-btn{flex:none;width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:var(--fs-caption);color:var(--bp-text-secondary);background:none;border:0;cursor:pointer;min-height:44px}
 .bp-pdp-buy-btn{flex:1}
 
 /* ---- order timeline animation (Fix 8) ---------------------------------- */
@@ -548,7 +567,7 @@
 .bp-timeline-check{color:#fff}
 .bp-timeline-skip-card{text-align:center}
 .bp-timeline-skip-card svg{margin-bottom:8px}
-.bp-timeline-daycard{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:10px;background:var(--bp-surface-dim);color:var(--bp-text-secondary);font-size:12.5px;font-weight:700;animation:bpRevealIn .3s ease-out}
+.bp-timeline-daycard{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:10px;background:var(--bp-surface-dim);color:var(--bp-text-secondary);font-size:var(--fs-caption);font-weight:700;animation:bpRevealIn .3s ease-out}
 
 @media (prefers-reduced-motion: reduce){
   .bp-toast,.bp-typing i{animation:none!important}

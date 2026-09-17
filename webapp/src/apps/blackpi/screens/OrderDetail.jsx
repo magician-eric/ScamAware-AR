@@ -115,7 +115,7 @@ export function OrderDetail({
       <div className="bp-scroll bp-page">
         <div className="bp-card bp-section">
           <h2 className="bp-h2">{t(product.shop)}</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 'var(--fs-body)' }}>
             <AssetImage assetKey={product.assetKey} className="bp-compact-thumb" />
             <span style={{ flex: 1 }}>{t(product.name)}</span>
             <span style={{ flex: 'none', marginLeft: 10 }}>NT${product.price.toLocaleString()}</span>

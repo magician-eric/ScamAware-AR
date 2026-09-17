@@ -21,12 +21,12 @@ export function Home() {
         {/* 大盤指數 Market Index */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-3">
-            <div className="text-[11px] text-brand-gray">{t("home.tseIndexName")}</div>
+            <div className="text-[14px] text-brand-gray">{t("home.tseIndexName")}</div>
             <div className={`mt-1 text-xl font-bold ${directionColorClass(TSE_INDEX.change)}`}>{formatNumber(TSE_INDEX.value)}</div>
             <PriceChange change={TSE_INDEX.change} changePercent={TSE_INDEX.changePercent} />
           </Card>
           <Card className="p-3">
-            <div className="text-[11px] text-brand-gray">{t("home.otcIndexName")}</div>
+            <div className="text-[14px] text-brand-gray">{t("home.otcIndexName")}</div>
             <div className={`mt-1 text-xl font-bold ${directionColorClass(OTC_INDEX.change)}`}>{formatNumber(OTC_INDEX.value)}</div>
             <PriceChange change={OTC_INDEX.change} changePercent={OTC_INDEX.changePercent} />
           </Card>
@@ -37,20 +37,20 @@ export function Home() {
           className="grid grid-cols-2 gap-3 p-4"
         >
           <div>
-            <div className="text-[11px] text-brand-gray">{t("home.totalAssets")}</div>
+            <div className="text-[14px] text-brand-gray">{t("home.totalAssets")}</div>
             <div className="mt-1 text-lg font-bold text-brand-white">{formatInt(totalAssets)}</div>
-            <div className="text-[10px] text-brand-gray">{t("common.twd")}</div>
+            <div className="text-[14px] text-brand-gray">{t("common.twd")}</div>
           </div>
           <div className="text-right">
-            <div className="text-[11px] text-brand-gray">{t("home.todayPnl")}</div>
+            <div className="text-[14px] text-brand-gray">{t("home.todayPnl")}</div>
             <div className={`mt-1 text-lg font-bold ${directionColorClass(todayPnl)}`}>{formatInt(todayPnl)}</div>
-            <div className="text-[10px] text-brand-gray">{t("common.twd")}</div>
+            <div className="text-[14px] text-brand-gray">{t("common.twd")}</div>
           </div>
         </Card>
 
         {/* 市場趨勢圖 */}
         <Card className="p-3">
-          <div className="mb-1 text-[11px] font-semibold text-brand-gray">{t("home.marketTrend")}</div>
+          <div className="mb-1 text-[14px] font-semibold text-brand-gray">{t("home.marketTrend")}</div>
           <AreaTrendChart data={TSE_INDEX_DAY_TREND} positive={TSE_INDEX.change >= 0} height={130} />
         </Card>
 
@@ -63,8 +63,8 @@ export function Home() {
             loops at -50% so it reads as an endless scroll with no seam. */}
         <Card className="p-3">
           <div className="mb-1 flex items-center justify-between">
-            <div className="text-[11px] font-semibold text-brand-gray">{t("home.hotStocks")}</div>
-            <span className="text-[11px] font-medium text-brand-gold">
+            <div className="text-[14px] font-semibold text-brand-gray">{t("home.hotStocks")}</div>
+            <span className="text-[14px] font-medium text-brand-gold">
               {t("common.viewAll")}
             </span>
           </div>
