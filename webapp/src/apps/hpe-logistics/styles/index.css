@@ -11,7 +11,7 @@
   --hpe-yellow:#FFCC00;
   --hpe-yellow-deep:#8A6100; /* text-safe shade of the same hue - see brand/index.js */
   --hpe-yellow-tint:#FFF6DA; /* light fill for status pills/backgrounds under ink text */
-  --hpe-ink:#141414;
+  --hpe-ink:#000000;
 }
 
 /* Full-bleed app surface, matching every other App module's own
@@ -35,17 +35,17 @@
 .hpe-shipment-card__top{display:flex;justify-content:space-between;align-items:center;font-weight:800}
 .hpe-shipment-card dl{margin:16px 0 0}
 .hpe-shipment-card dl div{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #edf3f0}
-.hpe-shipment-card dt{color:#6a7f78;font-size:var(--fs-body-sm)}
+.hpe-shipment-card dt{color:#000;font-size:var(--fs-body-sm)}
 .hpe-shipment-card dd{margin:0;font-size:var(--fs-body-sm);font-weight:700}
 .hpe-status{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:99px;background:var(--hpe-yellow-tint);color:var(--hpe-yellow-deep);font-size:var(--fs-caption);font-weight:800}
 .hpe-tracking-panel{margin-top:14px;padding:20px}
 .hpe-timeline{list-style:none;margin:0;padding:0}
-.hpe-timeline li{position:relative;display:flex;align-items:center;gap:13px;min-height:52px;color:#899791;font-size:var(--fs-body)}
+.hpe-timeline li{position:relative;display:flex;align-items:center;gap:13px;min-height:52px;color:#000;font-size:var(--fs-body)}
 .hpe-timeline li:not(:last-child)::after{content:"";position:absolute;left:8px;top:34px;width:2px;height:27px;background:#dce7e2}
 .hpe-timeline__dot{z-index:1;display:grid;place-items:center;width:18px;height:18px;border:2px solid #c5d3cd;border-radius:50%;background:#fff}
 .hpe-timeline .is-current{color:var(--hpe-ink);font-weight:800}
 .hpe-timeline .is-current .hpe-timeline__dot{border:5px solid var(--hpe-yellow-deep)}
-.hpe-timeline .is-done{color:#5c5230}
+.hpe-timeline .is-done{color:#000}
 .hpe-timeline .is-done .hpe-timeline__dot{border-color:var(--hpe-yellow);background:var(--hpe-yellow);color:var(--hpe-ink)}
 .hpe-timeline li.is-done:not(:last-child)::after{background:var(--hpe-yellow)}
 .hpe-primary-button{display:flex;justify-content:center;align-items:center;gap:7px;width:100%;margin-top:18px;padding:13px;border:0;border-radius:12px;background:var(--hpe-yellow);color:var(--hpe-ink);font-size:var(--fs-body-lg);font-weight:800;cursor:pointer}

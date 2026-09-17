@@ -50,6 +50,13 @@
  * pages/staff/staff.css) all live in stylesheets loaded after this one, so
  * they still win - by specificity where they have more of it, and by source
  * order where they tie.
+ *
+ * That last sentence was only ever true of the rules with two selectors in
+ * them. `:not()` takes the specificity of its argument, so `p:not(.gugo-app *)`
+ * scores (0,1,1) and quietly outranked every ONE-class rule that colours a
+ * <p> - which is how six single-class captions across four App modules ended
+ * up rendering in --muted on their own white surfaces. The `p` colour is now
+ * split out behind `:where()` at (0,0,1); see the rule itself, below.
  */
 /* The one readable type scale, and the only place a size on it changes.
  *
@@ -117,7 +124,17 @@
    sign anything is wrong. Elements that deliberately want to flex/shrink (.chat, .phone-frame)
    set their own flex-shrink via `flex:1` further down and still win, since
    they're later in the cascade at equal specificity. */
-.app>*{flex-shrink:0}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;letter-spacing:.08em;color:#fff}.home-link{color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:999px}.hero,.card{background:var(--card);border-radius:20px;padding:clamp(14px,3.5vh,22px);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(10px)}h1:not(.gugo-app *){font-size:clamp(22px,6.4vw,32px);line-height:1.15;margin:10px 0}h2:not(.gugo-app *){font-size:clamp(18px,4.6vw,24px);margin:0 0 10px}p:not(.gugo-app *){color:var(--muted);line-height:1.5;font-size:clamp(15px,4.2vw,17px)}/* .btns.btns-dual (AUD-06): opt-in modifier making the pair two equal columns, for the screens whose AR Interaction Contract is `dual` - there LEFT and RIGHT are the whole decision, and a stacked pair gives the player on the glasses nothing on screen saying which wave is which. A modifier and NOT a change to .btns itself: most .btns groups are a single button, or a primary + secondary that are not a LEFT/RIGHT pair, and widening the base rule would restyle all of them. No media query, mirroring .antifraud-quiz-choices in components/ui/ScenarioFinalDecision.css - the pair must not restack vertically anywhere in the portrait range (320px-430px), because left-is-one-thing / right-is-the-other is the geometry being taught; labels wrap and the buttons grow taller instead. */.btns{display:grid;gap:10px;margin-top:14px}.btns.btns-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.btns.btns-dual>.btn{width:100%;min-width:0;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}.btn{appearance:none;border:0;border-radius:14px;padding:clamp(12px,2.6vh,16px) 16px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:white;font-size:clamp(16px,4.3vw,18px);font-weight:800;text-decoration:none;text-align:center;cursor:pointer}.btn.secondary{background:rgba(255,255,255,.09);border:1px solid var(--line)}.btn.danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}.warning{background:#19040a;border:1px solid var(--danger);border-radius:20px;padding:clamp(16px,4vh,22px);max-width:560px;margin:0 auto}.mini{font-size:var(--fs-body-sm);color:var(--muted)}
+.app>*{flex-shrink:0}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;letter-spacing:.08em;color:#fff}.home-link{color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:999px}.hero,.card{background:var(--card);border-radius:20px;padding:clamp(14px,3.5vh,22px);box-shadow:0 18px 60px rgba(0,0,0,.22);backdrop-filter:blur(10px)}h1:not(.gugo-app *){font-size:clamp(22px,6.4vw,32px);line-height:1.15;margin:10px 0}h2:not(.gugo-app *){font-size:clamp(18px,4.6vw,24px);margin:0 0 10px}p:not(.gugo-app *){line-height:1.5;font-size:clamp(15px,4.2vw,17px)}/* The colour, and ONLY the colour, is handed out at element specificity
+   via :where(). `p:not(.gugo-app *)` scores (0,1,1) - `:not()` takes the
+   specificity of its most specific argument, and `.gugo-app *` is a class -
+   so the bare element rule was OUTRANKING every single-class rule that sets
+   a colour on a <p>. `.bp-tertiary`, `.bp-muted`, `.bp-chat-choices-prompt`,
+   `.meetu-landing-sub`, `.meetu-profile-bio` and `.md-pick-sub` all lost to
+   it, so each rendered in --muted (#b9c7d9) on its own app's white surface:
+   1.6:1, measured. Only `color` moves down to (0,0,1); line-height and
+   font-size keep the specificity they had, because the type scale is
+   settled and nothing here may change a size. */
+p:where(:not(.gugo-app *)){color:var(--muted)}/* .btns.btns-dual (AUD-06): opt-in modifier making the pair two equal columns, for the screens whose AR Interaction Contract is `dual` - there LEFT and RIGHT are the whole decision, and a stacked pair gives the player on the glasses nothing on screen saying which wave is which. A modifier and NOT a change to .btns itself: most .btns groups are a single button, or a primary + secondary that are not a LEFT/RIGHT pair, and widening the base rule would restyle all of them. No media query, mirroring .antifraud-quiz-choices in components/ui/ScenarioFinalDecision.css - the pair must not restack vertically anywhere in the portrait range (320px-430px), because left-is-one-thing / right-is-the-other is the geometry being taught; labels wrap and the buttons grow taller instead. */.btns{display:grid;gap:10px;margin-top:14px}.btns.btns-dual{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.btns.btns-dual>.btn{width:100%;min-width:0;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}.btn{appearance:none;border:0;border-radius:14px;padding:clamp(12px,2.6vh,16px) 16px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:white;font-size:clamp(16px,4.3vw,18px);font-weight:800;text-decoration:none;text-align:center;cursor:pointer}.btn.secondary{background:rgba(255,255,255,.09);border:1px solid var(--line)}.btn.danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}.warning{background:#19040a;border:1px solid var(--danger);border-radius:20px;padding:clamp(16px,4vh,22px);max-width:560px;margin:0 auto}.mini{font-size:var(--fs-body-sm);color:var(--muted)}
 [hidden]{display:none!important}
 /* Shared by two App modules, so it stays in the shared layer rather than
    moving into either: Coin Winner's .bition-asset-card (apps/coin-winner/

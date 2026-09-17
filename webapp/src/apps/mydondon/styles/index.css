@@ -36,9 +36,13 @@
   --md-bg:#F5F7FA;
   --md-surface:#FFFFFF;
   --md-line:#E6E9EF;
-  --md-text:#151A21;
-  --md-text-2:#5B6472;
-  --md-text-3:#98A0AC;
+  /* All three greys are now black. --md-text-3 is the bottom nav's resting
+     label and the search placeholder and measured 2.6:1 on white; --md-text-2
+     carries the product descriptions at 6.0:1. The names stay because size and
+     weight still carry the hierarchy - only the colour is shared. */
+  --md-text:#000000;
+  --md-text-2:#000000;
+  --md-text-3:#000000;
   --md-bubble:#EEF0F4;
 
   /* -- SafeDeal, the fake external trading site (data/scenario05FakeSite.js)
@@ -54,13 +58,15 @@
   --sq-purple-tint:#F4F1FF;    /* light fill under the success icon / soft accents */
   --sq-bg:#FBFAFF;
   --sq-line:#E8E4F8;
-  --sq-text:#20232B;
-  --sq-text-2:#68707E;
+  /* Same, for SafeDeal: --sq-text-2 labels every field on the fake transfer
+     form (5.0:1 on white) and --sq-text is its body copy. */
+  --sq-text:#000000;
+  --sq-text-2:#000000;
 
   /* -- brief transitional "processing" beat (see .bk-processing below) -- */
   --bk-navy:#12305B;
   --bk-bg:#EEF1F6;
-  --bk-text:#101828;
+  --bk-text:#000000;
 
   /* -- CIBAR system (setup + result + education) ------------------------ */
   --cib-bg:#0A1A2F;
@@ -146,7 +152,7 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .md-home-sell{flex:none;width:100%;appearance:none;border:0;font-family:inherit;text-align:left;cursor:pointer;background:linear-gradient(135deg,var(--md-blue),#6e9cff);color:#fff;border-radius:18px;padding:26px 20px 20px;display:flex;flex-direction:column;gap:7px;box-shadow:0 10px 26px rgba(37,99,235,.24);transition:transform .12s ease,box-shadow .12s ease}
 .md-home-sell:active{transform:scale(.99);box-shadow:0 6px 16px rgba(37,99,235,.2)}
 .md-home-sell strong{font-size:24px;font-weight:900;line-height:1.25;letter-spacing:-.01em}
-.md-home-sell-sub{font-size:var(--fs-body-sm);opacity:.92;line-height:1.5}
+.md-home-sell-sub{font-size:var(--fs-body-sm);line-height:1.5}
 .md-home-sell-action{align-self:flex-end;margin-top:5px;font-size:var(--fs-body-sm);font-weight:800;letter-spacing:.01em}
 
 /* ---- MyDonDon 刊登商品・選擇要出售的商品 (pushed screen, no tab bar) ----
@@ -283,7 +289,7 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .wb-icon-btn{width:34px;height:34px;min-width:34px;border:0;background:none;color:#39414B;display:grid;place-items:center;border-radius:999px;cursor:pointer;flex:none}
 .wb-icon-btn:active{background:rgba(0,0,0,.08)}
 .wb-icon-display{cursor:default;pointer-events:none}
-.wb-omnibox{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;background:#fff;border-radius:999px;height:30px;padding:0 12px;color:#39414B}
+.wb-omnibox{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;background:#fff;border-radius:999px;height:30px;padding:0 12px;color:#000}
 .wb-domain{font-size:var(--fs-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:system-ui,-apple-system,sans-serif}
 
 /* =======================================================================
@@ -298,8 +304,9 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .sq-brand-icon{flex:none;opacity:.95}
 .sq-wordmark{font-size:18px;font-weight:900;letter-spacing:.02em}
 /* Off the --fs-* ladder: the small half of the fake site's wordmark lockup. */
-.sq-brand-tag{font-size:11px;opacity:.82;margin-top:3px}
-.sq-section{font-size:var(--fs-caption);font-weight:600;margin-top:8px;opacity:.95}
+/* No opacity: .82 over the purple masthead put this at 3.6:1. */
+.sq-brand-tag{font-size:11px;margin-top:3px}
+.sq-section{font-size:var(--fs-caption);font-weight:600;margin-top:8px}
 .sq-page{padding:14px 14px calc(20px + env(safe-area-inset-bottom));gap:0}
 
 .sq-field{background:#fff;border:1px solid var(--sq-line);border-radius:12px;padding:12px 14px;margin-top:10px}
@@ -334,7 +341,9 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .sq-alert{display:flex;gap:10px;background:#FDECEB;border:1px solid #F3B6B0;padding:14px}
 .sq-alert-icon{color:#D92D20;flex:none}
 .sq-alert-title{font-size:var(--fs-body-lg);font-weight:800;color:#8C2318}
-.sq-alert-code{font-size:var(--fs-caption);color:#8C2318;opacity:.85;margin-top:6px;font-family:monospace}
+/* No opacity: it took the code to 5.7:1 on the alert's own pink; the alert red
+   stays, and now reads 7.8:1 (§1.5 - keep the semantics, fix the contrast). */
+.sq-alert-code{font-size:var(--fs-caption);color:#8C2318;margin-top:6px;font-family:monospace}
 .sq-fields div{display:flex;justify-content:space-between;gap:12px;font-size:var(--fs-caption);padding:8px 0;border-top:1px solid var(--sq-line)}
 .sq-fields div:first-child{border-top:0}
 .sq-fields dt{color:var(--sq-text-2);flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
