@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.7.1-20260917.004` | 1.2.0 | 1.7.1 | 2026-09-17 | #12 | `de8513a` | PATCH | Merge pull request #12 from magician-eric/claude/youthful-euler-pvpjd6 |
 | `1.7.0-20260917.003` | 1.2.0 | 1.7.0 | 2026-09-17 | #11 | `c06e9fc` | MINOR | Merge pull request #11 from magician-eric/claude/inspiring-cannon-dh30oq |
 | `1.6.0-20260917.002` | 1.2.0 | 1.6.0 | 2026-09-17 | #8 | `17175e7` | MINOR | Merge pull request #8 from magician-eric/claude/brave-galileo-qfr88p |
 | `1.5.4-20260917.001` | 1.2.0 | 1.5.4 | 2026-09-17 | #7 | `9e489c2` | PATCH | Merge pull request #7 from magician-eric/claude/kind-gates-bwld4m |
