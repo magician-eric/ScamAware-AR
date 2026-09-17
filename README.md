@@ -64,7 +64,7 @@ npm run lint     # oxlint 檢查
 主要程式位置：
 
 - `webapp/src/pages/scenario04/` - 所有畫面（首頁、搜尋、商品頁、各對話畫面、退貨/退款、165、結算…）
-- `webapp/src/data/dialogueTrees/` - 對話樹資料（韓國保健食品／驚喜福袋兩條路線、黑皮客服、165 模擬通話）
+- `webapp/src/data/dialogueTrees/` - 對話樹資料（智慧掃拖機器人／VEXA FLEX X1 摺疊手機兩條路線、黑皮客服、165 模擬通話）
 - `webapp/src/data/products.js` / `scenarioConfig.js` / `assetMap.js` - 商品、證據清單、佔位圖資料
 - `webapp/src/features/shopping/dialogueEngine.js` - 通用分支對話引擎（含玩家選擇、效果分數、已讀/已送達、hub 式重複提問過濾）
 - `webapp/src/lib/shoppingStore.js` - 情境狀態（localStorage 持久化，支援重整後恢復）

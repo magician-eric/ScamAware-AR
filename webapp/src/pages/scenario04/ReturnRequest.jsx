@@ -13,8 +13,8 @@ const RETURN_COPY = {
     detail: '購買商品為智慧掃地機器人，實際收到可拆式掃把與畚箕。',
   },
   luckyBag: {
-    reason: '商品與廣告內容明顯不符',
-    detail: '商品頁宣稱含品牌商品，但實際收到內容與商品宣傳有明顯落差。',
+    reason: '商品與描述不符',
+    detail: '商品頁宣稱為 VEXA FLEX X1 8.7 吋摺疊手機，實際收到兩支舊手機以轉軸拼接的商品，並非廣告所示的摺疊手機，且具有兩個獨立 Micro USB 充電孔。要求退貨並全額退款 NT$29,800。',
   },
 };
 
@@ -27,8 +27,8 @@ const RETURN_COPY = {
 // direct deep link) just shows the gap via the "沒有可附上的照片" badge
 // below rather than pretending the photos exist.
 //
-// One component serves BOTH routes (health / luckyBag), so the layout rules
-// below - the four unboxing photos as the only attachment, and the CTA
+// One component serves BOTH routes (智慧掃拖機器人 / VEXA FLEX X1), so the
+// layout rules below - the four unboxing photos as the only attachment, and the CTA
 // pinned outside the scroller - hold for both products by construction;
 // nothing here is per-product.
 export function ReturnRequest() {

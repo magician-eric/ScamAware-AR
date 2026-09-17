@@ -12,7 +12,6 @@ export const EN = {
   // Shared / repeated across many files
   // ---------------------------------------------------------------------
   '返回': 'Back',
-  '好日子驚喜選物': 'Good Day Surprise Picks',
   '三天後': 'Three Days Later',
   '物流更新中…': 'Refreshing…',
   '賣家已簽收': 'Received by Seller',
@@ -196,25 +195,119 @@ export const EN = {
   // ---------------------------------------------------------------------
   '開啟黑皮購物': 'Launch HappyPick Shopping',
 
+  // ------------------------------------------------------------------
+  // Route B - VEXA FLEX X1 (data/dialogueTrees/luckyBag.js, delay.js,
+  // data/scenarioConfig.js, pages/scenario04/Unboxing.jsx / ReturnRequest
+  // .jsx / Ending.jsx)
+  // ------------------------------------------------------------------
+  '您好，這批 VEXA FLEX X1 是品牌限時體驗活動，數量有限。':
+    'Hi there — this batch of VEXA FLEX X1 is part of a limited-time brand experience promotion, so quantities are limited.',
+  '這是正版摺疊手機嗎？': 'Is this a genuine foldable phone?',
+  '請問這是 VEXA FLEX X1 正版摺疊手機嗎？': 'Is this an authentic VEXA FLEX X1 foldable phone?',
+  '螢幕可以完整展開嗎？': 'Does the screen open out fully?',
+  '螢幕是可以完整展開的那種嗎？': 'Does the screen unfold into one full display?',
+  '是的！目前是品牌限時體驗活動，所以才有這個優惠價格😊':
+    'Yes! We\'re running a limited-time brand trial promotion, which is why we\'re offering this special price. 😊',
+  '有保固卡或 IMEI 嗎？': 'Is there a warranty card or an IMEI?',
+  '可以先提供保固卡或 IMEI 嗎？': 'Could you send me the warranty card or the IMEI first?',
+  '可以看實機照片嗎？': 'Can I see photos of the actual unit?',
+  '可以看實機的照片嗎？': 'Could I see a photo of the actual unit?',
+  '保固資料會隨機出貨一起寄出，體驗活動的機器目前無法先提供單一序號。':
+    'The warranty paperwork ships together with the phone. For promotion units we can\'t give out an individual serial number in advance.',
+  '您放心，這批的做工真的很不錯，很多客人回購第二支送家人。':
+    'Don\'t worry, the build quality on this batch is genuinely good — plenty of customers come back for a second one to give to family.',
+  '這批今天只剩最後 12 台，很多客人一次下兩單。': 'Only 12 units left in today\'s batch — a lot of customers order two at once.',
+  '這批賣得很快，已經沒剩多少台了，庫存數字是系統即時更新的。':
+    'This batch is moving fast and there aren\'t many units left. The stock figure updates live.',
+  '頁面上的圖片就是這個型號的商品圖，實際外觀仍以出貨批次為準。':
+    'The photos on the page are this model\'s product shots; the actual appearance still depends on the shipping batch.',
+  '是的，8.7 吋旗艦摺疊大螢幕，商品規格與圖片皆以頁面展示為準。':
+    'Yes. It features an 8.7-inch flagship foldable display. The specifications and images shown on the product page apply.',
+  '原價真的是 69,800 嗎？': 'Is NT$69,800 really the list price?',
+  '原價真的是 NT$69,800 嗎？': 'Is the original price really NT$69,800?',
+  '為什麼只賣 29,800？': 'Then why only NT$29,800?',
+  '為什麼只賣 NT$29,800？': 'Then why is it only NT$29,800?',
+  '原價是品牌公布的建議售價，這個型號在台灣還沒有正式上市通路，所以查不到相同品項。':
+    'That\'s the brand\'s published recommended retail price. This model hasn\'t launched through official channels in Taiwan yet, so you won\'t find the same item listed anywhere.',
+  '這是品牌體驗與庫存回饋活動，數量有限，所以才有這個價格。':
+    'It\'s a brand experience and inventory give-back promotion — limited quantities, which is why the price is what it is.',
+  '未使用、配件完整都可以依黑皮購物七天鑑賞期申請，不過開機啟用或機身有使用痕跡就不接受退貨。':
+    'As long as it\'s unused and all the accessories are there, you can file under HappyPick Shopping\'s 7-day return window — but once it\'s been powered on and activated, or the body shows signs of use, we can\'t accept a return.',
+  '如果收到的不是這款手機呢？': 'And if what arrives isn\'t this phone?',
+  '這批都是同一條產線出貨的摺疊機型，外觀細節仍以商品頁展示為準。':
+    'This whole batch is the same foldable model off one production line; for the finer details of the appearance, the product page is what applies.',
+  '我收到的根本不是商品頁上的手機！這是兩支舊手機接在一起吧？':
+    'This isn\'t the phone shown on the product page at all! Aren\'t these just two old phones joined together?',
+  '您收到的確實是雙手機摺疊款，摺疊功能正常。':
+    'What you received is indeed our dual-phone folding model. The folding function works normally.',
+  '兩支手機各有一個充電孔，我要退貨': 'Each phone has its own charging port — I want a return',
+  '兩支手機連充電孔都各有一個！我要退貨退款。': 'Each phone even has its own charging port! I want to return this and get a refund.',
+  '不同批次外觀可能略有差異，但商品確實具備摺疊功能。':
+    'The appearance may vary slightly between production batches, but the product does have a folding function.',
+  '不同批次外觀可能略有差異，可能您比較沒注意到，但商品確實具備摺疊功能。':
+    'Appearance can vary slightly between batches — you may not have noticed — but the product does have a folding function.',
+  '出貨批次是系統統一配發的，客服這邊只能依照系統紀錄回覆規格，商品確實具備摺疊功能。':
+    'Shipping batches are assigned by the system, so all support can go by is what is logged for the specs. The product does have a folding function.',
+  '這明明是兩支獨立手機': 'These are plainly two separate phones',
+  '商品寫的是 8.7 吋摺疊手機，這明明是兩支獨立手機！':
+    'The listing says it\'s an 8.7-inch foldable phone, but these are clearly two separate phones!',
+  '這款是雙機身摺疊設計，兩邊各自獨立運作也屬於規格的一部分。':
+    'This model uses a dual-body foldable design; each side operating independently is part of the spec.',
+  '賣家可能用「不同批次」「規格差異」等說法帶過貨不對版，建議先保存實際收到的商品照片與商品頁宣稱，再決定是否申請退貨。':
+    'Sellers can wave away goods that don’t match the ad with talk of "different batches" or "spec variations". Save photos of what actually arrived and of what the listing claimed before deciding whether to file a return.',
+  '很抱歉造成您的困擾，請透過平台申請退貨，我們會協助處理。':
+    'We\'re sorry for the inconvenience. Please submit a return request through the platform, and we\'ll assist you.',
+  '真的很不好意思讓您久等，倉庫已經檢查過，商品摺疊功能正常，我再幫您跟他們確認一次。':
+    'So sorry for the long wait. The warehouse has already checked it and the folding function works normally — I\'ll confirm with them once more for you.',
+  '經檢查，商品摺疊功能正常，與您描述不符。': 'After inspection, we found that the product\'s folding function works normally. This does not match your description.',
+  '倉庫檢查結果是商品摺疊功能正常，與您描述不符，驗收結果都是系統統一判定的。':
+    'The warehouse\'s finding is that the folding function works normally, which doesn\'t match your description. Inspection outcomes are decided by the system across the board.',
+  '合起來不代表它是摺疊手機': 'Closing it doesn\'t make it a foldable',
+  '能把兩支手機合起來，不代表它是摺疊手機！': 'Being able to fold two phones together doesn\'t make it a foldable phone!',
+  '目前已提交專員複核，請您耐心等候。': 'Your case has been submitted for further review. Please wait patiently.',
+  '倉庫那邊回報機身好像有一點使用痕跡，我幫您跟主管確認一下，不好意思還要再等等。':
+    'The warehouse flagged what looks like some signs of use on the body — let me check with a supervisor. Sorry, it\'ll be a little longer.',
+  '倉庫回報機身外觀有使用痕跡，目前需要確認是否符合退貨條件。':
+    'The warehouse reports signs of use on the body, so we need to confirm whether it still meets the return conditions.',
+  '系統顯示機身外觀有使用痕跡，這部分需要走主管覆核流程，客服無法直接判斷。':
+    'The system shows signs of use on the body. That has to go through a supervisor review — support can\'t decide it directly.',
+  '商品收到了為什麼還不退款': 'You have the item — why no refund?',
+  '商品你們已經收到了，為什麼還不退款？': 'You\'ve already received the returned item. Why haven\'t you issued my refund?',
+  '退款審核尚未完成，請勿重複提交申請。': 'Your refund is still under review. Please do not submit duplicate requests.',
+  'VEXA FLEX X1 旗艦摺疊手機': 'VEXA FLEX X1 Flagship Foldable Phone',
+  '賣家迴避提供保固或序號證明': 'Seller Dodged Providing a Warranty or Serial Number',
+  '原價宣稱無法查證': 'The Claimed List Price Couldn\'t Be Verified',
+  '賣家擴大解釋商品規格說法': 'Seller Stretched What the Product Spec Meant',
+  '賣家以「規格差異」解釋貨不對版': 'Seller Explained the Mismatch Away as a "Spec Variation"',
+  '等等……這是兩支手機接在一起的？': 'Wait... are these two phones joined together?',
+  '這根本是兩支獨立手機，中間用塑膠轉軸接起來的！': 'These are two separate phones connected by a plastic hinge!',
+  '實際收到的雙機身手機': 'The dual-body phone that actually arrived',
+  '中間的塑膠轉軸': 'The plastic hinge in the middle',
+  '摺疊背面的兩個 Micro USB 充電孔': 'Two Micro USB charging ports on the folded rear',
+  '包裹裡的實際內容物': 'What was actually in the parcel',
+  '8.7 吋旗艦摺疊大螢幕': '8.7-inch flagship foldable display',
+  '兩支獨立手機的螢幕': 'Two separate phone screens',
+  '一體成型摺疊機身': 'One-piece foldable body',
+  '塑膠轉軸拼接': 'Spliced with a plastic hinge',
+  '旗艦三鏡頭': 'Flagship triple camera',
+  '兩組低階相機': 'Two low-end cameras',
+  '規格與商品頁不符': 'Specs don\'t match the product page',
+  '機身底部 USB-C 充電埠': 'USB-C charging port on the bottom of the body',
+  '兩個獨立 Micro USB 充電孔': 'Two separate Micro USB charging ports',
+  '商品頁宣稱為 VEXA FLEX X1 8.7 吋摺疊手機，實際收到兩支舊手機以轉軸拼接的商品，並非廣告所示的摺疊手機，且具有兩個獨立 Micro USB 充電孔。要求退貨並全額退款 NT$29,800。':
+    'The listing advertised a VEXA FLEX X1 8.7-inch foldable phone. However, I received two old phones joined together by a hinge, not the foldable phone shown in the advertisement. Each phone has its own Micro USB charging port. I request a return and a full refund of NT$29,800.',
+  '遠低於原價的「限時優惠」可能只是誘餌': 'A "limited-time deal" far below list price can be nothing but bait',
+  '遠低於原價的限時優惠，可能利用價格吸引消費者忽略商品真偽與賣家資訊。購買前先確認商品規格、賣家資訊與交易保障，並保存商品頁面及賣家承諾。':
+    'A limited-time price far below the list price can use the discount itself to pull attention away from whether the product is genuine and who the seller is. Before buying, check the specs, the seller details and what transaction protection applies - and keep a copy of the listing and of whatever the seller promised.',
+
   // ---------------------------------------------------------------------
   // pages/scenario04/Unboxing.jsx
   // ---------------------------------------------------------------------
-  '包裹裡沒有廣告中的精品禮盒。': "The package doesn't have the gift set shown in the ad.",
-  '一個沒有品牌標示的塑膠手機架': 'An unbranded plastic phone stand',
-  '一雙普通襪子': 'A plain pair of socks',
-  '一個普通鑰匙圈': 'A plain keychain',
-  '把東西全部拿出來後，福袋裡只有這四樣商品。': 'After taking everything out, these are the only four items in the surprise bag.',
   '把東西全部拿出來後，箱子裡只有這些東西。': 'After taking everything out, this is all that was in the box.',
-  '手機架': 'Phone stand',
-  '襪子': 'Socks',
-  '杯子': 'Mug',
-  '鑰匙圈': 'Keychain',
   '這和商品頁展示的內容差太多了。': 'This is nothing like what the product page showed.',
   '查看商品頁與實際內容': 'Compare the Listing and Actual Items',
-  '保證品牌商品': 'Guaranteed name-brand products',
-  '總價值超過 NT$5,000': 'Worth over $170 total',
-  '限量精選商品': 'limited-edition picks',
   '包裹已送達': 'Package Has Arrived',
+  '商品已送達，準備開箱': 'Your order has arrived. Time to unbox it.',
   '拆開外箱': 'Open the Box',
   '先拍照': 'Take Photos First',
   '繼續查看': 'Keep Going',
@@ -248,67 +341,15 @@ export const EN = {
   // ---------------------------------------------------------------------
   // data/dialogueTrees/luckyBag.js
   // ---------------------------------------------------------------------
-  '您好，這批是限量精品驚喜福袋，每袋都保證有品牌商品喔。':
-    'Hey there! This is our limited-edition limited-edition surprise bag — every single bag comes with a name-brand product guaranteed.',
-  '一定有知名品牌嗎？': 'Is a name-brand product really guaranteed?',
-  '價值真的超過五千？': 'Is it really worth over $170?',
-  '價值真的超過五千嗎？': 'Is it really worth over $170?',
-  '每袋至少有一件合作品牌商品，但品牌與款式無法指定。':
-    "Every bag has at least one item from a partner brand, but you can't pick which brand or style you get.",
-  '有哪些合作品牌？': 'Which brands do you work with?',
-  '可以看買家開箱嗎？': 'Can I see what other buyers got?',
-  '可以看其他買家的開箱嗎？': 'Can I see what other buyers unboxed?',
-  '合作品牌會依批次調整，為了保留驚喜感，目前不公開完整名單。':
-    "Our partner brands change batch to batch — to keep the surprise alive, we don't publish the full list.",
-  '您放心，這批品質真的很不錯，很多人一次買兩袋回購。':
-    "Don't worry, the quality's genuinely great — a lot of people grab two bags at once and come back for more.",
-  '這批今天只剩最後 12 組，很多人一次買兩袋。': 'Only 12 left in today’s batch — a lot of people are buying two at a time.',
-  '這批賣得很快，已經沒剩多少組了，庫存數字是系統即時更新的。':
-    "This one's moving fast, not much left. Stock updates live.",
-  '圖片是過去批次的內容示意，每一袋不保證完全相同。':
-    "That photo's from a past batch, just to give you an idea — every bag isn't guaranteed to be exactly the same.",
-  '是以商品原始建議售價計算，每袋商品的建議售價合計都超過 NT$5,000。':
-    "That's based on full retail price — add up everything in the bag at its original price and it comes out to over $170.",
-  '原始售價可以查嗎？': 'Can I check the original prices myself?',
-  '為什麼只賣 999？': "Then why's it only $35?",
-  '因為部分商品是合作通路限定款，公開通路不一定查得到相同品項。':
-    "Some of these are exclusive to partner retailers or partner brands, so the price tag might not show up anywhere here.",
-  '這是品牌宣傳與庫存回饋活動，數量有限，所以用福袋形式提供。':
-    "Think of it as a brand promo mixed with a bit of inventory clear-out — that's why it's bundled as a surprise bag while supplies last.",
   '我想先問退貨規則': 'I want to hear the return policy first',
   '我想先問退貨規則。': 'Can you walk me through the return policy first?',
-  '未使用、商品完整都可以依黑皮購物七天鑑賞期申請，不過福袋內容隨機，不接受因款式不喜歡退貨。':
-    "As long as it's unused and everything's there, you can return it under our 7-day inspection window — but since the contents are random, we can't take it back just because you don't love the style.",
-  '如果完全沒有品牌商品呢？': "What if there's no name-brand product at all?",
   '如果跟描述不符呢？': 'What if it doesn’t match what was advertised?',
   '如果商品跟描述不符呢？': "What happens if it doesn't match the listing?",
-  '我們的合作選物也屬於品牌商品，只是有些品牌在台灣比較少見。':
-    "Our partner picks count as name-brand products too — some just aren't as well known here.",
   '若有明顯出貨錯誤，可以提交照片讓倉庫判定。':
     "If there's a clear mix-up with your order, send us photos and we'll have the warehouse take a look.",
-  '你好，我收到的福袋裡完全沒有商品頁說的品牌精品，這是寄錯了嗎？':
-    "Hi, the surprise bag I got doesn't have any of the name-brand items the listing promised — was this a shipping mistake?",
-  '您好，福袋的內容本來就是隨機搭配，每位買家收到的商品都不同喔。':
-    "Hey, the whole point of a surprise bag is that it's random — everyone gets something different.",
-  '沒有品牌商品，我要退貨': "There's no name-brand product in here at all — I want a return",
-  '完全沒有品牌商品，我要退貨。': "There's genuinely no name-brand product in this bag. I'd like a return.",
-  '品牌商品包含我們合作的選物品牌，可能您比較沒注意到，我幫您再確認一次內容。':
-    "Brand items include our partner curated partner brands — you might've missed it, let me take another look at what's in there for you.",
-  '品牌商品包含我們合作的選物品牌，不一定是大家熟悉的國際品牌。':
-    "Brand items include our partner curated partner brands — they're just not always names you'd recognize internationally.",
-  '請指出哪一件是品牌商品': "Can you point out which item's supposed to be the brand one?",
-  '請指出哪一件是品牌商品。': 'Which item are you saying should count as the name-brand product?',
   '好吧，可能我誤會了': 'Ah, fair enough, maybe I got it wrong',
   '好吧，可能是我誤會了。': 'Fair enough, maybe I misread it.',
-  '福袋商品清單是系統依批次配發的，客服這邊只能依照系統紀錄回覆品牌類別。':
-    "The bag contents get assigned by our system per batch, so I can only go by what's logged for the brand category.",
-  '手機架是合作生活品牌的商品，只是採用簡約包裝，因此沒有明顯 Logo。':
-    "That phone stand's from one of our partner lifestyle brands — it just comes in simple packaging, so there's no logo on it.",
   '商品爭議提醒': 'Product Dispute Notice',
-  '「品牌商品」的定義可能被賣家擴大解釋，建議先保存商品內容與商品頁宣稱，再決定是否申請退貨。':
-    'Sellers can stretch the definition of "name-brand product" pretty far. Save what\'s in the bag and what the listing actually claimed before deciding whether to file a return.',
-  '可以協助您申請退貨，不過福袋內容為隨機出貨，需要倉庫確認是否符合退貨條件。':
-    'Happy to help file that return — just know the bag contents are random, so the warehouse needs to confirm it actually qualifies.',
   '商品與描述不符，不是不喜歡': "It doesn't match the listing — I don't just dislike it",
   '是商品與描述不符，不是單純不喜歡。': "It doesn't match what was advertised — this isn't about not liking it.",
 
@@ -324,12 +365,6 @@ export const EN = {
   '已加入證據包。': 'Added to your evidence file.',
   '真的很不好意思讓您久等，倉庫這幾天在依序驗收，我會請他們優先處理您的訂單。':
     "Really sorry for the wait — our warehouse is working through inspections in order, I'll get them to bump your order up.",
-  '真的很不好意思讓您久等，倉庫這幾天在確認商品是否完整，我會請他們優先處理您的訂單。':
-    "Really sorry for the wait — our warehouse is still checking that everything's there, I'll get them to bump your order up.",
-  '倉庫正在確認福袋商品與包裝是否完整，通常需要 3 至 5 個工作天。':
-    "The warehouse is confirming the surprise bag's contents and packaging are all there — that usually takes 3-5 business days.",
-  '驗收流程都是系統統一排程，需要 3 至 5 個工作天，無法個別加快。':
-    "Inspections run on a set schedule system-wide — 3-5 business days, and we can't speed that up for one order.",
   '請給我確切完成日期': "Can you give me a firm date this'll be done?",
   '請給我確切完成日期。': "Can you give me an exact date this'll be finished?",
   '好，我等五天': "Fine, I'll give it five more days",
@@ -339,16 +374,10 @@ export const EN = {
   '五天後': 'Five Days Later',
   '倉庫那邊回報外盒好像有一點拆封痕跡，我幫您跟主管確認一下，不好意思還要再等等。':
     "Warehouse just flagged that the outer box looks like it might've been opened before — let me run this by a supervisor, sorry for the extra wait.",
-  '倉庫那邊回報有一件商品外包裝已經拆開，我幫您跟主管確認一下，不好意思還要再等等。':
-    "Warehouse flagged that one item's packaging looks like it's already been opened — let me run this by a supervisor, sorry for the extra wait.",
   '倉庫回報商品外盒有拆封痕跡，目前需要主管進一步確認。':
     "Warehouse says the outer box shows signs it's been opened, so this needs a supervisor to sign off before we go further.",
-  '倉庫回報其中一件商品的外包裝已拆開，目前需要確認是否符合退貨條件。':
-    "Warehouse says one item's packaging's already open, so we need to confirm it still qualifies for a return.",
   '系統顯示商品外盒有拆封痕跡，這部分需要走主管覆核流程，客服無法直接判斷。':
     "Our system's showing the outer box has tampering marks. This has to go through supervisor review — that's not something I can decide on my end.",
-  '系統顯示商品外包裝已拆開，這部分需要走主管覆核流程，客服無法直接判斷。':
-    "Our system's showing the packaging's already been opened. This has to go through supervisor review — that's not something I can decide on my end.",
   '同意退貨卻不退款，這樣不合理': "You approved the return but still haven't refunded me — that's not okay",
   '你們已經同意退貨，卻一直沒有退款，這樣不合理。': "You already approved the return, but the refund still hasn't come through. That's not okay.",
   '我要聯絡平台': 'I want to bring the platform into this',
@@ -404,9 +433,7 @@ export const EN = {
   // ---------------------------------------------------------------------
   // data/products.js
   // ---------------------------------------------------------------------
-  '合作通路': 'partner retailers',
   '商品來源 ': 'Origin ',
-  '合作選物 ': 'Partner Picks ',
   '優選生活館': 'Everyday Picks',
 
   // ---------------------------------------------------------------------
@@ -416,18 +443,11 @@ export const EN = {
   '賣家事後更改商品規格說法': 'Seller Changed Their Story About the Product Specs Afterward',
   '商品爭議尚未釐清就提前完成訂單': 'Marked the Order Complete Before the Dispute Was Settled',
   '聯絡賣家前已先保存證據': 'Saved Evidence Before Contacting the Seller',
-  '賣家迴避說明合作品牌': "Seller Was Vague About Their Partner Brands",
-  '福袋價值宣稱無法查證': "Surprise Bag's Claimed Value Couldn't Be Verified",
-  '賣家擴大解釋「品牌商品」定義': 'Seller Stretched the Definition of "Name-Brand Product"',
   '賣家承認商品圖僅供參考': 'Seller Admitted the Photo Was "For Reference Only"',
-  '賣家指稱的品牌商品無法查證': "Couldn't Verify the Brand the Seller Claimed",
   '賣家僅承諾有條件退款': 'Seller Only Offered a Conditional Refund',
   '賣家事後變更退貨承諾內容': 'Seller Changed the Return Terms Afterward',
   '其他': 'Other',
-  '缺少承諾的品牌商品': 'Missing the Promised Name-Brand Product',
-  '商品價值與廣告明顯不符': 'Value Way Off from the Ad',
   '商品與描述不符': "Doesn't Match the Description",
-  '沒有承諾的品牌商品 ': 'Missing the Promised Name-Brand Product ',
   '下單': 'Order Placed',
   '收貨 ': 'Item Received ',
   '聯絡賣家': 'Contacted Seller',
@@ -484,7 +504,6 @@ export const EN = {
   // ---------------------------------------------------------------------
 
   'APP 遠端控制': 'App remote control',
-  '一般生活雜物': 'Ordinary household odds and ends',
   '主動詢問商品規格與功能': 'Asked about the specs and features up front',
   '倉庫目前正在依序驗收，家電商品需要確認配件是否齊全，通常需要 3 至 5 個工作天。':
     'The warehouse is working through inspections in order. Appliances also need an accessory check, so it usually takes 3 to 5 business days.',
@@ -501,7 +520,6 @@ export const EN = {
   '可拆式掃把＋畚箕': 'A detachable broom and a dustpan',
   '同型號的操作影片由原廠統一管理，客服端沒有辦法逐筆調閱，不過這款已經賣出兩千多台，目前沒有大規模反映問題。':
     'Demo videos for this model are managed centrally by the manufacturer, and support can\'t pull them one by one. That said, we\'ve sold over two thousand units and there\'s been no widespread complaint so far.',
-  '品牌精品商品': 'Branded designer items',
   '商品頁完全沒有寫手動版': 'The listing never said manual',
   '商品頁宣稱的功能不存在': 'Features claimed on the listing don\'t exist',
   '商品頁宣稱的功能與實際收到的商品完全不符，賣家在收到退貨後持續拖延退款並停止營業。':
@@ -525,7 +543,6 @@ export const EN = {
   '我想再確認一下規格。': 'I\'d like to double-check the specs first.',
   '我想再確認規格': 'I\'d like to double-check the specs',
   '手動清掃工具': 'A manual cleaning tool',
-  '手機架、襪子、杯子、鑰匙圈': 'A phone stand, socks, a mug, a keyring',
   '掃把頭': 'Broom Head',
   '掃拖二合一': '2-in-1 sweep and mop',
   '操作影片由原廠統一製作，目前還在更新，不過功能都與商品頁一致，請放心。':
@@ -533,7 +550,6 @@ export const EN = {
   '收到的不是機器人，我要退貨': 'This isn\'t a robot — I want to return it',
   '收到的商品與商品頁完全不同': 'The item received is completely different from the listing',
   '收到的根本不是掃地機器人，我要退貨。': 'What I got isn\'t a robot vacuum at all. I want to return it.',
-  '數件低價商品': 'A handful of cheap items',
   '是的，下載 APP 就可以遠端啟動、預約排程，也能查看每次的清掃紀錄。':
     'Yes — install the app and you can start it remotely, schedule cleanings, and review the log for every run.',
   '智慧導航': 'Smart navigation',
@@ -556,7 +572,6 @@ export const EN = {
   '算了，那我先用看看。': 'Never mind. I\'ll just try using it, then.',
   '箱子裡好像不是機器人。': 'There doesn\'t seem to be a robot in this box.',
   '自動回充': 'Auto-recharge',
-  '豐富精品內容': 'A generous haul of premium goods',
   '賣家拒絕提供功能或規格證明': 'Seller refused to provide proof of features or specs',
   '賣家片面更改退貨條件，是常見的拖延退款手法。': 'A seller unilaterally rewriting the return terms is a common way of stalling a refund.',
   '賣家迴避提供實機操作證明': 'Seller dodged providing proof of the unit in operation',
@@ -588,7 +603,6 @@ export const EN = {
   '商品頁完全沒有寫會收到掃把。': 'The listing never said I could receive a broom.',
   '我要退貨': 'I want to return this',
   '我要退貨。': 'I want to return this.',
-  '部分商品是合作通路限定款，公開通路不一定查得到相同品項。': 'Some items are exclusive to partner retailers, so the same products may not appear in public listings.',
   '我查到您的退貨已經由賣家簽收。': 'I can see that the seller has received your return.',
   '我們已收到您的退貨申請。請將商品寄回，商品經倉庫驗收後，將依流程辦理退款。': 'We have received your return request. Please ship the item back; once it passes warehouse inspection, the refund will be processed according to our procedure.',
   '確認收到後會全額退款嗎？': 'Will I get a full refund once you receive it?',
@@ -601,8 +615,6 @@ export const EN = {
   '開箱照片': 'Unboxing photos',
   '退貨原因': 'Reason for return',
   '購買商品為智慧掃地機器人，實際收到可拆式掃把與畚箕。': 'The item purchased was a smart robot vacuum, but the item received was a detachable broom and dustpan.',
-  '商品與廣告內容明顯不符': 'Item clearly does not match the advertisement',
-  '商品頁宣稱含品牌商品，但實際收到內容與商品宣傳有明顯落差。': 'The listing claimed to include branded products, but the contents received differed significantly from the promotion.',
   '退貨申請已送出': 'Return request submitted',
   '提交退貨申請': 'Submit return request',
   '完成退貨寄件': 'Send the return',
@@ -640,8 +652,6 @@ export const EN = {
   '未留存完整照片': 'No complete photos kept',
   '未附商品照片': 'No photos attached',
   '未附完整照片': 'Photos attached were incomplete',
-  '爭議內容：商品頁宣稱保證品牌精品，實際收到四件低價生活雜物。':
-    'Dispute: the listing guaranteed branded designer goods; what arrived was four cheap household items.',
   '爭議內容：商品頁宣稱智慧掃拖機器人，實際收到一組可拆式掃把與畚箕。':
     'Dispute: the listing advertised a smart robot vacuum and mop; what arrived was a detachable broom and a dustpan.',
   '與賣家的對話': 'Conversation with the seller',
@@ -720,10 +730,6 @@ export const EN = {
     'What the listing described and what arrived were plainly different',
   '商品頁宣稱為智慧掃拖機器人，但實際收到的卻是完全不同的清潔用品。':
     'The listing advertised a robot vacuum and mop, but what actually arrived was an entirely different cleaning product.',
-  '「隨機內容」不能成為貨不對版的藉口':
-    '"The contents are random" is no excuse for goods that don’t match the ad',
-  '福袋雖然具有隨機性，但賣家仍不能用模糊描述掩飾商品價值、品牌或內容與廣告明顯不符。':
-    'A lucky bag is random by nature, but a seller still cannot use vague wording to cover up contents whose value, brand or make-up clearly don’t match the advertisement.',
   '賣家以退貨流程持續拖延退款':
     'The seller used the return process to keep stalling the refund',
   '同意退貨不代表退款已經完成。賣家在收到退貨後仍不斷以驗收、確認等理由拖延。':
@@ -743,5 +749,4 @@ export const EN = {
   // Scenario's header reads them through this one and had no entry, so an
   // English run read "Chatting About: 智慧掃地機器人".
   '智慧掃地機器人': 'Smart Robot Vacuum',
-  '驚喜福袋': 'Surprise Bag',
 };

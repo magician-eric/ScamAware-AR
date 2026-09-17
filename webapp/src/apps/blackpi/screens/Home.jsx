@@ -2,15 +2,15 @@ import { Search, Bell, ShoppingBag, ChevronRight } from 'lucide-react';
 import { PhoneShell } from '../components/PhoneShell';
 import { ProductCard } from '../components/ProductCard';
 import { CompactProductRow } from '../components/CompactProductRow';
-import { LUCKY_BAG_PRODUCT, ROBOT_VACUUM_PRODUCT, HOME_DECOR_PRODUCTS } from '../data/catalog';
+import { VEXA_FLEX_X1_PRODUCT, ROBOT_VACUUM_PRODUCT, HOME_DECOR_PRODUCTS } from '../data/catalog';
 import { useT } from '../i18n';
 import { useARInteraction } from '../../../lib/arInteraction';
 
 // Screen 02 - 黑皮首頁. Both story products sit in a fixed, always-visible
-// top row (left = luckyBag, right = robot vacuum) so neither one depends on the
-// player scrolling to find it; a short compact list of 3-4 decorative items
+// top row (left = VEXA FLEX X1, right = robot vacuum) so neither one depends on
+// the player scrolling to find it; a short compact list of 3-4 decorative items
 // below keeps the page feeling like a real storefront without a long scroll.
-const HERO_PRODUCTS = [LUCKY_BAG_PRODUCT, ROBOT_VACUUM_PRODUCT];
+const HERO_PRODUCTS = [VEXA_FLEX_X1_PRODUCT, ROBOT_VACUUM_PRODUCT];
 // The AR contract has exactly two gestures, so the hero row is a LEFT/RIGHT
 // pair by construction. If this row ever stopped being a pair, the screen
 // would have no legal geometry - so the contract below says so rather than
@@ -75,7 +75,7 @@ export function Home({ onSelectProduct }) {
               alike. */}
           <div className="bp-searchbar is-decorative" style={{ width: '100%' }} aria-hidden="true">
             <Search size={16} />
-            <span>{t('點這裡搜尋智慧掃地機器人或驚喜福袋')}</span>
+            <span>{t('點這裡搜尋智慧掃地機器人或摺疊手機')}</span>
             <span className="bp-searchbar-cta">{t('搜尋 ')}<ChevronRight size={14} /></span>
           </div>
         </div>

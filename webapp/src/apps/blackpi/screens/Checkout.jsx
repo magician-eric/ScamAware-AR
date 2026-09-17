@@ -68,7 +68,9 @@ export function Checkout({ productRoute: route = null, onConfirmPayment, onBack 
 
         <div className="bp-card bp-section">
           <div className="bp-score-row"><span className="bp-score-label">{t('商品金額')}</span><span>NT${product.price.toLocaleString()}</span></div>
-          <div className="bp-score-row"><span className="bp-score-label">{t('運費')}</span><span>NT${product.shipping}</span></div>
+          {/* A free-shipping product says so, rather than pricing the shipping
+              at NT$0 - the same way components/ProductCard.jsx labels it. */}
+          <div className="bp-score-row"><span className="bp-score-label">{t('運費')}</span><span>{product.shipping === 0 ? t('免運') : `NT$${product.shipping}`}</span></div>
           <div className="bp-score-row"><span className="bp-score-label" style={{ fontSize: 16 }}>{t('應付金額')}</span><strong style={{ fontSize: 18, color: 'var(--bp-error)' }}>NT${product.total.toLocaleString()}</strong></div>
         </div>
 

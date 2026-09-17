@@ -10,18 +10,26 @@ import { feedback } from '../../lib/feedback';
 import { useT } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
 
-// `health` is the legacy internal route key for the 智慧掃拖機器人 story -
-// see the note at the top of data/products.js.
+// `health` and `luckyBag` are the legacy internal route keys for the
+// 智慧掃拖機器人 and VEXA FLEX X1 stories - see the note at the top of
+// apps/blackpi/data/catalog.js.
+//
+// Only `health` has a stage-2 (first look) beat, so only `health` has a line
+// and an asset for it: openPackage() below takes the VEXA route straight from
+// the parcel to all four photos, which it has always done.
 const FIRST_ANOMALY_LINE = {
   health: '箱子裡好像不是機器人。',
-  luckyBag: '包裹裡沒有廣告中的精品禮盒。',
 };
 
-// Stage 1 (unopened) and Stage 2 (first look) each use a distinct asset per
-// route, so "拆開外箱" visibly changes the picture instead of looking like
-// a no-op tap.
-const STAGE1_ASSET = { health: 'robot-vacuum-package', luckyBag: 'luckybag-package' };
-const STAGE2_ASSET = { health: 'robot-vacuum-unboxed', luckyBag: 'luckybag-unboxed' };
+// Stage 1 (the parcel) and Stage 2 (first look) each use a distinct asset, so
+// "拆開外箱" visibly changes the picture instead of looking like a no-op tap.
+const STAGE1_ASSET = { health: 'robot-vacuum-package', luckyBag: 'vexa-flex-x1-actual-unboxing' };
+const STAGE2_ASSET = { health: 'robot-vacuum-unboxed' };
+
+// The stage-1 headline, per route for the same reason the photos are. The
+// robot vacuum keeps the 包裹已送達 wording it has always had - the same string
+// the order screen uses - while the VEXA parcel carries its own 開箱標題.
+const STAGE1_HEADLINE = { health: '包裹已送達', luckyBag: '商品已送達，準備開箱' };
 
 // The four unboxing photos per route, shown all at once in a 2x2 grid.
 //
@@ -38,17 +46,29 @@ const REVEAL_ITEMS = {
     { key: 'robot-vacuum-dustpan', text: '畚箕' },
     { key: 'robot-vacuum-actual', text: '實際收到的掃把與畚箕' },
   ],
+  // The parcel's three product shots first, then the opened box. Order
+  // matters: 正面 / 轉軸 / 摺疊背面 is the order the return reason and the
+  // platform complaint both name them in. All four are what the player keeps,
+  // and therefore what the return request attaches.
   luckyBag: [
-    { key: 'luckybag-phone-holder', text: '手機架' },
-    { key: 'luckybag-socks', text: '襪子' },
-    { key: 'luckybag-cup', text: '杯子' },
-    { key: 'luckybag-keychain', text: '鑰匙圈' },
+    { key: 'vexa-flex-x1-actual-main', text: '實際收到的雙機身手機' },
+    { key: 'vexa-flex-x1-actual-hinge', text: '中間的塑膠轉軸' },
+    { key: 'vexa-flex-x1-actual-folded', text: '摺疊背面的兩個 Micro USB 充電孔' },
+    { key: 'vexa-flex-x1-actual-unboxing', text: '包裹裡的實際內容物' },
   ],
 };
 
 const REVEAL_HEADLINE = {
   health: '把東西全部拿出來後，箱子裡只有這些東西。',
-  luckyBag: '把東西全部拿出來後，福袋裡只有這四樣商品。',
+  luckyBag: '等等……這是兩支手機接在一起的？',
+};
+
+// The line under the grid. Per route because what the photos show is not the
+// same kind of mismatch: the robot vacuum simply is not in the box, while the
+// VEXA parcel does hold a "foldable" - two phones on a plastic hinge.
+const REVEAL_REACTION = {
+  health: '這和商品頁展示的內容差太多了。',
+  luckyBag: '這根本是兩支獨立手機，中間用塑膠轉軸接起來的！',
 };
 
 // Stage 4 - 商品頁宣稱 vs 實際收到. Built from real photos plus these
@@ -68,11 +88,13 @@ const COMPARE = {
   },
   luckyBag: {
     claimAssetKey: LISTING_SCREENSHOT_ASSET.luckyBag,
-    actualAssetKey: 'luckybag-actual',
+    actualAssetKey: 'vexa-flex-x1-actual-main',
     rows: [
-      { claim: '品牌精品商品', actual: '一般生活雜物' },
-      { claim: '總價值超過 NT$5,000', actual: '數件低價商品' },
-      { claim: '豐富精品內容', actual: '手機架、襪子、杯子、鑰匙圈' },
+      { claim: '8.7 吋旗艦摺疊大螢幕', actual: '兩支獨立手機的螢幕' },
+      { claim: '一體成型摺疊機身', actual: '塑膠轉軸拼接' },
+      { claim: '旗艦三鏡頭', actual: '兩組低階相機' },
+      { claim: '512GB／5G', actual: '規格與商品頁不符' },
+      { claim: '機身底部 USB-C 充電埠', actual: '兩個獨立 Micro USB 充電孔' },
     ],
   },
 };
@@ -143,7 +165,7 @@ export function Unboxing() {
         {stage === 'package' && (
           <div style={{ textAlign: 'center' }}>
             <AssetImage assetKey={STAGE1_ASSET[route]} className="bp-photo-block" priority />
-            <h1 className="bp-h1 bp-section">{t('包裹已送達')}</h1>
+            <h1 className="bp-h1 bp-section">{t(STAGE1_HEADLINE[route] || STAGE1_HEADLINE.health)}</h1>
             <button type="button" className="bp-btn bp-btn-block bp-section" onClick={openPackage}>{t('拆開外箱')}</button>
           </div>
         )}
@@ -174,7 +196,7 @@ export function Unboxing() {
                 </figure>
               ))}
             </div>
-            <p className="bp-muted bp-unboxing-reaction">{t('這和商品頁展示的內容差太多了。')}</p>
+            <p className="bp-muted bp-unboxing-reaction">{t(REVEAL_REACTION[route])}</p>
             <button type="button" className="bp-btn bp-btn-block" onClick={() => setStage('compare')}>
               {t('查看商品頁與實際內容')} <ChevronRight size={16} />
             </button>

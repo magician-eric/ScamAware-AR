@@ -13,21 +13,22 @@ export const WARNING_FLAG_LABELS = {
   refuse_proof: '賣家拒絕提供功能或規格證明',
   premature_order_completion: '商品爭議尚未釐清就提前完成訂單',
   evidence_before_contact: '聯絡賣家前已先保存證據',
-  undefined_brand: '賣家迴避說明合作品牌',
-  unverifiable_value: '福袋價值宣稱無法查證',
-  broad_brand_definition: '賣家擴大解釋「品牌商品」定義',
+  undefined_brand: '賣家迴避提供保固或序號證明',
+  unverifiable_value: '原價宣稱無法查證',
+  broad_brand_definition: '賣家擴大解釋商品規格說法',
   image_for_reference: '賣家承認商品圖僅供參考',
-  unverifiable_brand_claim: '賣家指稱的品牌商品無法查證',
+  unverifiable_brand_claim: '賣家以「規格差異」解釋貨不對版',
   conditional_refund: '賣家僅承諾有條件退款',
   changing_return_terms: '賣家事後變更退貨承諾內容',
   contacted_165: '已聯絡 165 報案',
 };
 
-// Player-facing route names. `health` is a legacy internal key only - the
-// product on that route is the 智慧掃拖機器人 (see data/products.js).
+// Player-facing route names. Both keys are legacy internal keys only - the
+// product on `health` is the 智慧掃拖機器人 and the product on `luckyBag` is the
+// VEXA FLEX X1 (see apps/blackpi/data/catalog.js).
 export const ROUTE_LABELS = {
   health: '智慧掃地機器人',
-  luckyBag: '驚喜福袋',
+  luckyBag: 'VEXA FLEX X1 旗艦摺疊手機',
 };
 
 // The image that stands for what the listing claimed, used by the unboxing
@@ -36,12 +37,12 @@ export const ROUTE_LABELS = {
 // something the repo already has. (退貨申請 used to show it as a second
 // attachment too; it now attaches the four unboxing photos only.)
 //
-// For the lucky bag this is the gift-selection shot rather than the plain
-// product photo: it is the image that actually sold the "超值" promise, so it
-// is what the player believed they were buying.
+// Both routes use their listing's own hero shot - it is the image the player
+// actually bought from, and the one the PDP, the home card and the order
+// thumbnail all show them.
 export const LISTING_SCREENSHOT_ASSET = {
   health: 'robot-vacuum-main',
-  luckyBag: 'luckybag-gift-selection',
+  luckyBag: 'vexa-flex-x1-main',
 };
 
 // ---------------------------------------------------------------------------

@@ -9,7 +9,7 @@ import { useScenario04Lang, useT } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
 import { useShoppingState } from '../../lib/shoppingStore';
 
-const SHOP_NAME = { health: '智選家電生活館', luckyBag: '好日子驚喜選物' };
+const SHOP_NAME = { health: '智選家電生活館', luckyBag: '潮選數位通訊館' };
 
 // Seller's brief acknowledgement chat right after the return request is
 // submitted (spec section 19), before the player generates a shipping code.

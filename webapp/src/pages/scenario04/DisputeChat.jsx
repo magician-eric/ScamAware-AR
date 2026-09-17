@@ -15,7 +15,7 @@ const WARNING_CONFIG = {
   changing_return_terms: { theme: 'shopping', severity: 'high', body: '賣家片面更改退貨條件，是常見的拖延退款手法。' },
 };
 
-const SHOP_NAME = { health: '智選家電生活館', luckyBag: '好日子驚喜選物' };
+const SHOP_NAME = { health: '智選家電生活館', luckyBag: '潮選數位通訊館' };
 const START_ID = { health: 'health.dispute.opening', luckyBag: 'luckyBag.dispute.opening' };
 
 // Screen 13 - 賣家售後對話 (post-receipt dispute).

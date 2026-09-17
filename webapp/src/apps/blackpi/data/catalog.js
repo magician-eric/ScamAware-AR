@@ -66,61 +66,80 @@ export const ROBOT_VACUUM_REVIEWS = [
   },
 ];
 
-export const LUCKY_BAG_PRODUCT = {
-  id: 'luckybag-surprise',
+// Route B - VEXA FLEX X1. Same shape as the robot vacuum above, and the same
+// trap: the listing sells a flagship foldable, the parcel holds two cheap
+// phones joined by a plastic hinge.
+//
+// NOTE ON `route: 'luckyBag'`: a LEGACY INTERNAL IDENTIFIER, exactly like
+// `health` above. The product on this route used to be the 限量精品驚喜福袋;
+// it is the VEXA FLEX X1 now, and nothing the player sees says 福袋 any more.
+// The key survives for the same reason `health` did - it is baked into saved
+// localStorage state (selectedRoute / completedRoutes), every dialogue node id
+// ('luckyBag.presale.*', 'luckyBag.dispute.*') recorded in dialogueHistory,
+// the URLs the host mounts these screens on, and the route tables in
+// data/scenarioConfig.js. Renaming it would strand every in-progress save on a
+// dead route for no player-visible gain.
+export const VEXA_FLEX_X1_PRODUCT = {
+  id: 'vexa-flex-x1',
   route: 'luckyBag',
-  name: '限量精品驚喜福袋｜保證品牌商品｜總價值超過 NT$5,000',
-  shop: '好日子驚喜選物',
-  price: 999,
-  shipping: 60,
-  total: 1059,
+  // The listing's own headline. 8.7 吋 is the advertised panel size - a spec
+  // line the player reads exactly as they would on a real listing.
+  name: 'VEXA FLEX X1｜8.7 吋旗艦摺疊手機',
+  shop: '潮選數位通訊館',
+  // NT$29,800 is the whole of the money this route ever charges: free
+  // shipping, so 商品金額 / 訂單金額 / 實際付款 / 退款金額 / 受騙損失 are one
+  // number on every screen that shows any of them, including the ending.
+  price: 29800,
+  shipping: 0,
+  total: 29800,
   claims: [
-    '每袋保證包含品牌商品',
-    '總價值超過 NT$5,000',
-    '限量精選商品，每袋內容不同',
-    '限量 100 組，售完不補',
+    '8.7 吋旗艦摺疊大螢幕',
+    '旗艦三鏡頭',
+    '512GB 大容量',
+    '5G 高速連線',
+    '石墨黑精品機身',
   ],
   sold: 3821,
   rating: 4.8,
   reviewCount: 940,
-  assetKey: 'luckybag-main',
-  assetLabel: '驚喜福袋商品主圖',
-  // 'luckybag-gift-selection' is deliberately kept in this carousel: it is
-  // the shot that makes the "看起來非常超值" claim believable, and the
-  // unboxing pay-off only lands if the player actually saw it first.
-  images: ['luckybag-main', 'luckybag-premium-contents', 'luckybag-gift-selection', 'luckybag-limited'],
-  category: '福袋',
+  assetKey: 'vexa-flex-x1-main',
+  assetLabel: 'VEXA FLEX X1 摺疊手機商品主圖',
+  images: ['vexa-flex-x1-main', 'vexa-flex-x1-camera', 'vexa-flex-x1-display', 'vexa-flex-x1-connectivity'],
+  category: '手機',
   shopItemCount: 36,
   shopRating: 4.8,
-  promoTitle: '限量活動',
-  promoSub: '僅剩 12 組',
-  deliveryInfo: '宅配 NT$60｜預計 3 至 5 天送達',
+  promoTitle: '限時品牌體驗價・數量有限',
+  promoSub: '原價 NT$69,800，限時特惠 NT$29,800',
+  deliveryInfo: '宅配免運｜預計 3 至 5 天送達',
   guaranteeInfo: '平台付款保障｜七天鑑賞期',
-  contentInfo: '每袋內容隨機',
-  description: '限量選物福袋，每袋隨機搭配生活選物與品牌商品，主打驚喜感與高 CP 值，數量有限、售完不補。',
-  notice: '福袋內容隨機，以實際出貨內容為準。',
+  description: '全新 VEXA FLEX X1，搭載 8.7 吋旗艦摺疊大螢幕、旗艦三鏡頭與 512GB 大容量。限時品牌體驗價 NT$29,800，數量有限，售完為止。',
+  // The hedge the seller leans on later, when the parcel turns out to be two
+  // phones on a hinge: 「不同批次外觀可能略有差異」.
+  notice: '商品規格與外觀可能因出貨批次略有差異，實際內容以出貨商品為準。',
 };
 
-export const LUCKY_BAG_SPECS = [
-  { label: '商品類型', value: '隨機福袋' },
-  { label: '商品來源', value: '合作選物' },
-  { label: '商品數量', value: '每袋內容不同' },
-  { label: '活動數量', value: '限量 100 組' },
+export const VEXA_FLEX_X1_SPECS = [
+  { label: '商品類型', value: '摺疊智慧型手機' },
+  { label: '螢幕尺寸', value: '8.7 吋' },
+  { label: '顏色', value: '石墨黑' },
+  { label: '儲存容量', value: '512GB' },
+  { label: '行動網路', value: '5G' },
+  { label: '相機規格', value: '旗艦三鏡頭' },
 ];
 
-export const LUCKY_BAG_REVIEWS = [
+export const VEXA_FLEX_X1_REVIEWS = [
   {
     rating: 5, name: '林＊＊', purchased: true, date: '2026/07/02',
-    text: '包裝很漂亮，內容比想像中多，覺得划算。',
-    photo: 'luckybag-review',
+    text: '螢幕很漂亮，這價格真的划算！',
+    photo: 'vexa-flex-x1-display',
   },
   {
     rating: 4, name: '陳＊＊', purchased: true, date: '2026/06/15',
-    text: '有抽到一些東西還不錯，但品牌不是很知名，跟預期有點落差。',
+    text: '已收到，外觀很有質感。',
   },
 ];
 
-export const MAIN_PRODUCTS = [ROBOT_VACUUM_PRODUCT, LUCKY_BAG_PRODUCT];
+export const MAIN_PRODUCTS = [ROBOT_VACUUM_PRODUCT, VEXA_FLEX_X1_PRODUCT];
 
 // 20-30 filler product cards so the homepage/search results look like a real
 // shopping app. Deliberately generic, placeholder-only, non-interactive
@@ -154,12 +173,12 @@ export function getProductByRoute(route) {
   return MAIN_PRODUCTS.find((p) => p.route === route) || null;
 }
 
-const PRODUCT_SPECS = { health: ROBOT_VACUUM_SPECS, luckyBag: LUCKY_BAG_SPECS };
+const PRODUCT_SPECS = { health: ROBOT_VACUUM_SPECS, luckyBag: VEXA_FLEX_X1_SPECS };
 export function getProductSpecs(route) {
   return PRODUCT_SPECS[route] || [];
 }
 
-const PRODUCT_REVIEWS = { health: ROBOT_VACUUM_REVIEWS, luckyBag: LUCKY_BAG_REVIEWS };
+const PRODUCT_REVIEWS = { health: ROBOT_VACUUM_REVIEWS, luckyBag: VEXA_FLEX_X1_REVIEWS };
 export function getProductReviews(route) {
   return PRODUCT_REVIEWS[route] || [];
 }
@@ -191,8 +210,8 @@ export const HOME_DECOR_PRODUCTS = HOME_DECOR_SPECS.map(({ name, assetKey, price
 });
 
 // Category-matched decoy results shown alongside each main product in
-// search results, so a robot-vacuum search never surfaces luckyBag-style
-// decoys (or vice versa) or completely generic gear.
+// search results, so a robot-vacuum search never surfaces phone-line decoys
+// (or vice versa) or completely generic gear.
 export const SEARCH_DECOYS = {
   health: [
     { id: 'decoy-vacuum-1', name: '無線手持吸塵器 輕量款', shop: '智選家電生活館', price: 890, sold: 1204, rating: '4.7' },
@@ -201,11 +220,11 @@ export const SEARCH_DECOYS = {
     { id: 'decoy-vacuum-4', name: '掃地機邊刷替換組', shop: '優選生活館 3', price: 980, sold: 341, rating: '4.5' },
   ].map((d) => ({ ...d, route: null, shipping: 60, assetKey: 'filler-generic', assetLabel: d.name, category: '家電' })),
   luckyBag: [
-    { id: 'decoy-luckybag-1', name: '美妝驚喜盒', shop: '好日子驚喜選物', price: 890, sold: 2013, rating: '4.6' },
-    { id: 'decoy-luckybag-2', name: '生活選物福袋', shop: '優選生活館 1', price: 699, sold: 998, rating: '4.5' },
-    { id: 'decoy-luckybag-3', name: '文創限定福袋', shop: '優選生活館 4', price: 1200, sold: 415, rating: '4.7' },
-    { id: 'decoy-luckybag-4', name: '女生日常驚喜包', shop: '優選生活館 5', price: 799, sold: 1587, rating: '4.6' },
-  ].map((d) => ({ ...d, route: null, shipping: 60, assetKey: 'filler-generic', assetLabel: d.name, category: '福袋' })),
+    { id: 'decoy-phone-1', name: '摺疊手機專用保護殼', shop: '潮選數位通訊館', price: 890, sold: 2013, rating: '4.6' },
+    { id: 'decoy-phone-2', name: '5G 智慧型手機 128GB', shop: '優選生活館 1', price: 699, sold: 998, rating: '4.5' },
+    { id: 'decoy-phone-3', name: '65W 氮化鎵快充組', shop: '優選生活館 4', price: 1200, sold: 415, rating: '4.7' },
+    { id: 'decoy-phone-4', name: '手機螢幕保護貼 2 入', shop: '優選生活館 5', price: 799, sold: 1587, rating: '4.6' },
+  ].map((d) => ({ ...d, route: null, shipping: 60, assetKey: 'filler-generic', assetLabel: d.name, category: '手機' })),
 };
 
 export function getSearchResults(route) {

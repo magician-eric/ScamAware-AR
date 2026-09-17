@@ -11,7 +11,7 @@ import { ROUTE_LABELS } from '../../data/scenarioConfig';
 import { useScenario04Lang, useT } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
 
-const SHOP_NAME = { health: '智選家電生活館', luckyBag: '好日子驚喜選物' };
+const SHOP_NAME = { health: '智選家電生活館', luckyBag: '潮選數位通訊館' };
 const START_ID = { health: 'health.presale.welcome', luckyBag: 'luckyBag.presale.welcome' };
 
 // Screen 06 - 賣家聊聊 (pre-sale).

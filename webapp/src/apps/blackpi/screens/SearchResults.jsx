@@ -5,11 +5,11 @@ import { AssetImage } from '../components/AssetImage';
 import { getSearchResults } from '../data/catalog';
 import { useT } from '../i18n';
 
-const QUERY_LABEL = { health: '智慧掃地機器人', luckyBag: '驚喜福袋' };
+const QUERY_LABEL = { health: '智慧掃地機器人', luckyBag: '摺疊手機' };
 
 // Screen 04 - 搜尋結果. Every result here is category-matched to the query
-// (data/products.js#SEARCH_DECOYS) - a robot-vacuum search never surfaces
-// luckyBag-flavoured decoys or vice versa. `query` is the catalog's own
+// (data/catalog.js#SEARCH_DECOYS) - a robot-vacuum search never surfaces
+// phone-line decoys or vice versa. `query` is the catalog's own
 // product-line key, handed in by whoever mounts the App rather than read off
 // the URL.
 export function SearchResults({ query: route = null, onSelectProduct, onBack }) {

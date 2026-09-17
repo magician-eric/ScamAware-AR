@@ -39,8 +39,9 @@ const AUTO_SCROLL_MAX_FRAME_S = 0.1;
 //
 // LAYOUT: the hero is PINNED. It is a flex:none sibling of the scroller rather
 // than its first child, so the product image stays put at the top of the phone
-// while only the copy below it moves. Both Scenario 04 product lines (health /
-// luckyBag) are this one screen, so they get the same frame by construction.
+// while only the copy below it moves. Both Scenario 04 product lines
+// (智慧掃拖機器人 / VEXA FLEX X1) are this one screen, so they get the same
+// frame by construction.
 //
 // MOTION: the page presents itself, on two axes that never mix.
 //   - the pinned hero slides SIDEWAYS: a horizontal track of the product's
@@ -100,7 +101,7 @@ export function ProductDetail({ productRoute: route = null, onContactSeller, onB
     }
     : { mode: 'single', surfaceId: 'blackpi/product-not-found', action: () => onGoHome?.() });
 
-  // Walking from 健康食品 to 福袋 (or back) is a new product, so the gallery
+  // Walking from one product line to the other is a new product, so the gallery
   // starts on image 1 again rather than inheriting the last page's position.
   useEffect(() => { setImgIndex(0); }, [route]);
 

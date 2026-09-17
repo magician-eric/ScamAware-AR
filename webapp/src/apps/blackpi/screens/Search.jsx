@@ -4,15 +4,15 @@ import { Toast } from '../components/Toast';
 import { useToast } from '../../../lib/useToast';
 import { useT } from '../i18n';
 
-// Only 智慧掃地機器人/驚喜福袋 advance the story - kept in fixed rank order
+// Only 智慧掃地機器人/摺疊手機 advance the story - kept in fixed rank order
 // (1/2) so they read as legitimate top hot-searches, not a hidden trick.
 const HISTORY = [
   { label: '智慧掃地機器人', route: 'health' },
-  { label: '驚喜福袋', route: 'luckyBag' },
+  { label: '摺疊手機', route: 'luckyBag' },
 ];
 const HOT = [
   { label: '智慧掃地機器人', route: 'health' },
-  { label: '驚喜福袋', route: 'luckyBag' },
+  { label: '摺疊手機', route: 'luckyBag' },
   { label: '行動電源', route: null },
   { label: '藍牙喇叭', route: null },
   { label: '掛耳咖啡', route: null },
@@ -55,7 +55,7 @@ export function Search({ onSearchTerm, onBack }) {
             element on this screen that can be focused or typed into. */}
         <div className="bp-searchbar is-decorative" style={{ flex: 1 }}>
           <SearchIcon size={16} />
-          <span>{t('搜尋掃地機器人、驚喜福袋')}</span>
+          <span>{t('搜尋掃地機器人、摺疊手機')}</span>
         </div>
       </header>
       <div className="bp-scroll bp-page">

@@ -10,7 +10,7 @@ import { feedback } from '../../lib/feedback';
 import { useScenario04Lang, useT } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
 
-const SHOP_NAME = { health: '智選家電生活館', luckyBag: '好日子驚喜選物' };
+const SHOP_NAME = { health: '智選家電生活館', luckyBag: '潮選數位通訊館' };
 
 // Screens 18-19 - 退款進度拖延 -> 賣家失聯. UI mood escalates: 拖延中 uses
 // the normal palette with slower replies; once the seller goes unreachable
