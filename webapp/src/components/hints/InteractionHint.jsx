@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   getCurrentARInteraction,
   subscribeARInteraction,
@@ -99,20 +99,42 @@ export function InteractionHint({ onVisibilityChange }) {
   }, [hint, key, shownFor]);
 
   const visible = hint !== null && shownFor === key;
+  const stripRef = useRef(null);
 
-  // The shell reserves the band this sits in, so it has to be told. Reported
-  // from an effect rather than during render because it moves the shell's own
-  // state, and cleared on unmount so the band can never outlive the hint.
-  useEffect(() => {
+  // The shell keeps the band this draws in clear, so it has to be told how tall
+  // that is - and the honest answer is "however tall this turned out to be".
+  // The strip is sized by its own content, so a language whose line wraps on a
+  // narrow screen asks for the two lines it needs and every other case asks for
+  // one. Reported in a layout effect, before paint, so the stage has already
+  // made room by the time anything is drawn.
+  //
+  // Re-measured on resize through a ResizeObserver, because the wrap depends on
+  // the viewport's width; reported as 0 on hide and on unmount, so the band can
+  // never outlive the hint.
+  useLayoutEffect(() => {
     if (typeof onVisibilityChange !== 'function') return undefined;
-    onVisibilityChange(visible);
-    return () => onVisibilityChange(false);
-  }, [visible, onVisibilityChange]);
+    const strip = stripRef.current;
+    if (!visible || !strip) {
+      onVisibilityChange(0);
+      return undefined;
+    }
+    const report = () => onVisibilityChange(strip.offsetHeight);
+    report();
+    let observer = null;
+    if (typeof ResizeObserver === 'function') {
+      observer = new ResizeObserver(report);
+      observer.observe(strip);
+    }
+    return () => {
+      observer?.disconnect();
+      onVisibilityChange(0);
+    };
+  }, [visible, hint, onVisibilityChange]);
 
   if (!visible) return null;
 
   return (
-    <div className="interaction-hint" role="status" aria-live="polite">
+    <div className="interaction-hint" role="status" aria-live="polite" ref={stripRef}>
       <p className="interaction-hint-line">{getInteractionHintStrings()[hint]}</p>
     </div>
   );

@@ -750,43 +750,74 @@ test('the component never reads the contract while rendering', () => {
 // are the two halves of that: the hint says when it is up, and the stage gives
 // up exactly that much of its own bottom padding while it is.
 
-test('the hint tells the shell when it is up, so the band can be reserved', () => {
+test('the hint measures its own band and tells the shell how tall it is', () => {
   const reported = [];
   const s = screen({ mode: DUAL, surfaceId: 'test/s', left: () => {}, right: () => {} });
-  const hint = mountSurface(InteractionHint, { onVisibilityChange: (v) => reported.push(v) });
+  // The harness has no DOM, so the strip's ref never fills in and the height it
+  // can report is nothing. What this pins is the CONTRACT between the two: a
+  // number while it is up, and zero the rest of the time - never a stale band
+  // left behind on a screen the hint has gone from.
+  const hint = mountSurface(InteractionHint, { onVisibilityChange: (px) => reported.push(px) });
 
-  assert.deepEqual(reported, [false], 'nothing reserved before the ten seconds are up');
+  assert.equal(reported.every((px) => px === 0), true, 'nothing is kept clear before the ten seconds are up');
   tick(INACTIVITY_HINT_DELAY_MS);
-  assert.equal(reported.at(-1), true, 'the band is reserved when the line appears');
+  assert.equal(reported.length > 1, true, 'the hint reports once it is up');
 
   // Taking the choice gives the band straight back.
   s.declare({ mode: DISPLAY, surfaceId: 'test/s' });
-  assert.equal(reported.at(-1), false, 'and released the moment the hint goes');
+  assert.equal(reported.at(-1), 0, 'released the moment the hint goes');
 
   tick(INACTIVITY_HINT_DELAY_MS);
-  assert.equal(reported.at(-1), false, 'a screen with nothing to do never reserves it');
+  assert.equal(reported.at(-1), 0, 'a screen with nothing to do never asks for a band');
 
   hint.unmount();
-  assert.equal(reported.at(-1), false, 'and an unmounted hint leaves no band behind');
+  assert.equal(reported.at(-1), 0, 'and an unmounted hint leaves no band behind');
   s.unmount();
 });
 
-test('the shell reserves the band, and only while the hint is up', async () => {
-  const shell = await read('src/shell/AppShell.jsx');
-  // The class is on the stage, driven by what the hint reports - not by a
-  // route, a scenario or a guess.
-  assert.match(shell, /onVisibilityChange=\{setHintVisible\}/);
-  assert.match(shell, /hintVisible \? ' has-interaction-hint' : ''/);
+test('the band is measured, floored, and never a number written twice', async () => {
+  const { interactionHintBandHeight, INTERACTION_HINT_BAND_MIN } = await import('../src/components/hints/interactionHintBand.js');
+  // Whatever the strip measured, with a floor for the frame before the first
+  // measurement lands.
+  assert.equal(interactionHintBandHeight(63), 63);
+  assert.equal(interactionHintBandHeight(81), 81);
+  assert.equal(interactionHintBandHeight(10), INTERACTION_HINT_BAND_MIN);
+  assert.equal(interactionHintBandHeight(0), INTERACTION_HINT_BAND_MIN);
+  assert.equal(interactionHintBandHeight(undefined), INTERACTION_HINT_BAND_MIN);
+  assert.equal(interactionHintBandHeight(NaN), INTERACTION_HINT_BAND_MIN);
 
-  // The stage gives up the band from its own bottom padding, so every screen
-  // is laid out inside what is left rather than underneath the strip.
-  assert.match(SOURCES.css, /\.app\.ar-stage\.has-interaction-hint\{[^}]*--interaction-hint-band:[^}]*padding-bottom:var\(--interaction-hint-band\)/);
-  // The strip is exactly the band - one number, written once, so the two
-  // cannot drift apart.
-  assert.match(SOURCES.css, /\.interaction-hint\{[^}]*height:var\(--interaction-hint-band\)/);
-  // Zero when the hint is not up: no screen loses anything the rest of the time.
-  assert.match(SOURCES.css, /\.app\.ar-stage\{[^}]*--interaction-hint-band:0px/);
-  // And it eases in and out, so the screen sharing the stage never jumps.
-  assert.match(SOURCES.css, /\.app\.ar-stage\{[^}]*transition:padding-bottom \.28s/);
-  assert.match(SOURCES.css, /@media \(prefers-reduced-motion:reduce\)\{[\s\S]*?\.app\.ar-stage\{transition:none\}/);
+  // The strip is sized by its content, so the height it reports IS its height -
+  // there is no second expression of the band anywhere to disagree with it.
+  assert.equal(/height:var\(--interaction-hint-band/.test(SOURCES.css), false);
+  assert.equal(/\.has-interaction-hint/.test(SOURCES.css), false, 'the padding-based reservation is gone');
+  assert.equal(/padding-bottom/.test(SOURCES.css), false, 'nothing inside the stage is re-flowed to make room');
+});
+
+test('the shell keeps the band clear by re-fitting the stage, never by re-flowing it', async () => {
+  const shell = await read('src/shell/AppShell.jsx');
+  // Comments in this file explain what a rect read WOULD do, which is prose.
+  const fit = stripComments(await read('src/shell/useFitStage.js'));
+
+  // The hint reports a height; the shell hands that straight to the fit.
+  assert.match(shell, /onVisibilityChange=\{setHintBand\}/);
+  assert.match(shell, /useFitStage\(stageRef, location\.pathname, hintBand\)/);
+  // And the hint is OUTSIDE the stage, so it cannot be over any screen.
+  const stageOpen = shell.indexOf('<div ref={stageRef}');
+  const stageClose = shell.indexOf('</div>', stageOpen);
+  assert.ok(stageOpen !== -1 && stageClose !== -1);
+  assert.ok(shell.indexOf('<InteractionHint') > stageClose, 'the hint must not be inside the stage');
+
+  // The fit scales the whole box into the viewport minus the band. A uniform
+  // scale is what keeps every line break and every aspect ratio exactly as it
+  // was - re-flowing was measured and it clipped text and squashed the fake
+  // phones out of shape.
+  assert.match(fit, /const availableH = Math\.max\(1, vh - band\)/);
+  assert.match(fit, /Math\.min\(vw \/ boxW, availableH \/ boxH\)/);
+  assert.match(fit, /scale\(\$\{scale\}\)/);
+  // Measured with offsetWidth/Height, which a running transform cannot corrupt.
+  assert.match(fit, /stage\.offsetWidth/);
+  assert.match(fit, /stage\.offsetHeight/);
+  assert.equal(/getBoundingClientRect/.test(fit), false, 'a rect read mid-transition would feed a wrong scale back into the fit');
+  // With no hint the fit is exactly what it always was.
+  assert.match(fit, /reserveHintBand > 0 \? interactionHintBandHeight\(reserveHintBand\) : 0/);
 });
