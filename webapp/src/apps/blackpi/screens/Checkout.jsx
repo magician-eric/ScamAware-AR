@@ -53,14 +53,14 @@ export function Checkout({ productRoute: route = null, onConfirmPayment, onBack 
         <div className="bp-card bp-section" style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <MapPin size={18} color="var(--bp-primary-dark)" />
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{t('{region}○○路＊＊號', { region })}</div>
+            <div style={{ fontWeight: 700, fontSize: 'var(--fs-body)' }}>{t('{region}○○路＊＊號', { region })}</div>
             <div className="bp-muted">{DEMO_PHONE_NUMBER}</div>
           </div>
         </div>
 
         <div className="bp-card bp-section">
           <h2 className="bp-h2">{t(product.shop)}</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-body)' }}>
             <span>{t(product.name)}</span>
             <span style={{ flex: 'none', marginLeft: 10 }}>NT${product.price.toLocaleString()}</span>
           </div>
@@ -71,7 +71,7 @@ export function Checkout({ productRoute: route = null, onConfirmPayment, onBack 
           {/* A free-shipping product says so, rather than pricing the shipping
               at NT$0 - the same way components/ProductCard.jsx labels it. */}
           <div className="bp-score-row"><span className="bp-score-label">{t('運費')}</span><span>{product.shipping === 0 ? t('免運') : `NT$${product.shipping}`}</span></div>
-          <div className="bp-score-row"><span className="bp-score-label" style={{ fontSize: 16 }}>{t('應付金額')}</span><strong style={{ fontSize: 18, color: 'var(--bp-error)' }}>NT${product.total.toLocaleString()}</strong></div>
+          <div className="bp-score-row"><span className="bp-score-label" style={{ fontSize: 'var(--fs-title-sm)' }}>{t('應付金額')}</span><strong style={{ fontSize: 18, color: 'var(--bp-error)' }}>NT${product.total.toLocaleString()}</strong></div>
         </div>
 
         <div className="bp-card bp-section" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

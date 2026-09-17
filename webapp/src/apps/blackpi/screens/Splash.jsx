@@ -32,7 +32,7 @@ export function Splash({ onIntroComplete }) {
         <ShoppingBag size={36} />
       </div>
       <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: '.04em' }}>{t('黑皮購物')}</div>
-      <p style={{ color: 'rgba(255,255,255,.85)', fontSize: 13 }}>BlackPi Shopping</p>
+      <p style={{ color: 'rgba(255,255,255,.85)', fontSize: 'var(--fs-body-sm)' }}>BlackPi Shopping</p>
     </div>
   );
 }

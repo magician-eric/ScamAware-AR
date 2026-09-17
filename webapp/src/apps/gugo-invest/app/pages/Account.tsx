@@ -24,7 +24,7 @@ export function Account() {
           <UserCircle size={52} className="flex-none text-brand-gold" />
           <div className="min-w-0">
             <div className="truncate text-base font-bold text-brand-white">{t("account.memberName")}</div>
-            <div className="text-[11px] text-brand-gray">
+            <div className="text-[14px] text-brand-gray">
               {t("account.memberId")}: GUGO-000128 · {t("account.memberSince")} 2025-01-01
             </div>
           </div>

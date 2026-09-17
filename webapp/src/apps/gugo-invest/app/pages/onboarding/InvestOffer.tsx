@@ -61,13 +61,13 @@ export function InvestOffer({ onDone }: InvestOfferProps) {
         <p className="text-sm text-brand-gray">{t("onboarding.investBody")}</p>
 
         <div className="flex items-center justify-between border-t border-white/5 pt-3">
-          <span className="text-[11px] text-brand-gray">{t("onboarding.investAmount")}</span>
+          <span className="text-[14px] text-brand-gray">{t("onboarding.investAmount")}</span>
           <span className="text-xl font-bold text-brand-white">
             NT$ {formatInt(INVEST_AMOUNT)}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[11px] text-brand-gray">{t("onboarding.expectedReturn")}</span>
+          <span className="text-[14px] text-brand-gray">{t("onboarding.expectedReturn")}</span>
           <span className="rounded-full bg-brand-red/15 px-3 py-1 text-sm font-bold text-brand-red">+{EXPECTED_RETURN_PCT}%</span>
         </div>
       </Card>

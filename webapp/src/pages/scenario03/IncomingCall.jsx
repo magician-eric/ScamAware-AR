@@ -75,7 +75,7 @@ export function IncomingCall() {
           <p className="pol-call-org">
             {t.incomingCall.callerIdLabel(org)}
             <br />
-            <span style={{ opacity: 0.65, fontSize: 11 }}>{t.incomingCall.callerIdNote}</span>
+            <span style={{ opacity: 0.65, fontSize: 'var(--fs-caption)' }}>{t.incomingCall.callerIdNote}</span>
           </p>
         </div>
         <img className="pol-call-avatar" src={officer.avatar} alt={officer.displayName} />

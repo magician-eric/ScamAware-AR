@@ -37,7 +37,7 @@
    It is not scaled down with the stage - it sits at the viewport's own scale -
    so on a letterboxed desktop window it stays as legible as it is on the
    glasses. */
-.interaction-hint-line{margin:0;max-width:100%;box-sizing:border-box;padding:clamp(7px,1.4vh,10px) clamp(12px,3.2vw,18px);border:1px solid rgba(122,205,255,.42);border-radius:999px;background:rgba(6,20,40,.94);color:#e8f5ff;font-size:clamp(13px,min(3.7vw,3vh),17px);font-weight:700;line-height:1.35;letter-spacing:.01em;text-align:center;line-break:strict;text-shadow:0 2px 10px rgba(0,0,0,.8);box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;animation:interaction-hint-in .28s ease-out both}
+.interaction-hint-line{margin:0;max-width:100%;box-sizing:border-box;padding:clamp(7px,1.4vh,10px) clamp(12px,3.2vw,18px);border:1px solid rgba(122,205,255,.42);border-radius:999px;background:rgba(6,20,40,.94);color:#e8f5ff;font-size:clamp(15px,min(4.2vw,3.4vh),17px);font-weight:700;line-height:1.35;letter-spacing:.01em;text-align:center;line-break:strict;text-shadow:0 2px 10px rgba(0,0,0,.8);box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;animation:interaction-hint-in .28s ease-out both}
 @keyframes interaction-hint-in{from{opacity:0}to{opacity:1}}
 /* The stage eases into its smaller fit rather than snapping to it, so the
    screen never jumps when the band opens or closes. `transform` and `top` are

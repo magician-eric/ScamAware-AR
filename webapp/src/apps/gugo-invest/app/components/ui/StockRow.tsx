@@ -19,7 +19,7 @@ export function StockRow({ stock, showSparkline = false }: StockRowProps) {
     >
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-brand-white">{getStockName(stock, i18n.language)}</div>
-        <div className="text-[11px] text-brand-gray">{stock.code}</div>
+        <div className="text-[14px] text-brand-gray">{stock.code}</div>
       </div>
 
       {showSparkline && (

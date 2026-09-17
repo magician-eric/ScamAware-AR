@@ -77,7 +77,7 @@ export function Search({ onSearchTerm, onBack }) {
                 <button
                   type="button"
                   onClick={() => pick(item)}
-                  style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '11px 4px', fontSize: 14, color: 'var(--bp-text)', cursor: 'pointer', display: 'flex', gap: 10, minHeight: 44 }}
+                  style={{ width: '100%', textAlign: 'left', background: 'none', border: 0, padding: '11px 4px', fontSize: 'var(--fs-body)', color: 'var(--bp-text)', cursor: 'pointer', display: 'flex', gap: 10, minHeight: 44 }}
                 >
                   <span style={{ color: i < 2 ? 'var(--bp-error)' : 'var(--bp-text-tertiary)', fontWeight: 800, width: 16 }}>{i + 1}</span>
                   {t(item.label)}

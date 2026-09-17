@@ -12,6 +12,11 @@
 // `pointer-events: none` so it cannot even take a tap that lands on it. It is
 // display-only text and is deliberately not declared to the AR Interaction
 // Contract.
+//
+// Left at 8px by the readability pass, which raised every other size in this
+// module: this is the library's credit sitting on top of the chart itself, so
+// growing it covers the data it is crediting. Nothing in the story asks anyone
+// to read it.
 export function ChartAttribution() {
   return (
     <span

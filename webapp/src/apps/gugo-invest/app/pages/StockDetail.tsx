@@ -57,7 +57,7 @@ export function StockDetail() {
             ))}
           </div>
           <KLineChart data={stock.klineData[period]} height={240} />
-          <div className="mt-2 flex flex-wrap gap-3 text-[11px]">
+          <div className="mt-2 flex flex-wrap gap-3 text-[14px]">
             <span className="flex items-center gap-1 text-brand-gray">
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#D4AF37" }} />
               {t("stock.ma5")} {formatNumber(stock.ma5)}
@@ -74,7 +74,7 @@ export function StockDetail() {
         </Card>
 
         <Card className="p-3">
-          <div className="mb-2 text-[11px] font-semibold text-brand-gray">{t("stock.basicQuote")}</div>
+          <div className="mb-2 text-[14px] font-semibold text-brand-gray">{t("stock.basicQuote")}</div>
           <div className="grid grid-cols-2 gap-y-2.5 text-sm">
             <QuoteField label={t("stock.open")} value={formatNumber(stock.open)} />
             <QuoteField label={t("stock.high")} value={formatNumber(stock.high)} valueClass="text-brand-red" />

@@ -214,7 +214,7 @@ export function BankSite() {
                     <dt>{t.bank.fromAccountLabel}</dt><dd>{session.maskedBankAccount}</dd>
                     <dt>{t.bank.toAccountLabel}</dt><dd>{session.fakeBankAccount}</dd>
                     <dt>{t.bank.accountNameLabel}</dt><dd>{t.bank.accountNameValue}</dd>
-                    <dt>{t.bank.transferAmountLabel}</dt><dd style={{ fontSize: 16 }}>{formatNT(amount ?? BALANCE_TOTAL)}</dd>
+                    <dt>{t.bank.transferAmountLabel}</dt><dd style={{ fontSize: 'var(--fs-title-sm)' }}>{formatNT(amount ?? BALANCE_TOTAL)}</dd>
                     <dt>{t.bank.afterBalanceLabel}</dt><dd>{t.bank.afterBalanceValue}</dd>
                   </dl>
                 </section>

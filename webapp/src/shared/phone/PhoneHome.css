@@ -19,7 +19,7 @@
 }
 .phone-home-clock{margin-top:12px;margin-bottom:auto;text-align:center;display:flex;flex-direction:column;gap:4px}
 .phone-home-clock strong{font-size:44px;font-weight:300;line-height:1}
-.phone-home-clock span{font-size:13px;opacity:.7}
+.phone-home-clock span{font-size:var(--fs-body-sm);opacity:.7}
 
 .phone-home-apps{display:flex;flex-wrap:wrap;justify-content:center;gap:18px 24px}
 .phone-home-app{appearance:none;border:0;background:none;padding:0;color:#fff;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;transition:transform .18s ease,opacity .18s ease}
@@ -32,4 +32,4 @@
    fall outside the wrapper. The app item itself is never offset. */
 .phone-home-app-art{position:relative;display:block;height:70%;overflow:hidden}
 .phone-home-app-art>img{position:absolute;max-width:none;object-fit:fill}
-.phone-home-app-label{font-size:12px;font-weight:600}
+.phone-home-app-label{font-size:var(--fs-caption);font-weight:600}
