@@ -49,6 +49,7 @@
     "test:gesture-contract": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/gesture-contract.test.mjs",
     "test:gesture-bridge": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/gesture-bridge.test.mjs",
     "test:gesture-tutorial": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/gesture-tutorial.test.mjs",
+    "test:interaction-hint": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/interaction-hint.test.mjs",
     "test:native-gesture-bridge": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/native-gesture-bridge.test.mjs",
     "test:ar-interaction-migration": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/ar-interaction-migration.test.mjs",
     "test:ar-dual-visual-order": "node --test ./scripts/ar-dual-visual-order.test.mjs",

@@ -107,6 +107,17 @@ export function VideoTeacher() {
     setPlaybackState('error');
   };
 
+  // Natural completion. `handlePause` above deliberately ignores the pause a
+  // finished video fires (it is not the player pausing, so the tap-to-play
+  // control must not appear), which left nothing able to say the pitch was
+  // over. This does, and it is read in exactly one place: the `presenting`
+  // flag below. It puts no control on screen and changes no navigation - the
+  // CTA is what leaves this page, before the video ends or after it.
+  const handleEnded = () => {
+    clearStallTimer();
+    setPlaybackState('ended');
+  };
+
   const recoveryLabel = playbackState === 'paused' ? t('繼續播放') : t('重新播放');
   // The tap-to-play button is a fallback only: it must never appear while
   // the video is loading/starting/playing on its own, only after the
@@ -118,9 +129,18 @@ export function VideoTeacher() {
   // action on this screen is the CTA under it - `single`. The tap-to-play
   // control is a playback recovery affordance, not a story step, so it is not
   // declared; the warning marquee is display-only.
+  //
+  // `presenting` while the pitch is actually running. It does NOT disable
+  // anything: RIGHT still runs the CTA at any second of the video, exactly as
+  // before, and so does a tap. All it does is hold the shared inactivity
+  // hint's clock, so a player watching the pitch is not told to swipe on ten
+  // seconds after it started. Once it has finished, stalled, been paused or
+  // failed, the player really is waiting, and the hint is free to count.
+  const watchingPitch = playbackState === 'loading' || playbackState === 'starting' || playbackState === 'playing';
   useARInteraction({
     mode: 'single',
     surfaceId: 'scenario01/video-teacher',
+    presenting: watchingPitch,
     action: () => navigate('/scenario01-investment/line-teacher'),
   });
 
@@ -142,6 +162,7 @@ export function VideoTeacher() {
         onPause={handlePause}
         onWaiting={handlePlaybackDelay}
         onStalled={handlePlaybackDelay}
+        onEnded={handleEnded}
         onError={handleVideoError}
       />
 

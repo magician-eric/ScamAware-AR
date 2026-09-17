@@ -1,0 +1,50 @@
+/* The shared inactivity hint - one line, in a band of the viewport that no
+   screen is drawing in.
+   ────────────────────────────────────────────────────────────────────────
+   IT NEITHER COVERS NOR RE-FLOWS ANYTHING. The strip lives outside the stage
+   (shell/AppShell.jsx) and draws in the band shell/useFitStage.js keeps clear
+   while the hint is up: the stage is fitted into the viewport minus the band
+   and centred in what is left. So the space below the stage is genuinely
+   empty, rather than something this is laid over.
+
+   That is a fit, not a layout change, and the difference is the whole point.
+   Reserving the band by giving the stage padding was tried and measured, and
+   it broke two of the things this must not break:
+
+     - text was re-wrapped and then clipped. Scenario 05's ending screen lost
+       three of the four lines of its explanation paragraph.
+     - every fake-phone screen was squashed. Those stages stretch their shell
+       to the stage's height, so the police phone, the shopping app, the
+       marketplace and the trading platform all went from a 0.4498 aspect to
+       0.4897 - an 8.9% distortion of a screen whose whole job is to look like
+       a real phone.
+
+   Scaling the box the way the app already scales it does neither: not one
+   line break moves, not one aspect ratio changes, nothing is re-measured, and
+   putting the band back restores every screen exactly.
+
+   NOT A CONTROL. `pointer-events: none` on the strip and on its line: a
+   finger, a stylus or a mouse passes straight through to whatever is
+   underneath. Every screen's existing tap targets keep working exactly as
+   they did. */
+/* Sized by its own content, not by a number written twice: the strip is as
+   tall as the line inside it - one line, or two where a longer translation
+   wraps on a narrow screen - and it reports that height to the shell, which
+   keeps exactly that much of the viewport clear. So the stage is never scaled
+   down by more than the hint actually needs. */
+.interaction-hint{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:clamp(5px,1vh,9px) clamp(10px,3vw,18px);box-sizing:border-box;pointer-events:none;background:#020916}
+/* Sized to be read on the glasses from across a room rather than squeezed in.
+   It is not scaled down with the stage - it sits at the viewport's own scale -
+   so on a letterboxed desktop window it stays as legible as it is on the
+   glasses. */
+.interaction-hint-line{margin:0;max-width:100%;box-sizing:border-box;padding:clamp(7px,1.4vh,10px) clamp(12px,3.2vw,18px);border:1px solid rgba(122,205,255,.42);border-radius:999px;background:rgba(6,20,40,.94);color:#e8f5ff;font-size:clamp(13px,min(3.7vw,3vh),17px);font-weight:700;line-height:1.35;letter-spacing:.01em;text-align:center;line-break:strict;text-shadow:0 2px 10px rgba(0,0,0,.8);box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;animation:interaction-hint-in .28s ease-out both}
+@keyframes interaction-hint-in{from{opacity:0}to{opacity:1}}
+/* The stage eases into its smaller fit rather than snapping to it, so the
+   screen never jumps when the band opens or closes. `transform` and `top` are
+   the only two properties the fit sets that move anything, and animating a
+   transform costs no layout. */
+.app.ar-stage{transition:transform .28s ease-out,top .28s ease-out}
+@media (prefers-reduced-motion:reduce){
+  .app.ar-stage{transition:none}
+  .interaction-hint-line{animation:none}
+}

@@ -26,6 +26,10 @@ export function getGestureTutorialLang() {
 //   rule         what it DOES in the run, which is the part a player cannot
 //                work out by waving: LEFT picks the left-hand answer of a
 //                two-option screen, RIGHT the right-hand one
+//   success      the one line that confirms this step landed. It is the step's
+//                own, so "the left wave worked" and "the right wave worked"
+//                are never the same sentence, and neither of them is the
+//                tutorial being over - `complete` below is that.
 //
 // The rule lines are on screen because the mapping they describe is the
 // app-wide one (lib/arInteraction/interactionContract.js) and the tutorial is
@@ -43,60 +47,68 @@ export function getGestureTutorialLang() {
 //                 there
 //
 // The English and Japanese are written for their own readers rather than
-// transposed word-for-word from the Chinese: English says "sweep" for the
-// slow, deliberate motion the ToF module actually wants, and Japanese keeps
-// the ください register the rest of the entry screens use.
+// transposed word-for-word from the Chinese: English says "swipe" for the one
+// motion both the panels and the run's own hints name, and Japanese keeps the
+// ください register the rest of the entry screens use. What all three have to
+// carry identically is the DIRECTION and what it picks - that mapping is the
+// contract, and it cannot come out different in one language.
 const STRINGS = {
   zh: {
-    heading: '手勢教學',
+    heading: '手勢操作教學',
     left: {
       title: '向左揮',
-      instruction: '請將手掌張開，慢慢向左揮動',
-      rule: '有兩個選項時，向左揮選擇左邊的答案',
+      instruction: '張開手掌，慢慢向左揮動',
+      rule: '向左揮，選擇左邊的選項',
+      success: '左揮成功！',
     },
     right: {
       title: '向右揮',
-      instruction: '請將手掌張開，慢慢向右揮動',
-      rule: '有兩個選項時，向右揮選擇右邊的答案',
+      instruction: '張開手掌，慢慢向右揮動',
+      rule: '向右揮，選擇右邊的選項',
+      success: '右揮成功！',
     },
     singleOption: '只有一個選項時，向右揮即可選擇',
     reminder: '請放慢揮手速度，揮動太快可能無法辨識',
     pointerHint: '手機或電腦操作時，也可以直接點擊畫面上的選項',
-    complete: '手勢教學完成',
+    complete: '手勢教學完成！',
   },
   en: {
     heading: 'Gesture Tutorial',
     left: {
       title: 'Swipe left',
-      instruction: 'Open your palm and sweep it slowly to the left',
-      rule: 'When two options are on screen, swipe left to choose the one on the left',
+      instruction: 'Open your hand and slowly swipe left.',
+      rule: 'Swipe left to choose the option on the left.',
+      success: 'Left swipe successful!',
     },
     right: {
       title: 'Swipe right',
-      instruction: 'Open your palm and sweep it slowly to the right',
-      rule: 'When two options are on screen, swipe right to choose the one on the right',
+      instruction: 'Open your hand and slowly swipe right.',
+      rule: 'Swipe right to choose the option on the right.',
+      success: 'Right swipe successful!',
     },
-    singleOption: 'When there is only one option, swipe right to choose it',
+    singleOption: 'For a single option, swipe right to select it.',
     reminder: 'Keep the motion slow — a fast swipe may not be recognised',
     pointerHint: 'On a phone or computer you can also just tap the option on screen',
-    complete: 'Gesture tutorial complete',
+    complete: 'Tutorial complete!',
   },
   jp: {
     heading: 'ジェスチャー練習',
     left: {
       title: '左に振る',
-      instruction: '手のひらを開いて、ゆっくり左へ振ってください',
-      rule: '選択肢が2つあるときは、左に振ると左側の答えを選べます',
+      instruction: '手のひらを開いて、ゆっくり左に振ってください。',
+      rule: '左に振ると、左側の選択肢を選べます。',
+      success: '左への操作ができました！',
     },
     right: {
       title: '右に振る',
-      instruction: '手のひらを開いて、ゆっくり右へ振ってください',
-      rule: '選択肢が2つあるときは、右に振ると右側の答えを選べます',
+      instruction: '手のひらを開いて、ゆっくり右に振ってください。',
+      rule: '右に振ると、右側の選択肢を選べます。',
+      success: '右への操作ができました！',
     },
-    singleOption: '選択肢が1つだけのときは、右に振ると選べます',
+    singleOption: '選択肢が1つの場合は、右に振って選んでください。',
     reminder: 'ゆっくり振ってください。速すぎると認識されないことがあります',
     pointerHint: 'スマートフォンやパソコンでは、画面の選択肢を直接タップしても操作できます',
-    complete: 'ジェスチャー練習完了',
+    complete: '練習完了！',
   },
 };
 
