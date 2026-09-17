@@ -240,8 +240,8 @@ export const EN = {
     'This isn\'t the phone shown on the product page at all! Aren\'t these just two old phones joined together?',
   '您收到的確實是雙手機摺疊款，摺疊功能正常。':
     'What you received is indeed our dual-phone folding model. The folding function works normally.',
-  '兩支手機各有一個充電孔，我要退貨': 'Each phone has its own charging port — I want a return',
-  '兩支手機連充電孔都各有一個！我要退貨退款。': 'Each phone even has its own charging port! I want to return this and get a refund.',
+  '商品與描述完全不符，我要求退貨並全額退款！':
+    'The item is completely different from what was advertised. I want to return it for a full refund!',
   '不同批次外觀可能略有差異，但商品確實具備摺疊功能。':
     'The appearance may vary slightly between production batches, but the product does have a folding function.',
   '不同批次外觀可能略有差異，可能您比較沒注意到，但商品確實具備摺疊功能。':

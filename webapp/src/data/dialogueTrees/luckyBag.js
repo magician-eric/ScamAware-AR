@@ -218,8 +218,8 @@ export function buildLuckyBagDisputeTree(lang) {
     choices: [
       {
         id: 'demandReturn',
-        label: t('兩支手機各有一個充電孔，我要退貨', lang),
-        playerMessage: t('兩支手機連充電孔都各有一個！我要退貨退款。', lang),
+        label: t('商品與描述完全不符，我要求退貨並全額退款！', lang),
+        playerMessage: t('商品與描述完全不符，我要求退貨並全額退款！', lang),
         nextNodeId: 'luckyBag.dispute.returnPath',
         effects: { assertiveness: 8, evidence: 5 },
       },
