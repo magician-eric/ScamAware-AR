@@ -30,8 +30,11 @@
 //        choice separates, then mount PlatformSupportChat at each and read the
 //        navigation its outcome effect performs
 //   S05  read buyer.s07.explain out of the buyer tree and follow the two
-//        branches through their redirects, running OrderGone at the end of the
-//        scam one
+//        branches through their redirects - the scam one now runs the whole
+//        fake-verification detour (the SafeDeal receipt-status page, the fake
+//        support desk's one transfer decision, the simulated transfer screen)
+//        before it gets back to the buyer's push to ship, so the walk mounts
+//        each of those screens and follows where they actually send the player
 //
 // Failure modes this is built to catch, all of which used to pass:
 //   * a final decision whose two branches converge on one node again (AD-23)
@@ -88,8 +91,10 @@ const { BALANCE_TOTAL } = await import('../src/data/scenario03Config.js');
 const { buildPlatformSupportTree } = await import('../src/data/dialogueTrees/platformSupport.js');
 const { PlatformSupportChat } = await import('../src/pages/scenario04/PlatformSupportChat.jsx');
 const { saveDialogueCheckpoint } = await import('../src/lib/shoppingStore.js');
-const { buildBuyerTree } = await import('../src/data/scenario05Dialogues.js');
+const { buildBuyerTree, buildSupportTree } = await import('../src/data/scenario05Dialogues.js');
 const { OrderGone } = await import('../src/pages/scenario05/OrderGone.jsx');
+const { SafeDealPaymentStatus } = await import('../src/pages/scenario05/SafeDealPaymentStatus.jsx');
+const { SafeDealTransfer } = await import('../src/pages/scenario05/SafeDealTransfer.jsx');
 
 // ---------------------------------------------------------------------------
 // The ten cells, spelled out
@@ -432,21 +437,22 @@ function scenario04() {
 // node's `redirectTo` (features/ghostorder/dialogueEngine.js), so following
 // those is following the player.
 function scenario05(product = { id: 'tablet', name: '10.9 吋二手平板' }) {
-  const byId = Object.fromEntries(buildBuyerTree(product, 'zh').map((node) => [node.id, node]));
-  const decision = byId['buyer.s07.explain'];
-  assert.ok(decision, 'buyer.s07.explain is gone - Scenario 05 has no final decision');
-  assert.equal(decision.choices.length, 2, 'buyer.s07.explain must offer exactly two replies');
+  // A fresh run. The simulated transfer is charged once per run and persists,
+  // so without this the second product's walk would mount an already-paid
+  // transfer screen and never exercise the confirm at all.
+  localStorage.clear();
+  sessionStorage.clear();
 
-  const [stop, ship] = decision.choices;
-  assert.notEqual(stop.nextNodeId, ship.nextNodeId, 'both replies to the ghost order lead to the same node');
+  const buyer = Object.fromEntries(buildBuyerTree(product, 'zh').map((node) => [node.id, node]));
+  const support = Object.fromEntries(buildSupportTree('zh').map((node) => [node.id, node]));
 
   // Follows autoNextNodeId and single-reply nodes until a node hands the
   // player off to a screen, and answers where that hand-off goes.
-  const redirectFrom = (startId, what) => {
+  const redirectFrom = (nodes, startId, what) => {
     let id = startId;
     for (let step = 0; step < 12; step += 1) {
-      const node = byId[id];
-      assert.ok(node, `${what}: the buyer tree points at a node that does not exist (${id})`);
+      const node = nodes[id];
+      assert.ok(node, `${what}: the tree points at a node that does not exist (${id})`);
       if (node.redirectTo) return { to: node.redirectTo, resumeAt: node.resumeNodeId };
       if (node.autoNextNodeId) { id = node.autoNextNodeId; continue; }
       assert.equal(node.choices?.length, 1, `${what}: ${id} is a fork this walk cannot follow`);
@@ -455,18 +461,83 @@ function scenario05(product = { id: 'tablet', name: '10.9 吋二手平板' }) {
     throw new Error(`${what}: no hand-off within 12 nodes of ${startId}`);
   };
 
-  const safe = redirectFrom(stop.nextNodeId, 'S05 safe').to;
+  const decision = buyer['buyer.s07.explain'];
+  assert.ok(decision, 'buyer.s07.explain is gone - Scenario 05 has no ghost-order decision');
+  assert.equal(decision.choices.length, 2, 'buyer.s07.explain must offer exactly two replies');
+  const [stopNow, checkTheSite] = decision.choices;
+  assert.notEqual(stopNow.nextNodeId, checkTheSite.nextNodeId, 'both replies to the ghost order lead to the same node');
 
-  // The scam branch is three hand-offs long: ship the item, come back to a
-  // dead account, then go looking for the money.
-  const ship1 = redirectFrom(ship.nextNodeId, 'S05 scam');
-  assert.equal(ship1.to, '/scenario05-atm/hpe-ship', 'the scam branch no longer ships the item');
-  assert.ok(ship1.resumeAt, 'the courier hand-off no longer comes back to the chat');
-  const ship2 = redirectFrom(ship1.resumeAt, 'S05 scam');
-  assert.equal(ship2.to, '/scenario05-atm/order-gone', 'the scam branch no longer ends at the vanished order');
+  const safe = redirectFrom(buyer, stopNow.nextNodeId, 'S05 safe').to;
+
+  // Going back to the fake site opens the verification detour and holds the
+  // buyer thread open at the node it comes back to.
+  const toStatus = redirectFrom(buyer, checkTheSite.nextNodeId, 'S05 verification');
+  assert.equal(toStatus.to, '/scenario05-atm/safedeal-payment-status', 'checking SafeDeal no longer opens the fake receipt-status page');
+  assert.ok(toStatus.resumeAt, 'the verification detour no longer comes back to the buyer chat');
 
   return withFakeTimers((settle) => {
-    const mounted = mount(OrderGone);
+    // The fake receipt-status page has one way on: the "support desk".
+    let mounted = mount(SafeDealPaymentStatus);
+    settle();
+    assert.equal(getCurrentARInteraction().surfaceId, 'scenario05/safedeal-payment-status');
+    assert.equal(performARInteraction(RIGHT), true);
+    assert.equal(navigatedTo('S05 support'), '/scenario05-atm/safedeal-support');
+    mounted.unmount();
+
+    // The one transfer decision in the whole scenario. Refusing it is the
+    // second way to reach 成功反詐; taking it is the only way to the transfer.
+    const money = support['cs.flow'];
+    assert.ok(money, 'the fake support desk no longer asks for the verification deposit');
+    assert.equal(money.choices.length, 2, 'the deposit demand must offer exactly two replies');
+    const [refuse, pay] = money.choices;
+    assert.equal(
+      redirectFrom(support, refuse.nextNodeId, 'S05 refuse').to, safe,
+      'refusing the verification deposit no longer reaches the same 成功反詐 ending',
+    );
+    const toTransfer = redirectFrom(support, pay.nextNodeId, 'S05 pay');
+    assert.equal(toTransfer.to, '/scenario05-atm/safedeal-transfer', 'accepting no longer opens the simulated transfer');
+    assert.ok(toTransfer.resumeAt, 'the transfer no longer comes back to the support conversation');
+
+    // Confirming the transfer is not a navigation: it records the loss and
+    // the screen becomes a way back, with no second payment control on it.
+    mounted = mount(SafeDealTransfer);
+    settle();
+    assert.equal(getCurrentARInteraction().surfaceId, 'scenario05/safedeal-transfer');
+    assert.equal(performARInteraction(RIGHT), true);
+    assert.deepEqual(navigations, [], 'confirming the simulated transfer must not navigate anywhere');
+    assert.equal(
+      getCurrentARInteraction().surfaceId, 'scenario05/safedeal-transfer-done',
+      'the transfer screen still offers the confirm action after it has been used',
+    );
+    assert.equal(performARInteraction(RIGHT), true);
+    assert.equal(navigatedTo('S05 transfer'), '/scenario05-atm/safedeal-support');
+    mounted.unmount();
+
+    // The agent confirms and hands straight back to the buyer conversation.
+    assert.equal(
+      redirectFrom(support, toTransfer.resumeAt, 'S05 back to the buyer').to, '/scenario05-atm/chat',
+      'the fake support desk no longer returns the player to the buyer chat',
+    );
+
+    // The shipping decision, in that same thread: keep the item, or lose it too.
+    const shipping = buyer[toStatus.resumeAt];
+    assert.ok(shipping, `the buyer chat has nowhere to resume at (${toStatus.resumeAt})`);
+    assert.equal(shipping.choices.length, 2, 'the shipping decision must offer exactly two replies');
+    const [holdItem, shipIt] = shipping.choices;
+    assert.equal(
+      redirectFrom(buyer, holdItem.nextNodeId, 'S05 stopped').to, '/scenario05-atm/ending-stopped',
+      'stopping before shipping no longer reaches the deposit-only ending',
+    );
+
+    // The scam branch is three hand-offs long: ship the item, come back to a
+    // dead account, then go looking for the money.
+    const ship1 = redirectFrom(buyer, shipIt.nextNodeId, 'S05 scam');
+    assert.equal(ship1.to, '/scenario05-atm/hpe-ship', 'the scam branch no longer ships the item');
+    assert.ok(ship1.resumeAt, 'the courier hand-off no longer comes back to the chat');
+    const ship2 = redirectFrom(buyer, ship1.resumeAt, 'S05 scam');
+    assert.equal(ship2.to, '/scenario05-atm/order-gone', 'the scam branch no longer ends at the vanished order');
+
+    mounted = mount(OrderGone);
     settle();
     assert.equal(getCurrentARInteraction().surfaceId, 'scenario05/order-gone');
     assert.equal(performARInteraction(RIGHT), true);

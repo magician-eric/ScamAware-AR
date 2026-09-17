@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.6.0-20260917.002` | 1.2.0 | 1.6.0 | 2026-09-17 | #8 | `17175e7` | MINOR | Merge pull request #8 from magician-eric/claude/brave-galileo-qfr88p |
 | `1.5.4-20260917.001` | 1.2.0 | 1.5.4 | 2026-09-17 | #7 | `9e489c2` | PATCH | Merge pull request #7 from magician-eric/claude/kind-gates-bwld4m |
 | `1.5.3-20260916.004` | 1.2.0 | 1.5.3 | 2026-09-16 | #6 | `0ed81b5` | PATCH | Merge pull request #6 from magician-eric/feat/s04-vexa-flex-x1-story |
 | `1.5.2-20260916.003` | 1.2.0 | 1.5.2 | 2026-09-16 | #5 | `7e613e3` | PATCH | Merge pull request #5 from magician-eric/feat/s04-vexa-actual-product-assets |

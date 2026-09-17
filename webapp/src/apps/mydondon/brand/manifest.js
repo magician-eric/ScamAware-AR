@@ -49,13 +49,17 @@ export const MYDONDON = {
   full: 'MyDonDon 買東東',
 };
 
-// Which of the two forms a player is shown. The Latin name is the brand in
-// every language and is never translated; the Chinese pair is what a Chinese
-// run sees. An English or Japanese run used to be handed "MyDonDon 買東東" as
-// the logo's alt text, which put the Chinese product name into a run that has
-// no use for it.
+// Which of the three forms a player is shown, as the logo's alt text.
+//
+// English reads the Latin name, which is the brand there and is never
+// translated. Japanese reads 買東東: that is the owner's official Japanese name
+// for the marketplace, a mark rather than Chinese copy left in a Japanese run
+// (it is registered as such in scripts/localization-leak-rules.mjs). Chinese
+// reads the full pair.
 export function mydondonBrandLabel(lang) {
-  return lang === 'en' || lang === 'jp' ? MYDONDON.name : MYDONDON.full;
+  if (lang === 'en') return MYDONDON.name;
+  if (lang === 'jp') return MYDONDON.nameZh;
+  return MYDONDON.full;
 }
 
 export const MYDONDON_LOGOS = {

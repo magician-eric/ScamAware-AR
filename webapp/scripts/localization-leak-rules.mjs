@@ -71,6 +71,24 @@ export const CHINESE_ONLY = new Set([
   '咩', '噢', '嘞', '甭', '仨', '啰', '嘍', '喲', '嗲', '倂',
 ]);
 
+// Proper nouns a Japanese run writes with Han characters because that IS the
+// mark, not because a string was left untranslated.
+//
+// Scenario 05's three platforms carry the owner's official Japanese names:
+// 買東東 (the marketplace), 黑皮通 (the courier) and SafeDeal (the fake
+// external trading site). 黑皮通 keeps 黑 deliberately - the Japanese form 黒
+// is a different mark, not a spelling of this one - which is exactly the kind
+// of character the table above exists to catch, so the marks are named here
+// instead of the check being weakened for everything else.
+//
+// They are lifted out of a `jp` string before the character scan, never
+// around it: every other character of the same sentence is still judged, so
+// "黑皮通の追跡番號" still fails on 號 while "黑皮通で発送します" passes.
+//
+// This is a Japanese-only allowance. An English run reads MyDonDon and HPE,
+// so Han characters there remain a leak with no exceptions.
+export const JAPANESE_BRAND_MARKS = ['買東東', '黑皮通', 'SafeDeal'];
+
 // Text that is correctly in another language whatever the player picked.
 // The language picker has to name each language in that language - an English
 // player looking for Japanese needs to read 日本語, not "Japanese" - so these
@@ -89,7 +107,9 @@ export const LANGUAGE_PICKER_LABELS = new Set([
 // writes Taiwanese place and agency names in Han characters (台北市信義区,
 // 台湾台北地方検察署) and those are correct Japanese, not leaks. What is not
 // correct Japanese is a Traditional-only form or a Chinese function word,
-// and any Chinese string long enough to matter carries at least one.
+// and any Chinese string long enough to matter carries at least one. The one
+// exception is a brand mark (see JAPANESE_BRAND_MARKS above), which is removed
+// before that scan rather than exempting the string it sits in.
 export function findLeak(text, lang) {
   if (LANGUAGE_PICKER_LABELS.has(text)) return null;
   if (lang === 'en') {
@@ -103,7 +123,10 @@ export function findLeak(text, lang) {
     return kana ? { reason: `Japanese kana in a Chinese run (${kana[0]})` } : null;
   }
   if (lang !== 'jp') return null;
-  for (const character of text) {
+  // The brand marks are the run's own proper nouns; everything around them is
+  // still scanned character by character.
+  const prose = JAPANESE_BRAND_MARKS.reduce((rest, mark) => rest.split(mark).join(''), text);
+  for (const character of prose) {
     if (CHINESE_ONLY.has(character)) {
       return { reason: `Chinese-only character ${character} in a Japanese run` };
     }

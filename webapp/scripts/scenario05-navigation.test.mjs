@@ -25,9 +25,11 @@ test('Scenario05 enters through its briefing, phone home, MyDonDon home, and pro
   assert.ok(listing.includes("navigate('/scenario05-atm/chat')"));
 });
 
-test('Scenario05 ghost-order routes (shop, fake payment, real shipping, endings, reveal, quiz) remain registered', async () => {
+test('Scenario05 ghost-order routes (shop, fake payment, fake verification, real shipping, endings, reveal, quiz) remain registered', async () => {
   const routes = await read('src/routes.jsx');
-  for (const route of ['chat', 'shop-create', 'trade-info', 'mydondon-orders', 'hpe-ship', 'order-gone', 'ending-caught', 'ending-scammed', 'reveal', 'quiz']) {
+  for (const route of ['chat', 'shop-create', 'trade-info', 'mydondon-orders',
+    'safedeal-payment-status', 'safedeal-support', 'safedeal-transfer',
+    'hpe-ship', 'order-gone', 'ending-caught', 'ending-stopped', 'ending-scammed', 'reveal', 'quiz']) {
     assert.ok(routes.includes(`path: 'scenario05-atm/${route}'`), `missing ${route}`);
   }
   // Old bank-verification-era routes must not come back.
@@ -46,7 +48,14 @@ test('Scenario05 ghost-order routes (shop, fake payment, real shipping, endings,
   assert.ok(dialogues.includes("id: 'buyer.s07.playerNotice'") && dialogues.includes('奇怪，買東東怎麼沒有這筆訂單？'));
   assert.ok(dialogues.includes("id: 'buyer.s07.explain'") && dialogues.includes('因為我們這次不是走買東東付款'));
   assert.ok(dialogues.includes('沒有官方訂單，也沒有入帳，我先停止交易。'));
+  // Checking SafeDeal again opens the fake verification detour - it must never
+  // be a shortcut straight to the courier again.
+  assert.ok(dialogues.includes("id: 'buyer.s07.toPaymentStatus', redirectTo: '/scenario05-atm/safedeal-payment-status', resumeNodeId: 'buyer.s10.urge'"));
+  const ghostOrderChoices = dialogues.slice(dialogues.indexOf("id: 'buyer.s07.explain'"), dialogues.indexOf("id: 'buyer.s07.toPaymentStatus'"));
+  assert.ok(!ghostOrderChoices.includes('/scenario05-atm/hpe-ship'), 'the ghost-order reply must not ship the item directly any more');
   // The old fake customer-service / bank-verification dialogue tree must be gone.
+  // What replaced it is SafeDeal's own support desk (buildSupportTree), which
+  // is a different tree on a different route - see the verification tests below.
   assert.ok(!dialogues.includes('buildCsTree'));
   assert.ok(!dialogues.includes("redirectTo: '/scenario05-atm/cs-chat'"));
   assert.ok(!dialogues.includes("redirectTo: '/scenario05-atm/bank-verify'"));
@@ -77,8 +86,16 @@ test('Scenario05 order-check detour: explicit button, no auto-navigate, low-key 
   assert.ok(ordersPage.includes('orders={NO_OFFICIAL_ORDERS}'));
   assert.ok(ordersPage.includes("navigate('/scenario05-atm/chat', { replace: true })"));
   const dialogues = await read('src/data/scenario05Dialogues.js');
-  assert.ok(dialogues.includes('喔喔了解～不好意思，我只是之前買二手的時候都習慣這樣交易，覺得超商取貨比較方便。'));
-  assert.ok(dialogues.includes('如果你不放心也沒關係，我只是想說這樣彼此都比較方便一點 😅'));
+  // The pushback the player meets after hesitating: still not a demand, but it
+  // makes the buyer's own position the reasonable one and leans on the persona.
+  assert.ok(dialogues.includes('我知道你會擔心，但我也是第一次跟你交易啊。我都願意先付款了，你至少可以先看看流程吧？'));
+  // Product-specific, and gender-neutral on the stroller line either persona
+  // may have been drawn for.
+  assert.ok(dialogues.includes('我自己一個人帶小孩，真的不太方便一直出門面交。原本以為你願意幫我用這個方式交易……'));
+  assert.ok(dialogues.includes('我上課跟打工的時間都排滿了，真的很難另外約面交。原本以為這樣交易可以讓我們都省點時間……'));
+  for (const gendered of ['媽媽', '爸爸', '她', '他自己一個人']) {
+    assert.ok(!dialogues.includes(gendered), `the stroller buyer's lines must not assume a gender (${gendered})`);
+  }
 });
 
 test('Scenario05 scammed line: delivery -> buyer vanishes -> SafeDeal is gone', async () => {
