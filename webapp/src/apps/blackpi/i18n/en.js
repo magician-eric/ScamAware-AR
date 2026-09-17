@@ -120,19 +120,19 @@ export const EN = {
   '智選家電生活館': 'SmartPick Home Appliance',
 
   // apps/blackpi - VEXA FLEX X1 (Route B product line)
-  'VEXA FLEX X1｜8.7 吋旗艦摺疊手機': 'VEXA FLEX X1 | 8.7-inch Flagship Foldable Phone',
+  'VEXA FLEX X1｜8.7 吋旗艦摺疊手機': 'VEXA FLEX X1｜8.7-inch Flagship Foldable Phone',
   '潮選數位通訊館': 'TrendPick Mobile',
   '8.7 吋旗艦摺疊大螢幕': '8.7-inch flagship foldable display',
-  '旗艦三鏡頭': 'Flagship triple camera',
-  '512GB 大容量': '512GB of storage',
-  '5G 高速連線': '5G high-speed connectivity',
-  '石墨黑精品機身': 'Premium graphite black body',
+  '旗艦三鏡頭': 'Flagship triple-camera system',
+  '512GB 大容量': '512GB storage',
+  '5G 高速連線': '5G connectivity',
+  '石墨黑精品機身': 'Premium Graphite Black body',
   '手機': 'Phones',
-  '限時品牌體驗價・數量有限': 'Limited-Time Brand Experience Price · While Supplies Last',
+  '限時品牌體驗價・數量有限': 'Limited-Time Brand Trial Offer · Limited Stock',
   '原價 NT$69,800，限時特惠 NT$29,800': 'Was NT$69,800 — NT$29,800 for a limited time',
   '宅配免運｜預計 3 至 5 天送達': 'Free Home Delivery · Arrives in 3-5 Days',
-  '主打 8.7 吋旗艦摺疊大螢幕的 5G 摺疊手機，搭載旗艦三鏡頭與 512GB 大容量，石墨黑精品機身，限時品牌體驗價供應，數量有限。':
-    'A 5G foldable phone built around an 8.7-inch flagship folding display, with a flagship triple camera, 512GB of storage and a premium graphite black body. Offered at a limited-time brand experience price while supplies last.',
+  '全新 VEXA FLEX X1，搭載 8.7 吋旗艦摺疊大螢幕、旗艦三鏡頭與 512GB 大容量。限時品牌體驗價 NT$29,800，數量有限，售完為止。':
+    'Introducing the new VEXA FLEX X1, featuring an 8.7-inch flagship foldable display, a triple-camera system, and 512GB of storage. Available for a limited time at the brand trial price of NT$29,800. Limited stock.',
   '商品規格與外觀可能因出貨批次略有差異，實際內容以出貨商品為準。':
     'Specifications and appearance may vary slightly between shipping batches; the item as shipped takes precedence.',
   '摺疊智慧型手機': 'Foldable Smartphone',
@@ -143,8 +143,8 @@ export const EN = {
   '儲存容量': 'Storage',
   '行動網路': 'Mobile Network',
   '相機規格': 'Camera',
-  '螢幕很漂亮，這價格真的划算！': 'The screen is gorgeous — a real steal at this price!',
-  '已收到，外觀很有質感。': 'Arrived. It looks and feels well made.',
+  '螢幕很漂亮，這價格真的划算！': 'The display looks great. Such a good deal at this price!',
+  '已收到，外觀很有質感。': 'Received it. The exterior looks premium.',
   '摺疊手機專用保護殼': 'Case Made for Foldable Phones',
   '5G 智慧型手機 128GB': '5G Smartphone 128GB',
   '65W 氮化鎵快充組': '65W GaN Fast Charger Set',

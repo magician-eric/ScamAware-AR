@@ -203,11 +203,11 @@ export const EN = {
   '您好，這批 VEXA FLEX X1 是品牌限時體驗活動，數量有限。':
     'Hi there — this batch of VEXA FLEX X1 is part of a limited-time brand experience promotion, so quantities are limited.',
   '這是正版摺疊手機嗎？': 'Is this a genuine foldable phone?',
-  '請問這是 VEXA FLEX X1 正版摺疊手機嗎？': 'Is this the genuine VEXA FLEX X1 foldable phone?',
+  '請問這是 VEXA FLEX X1 正版摺疊手機嗎？': 'Is this an authentic VEXA FLEX X1 foldable phone?',
   '螢幕可以完整展開嗎？': 'Does the screen open out fully?',
-  '螢幕是可以完整展開的那種嗎？': 'Is it the kind where the screen opens out into one full display?',
+  '螢幕是可以完整展開的那種嗎？': 'Does the screen unfold into one full display?',
   '是的！目前是品牌限時體驗活動，所以才有這個優惠價格😊':
-    'Yes! It\'s a limited-time brand experience promotion right now, which is why the price is this low 😊',
+    'Yes! We\'re running a limited-time brand trial promotion, which is why we\'re offering this special price. 😊',
   '有保固卡或 IMEI 嗎？': 'Is there a warranty card or an IMEI?',
   '可以先提供保固卡或 IMEI 嗎？': 'Could you send me the warranty card or the IMEI first?',
   '可以看實機照片嗎？': 'Can I see photos of the actual unit?',
@@ -222,7 +222,7 @@ export const EN = {
   '頁面上的圖片就是這個型號的商品圖，實際外觀仍以出貨批次為準。':
     'The photos on the page are this model\'s product shots; the actual appearance still depends on the shipping batch.',
   '是的，8.7 吋旗艦摺疊大螢幕，商品規格與圖片皆以頁面展示為準。':
-    'Yes — an 8.7-inch flagship foldable display. The specs and photos shown on the page are what applies.',
+    'Yes. It features an 8.7-inch flagship foldable display. The specifications and images shown on the product page apply.',
   '原價真的是 69,800 嗎？': 'Is NT$69,800 really the list price?',
   '原價真的是 NT$69,800 嗎？': 'Is the original price really NT$69,800?',
   '為什麼只賣 29,800？': 'Then why only NT$29,800?',
@@ -237,34 +237,34 @@ export const EN = {
   '這批都是同一條產線出貨的摺疊機型，外觀細節仍以商品頁展示為準。':
     'This whole batch is the same foldable model off one production line; for the finer details of the appearance, the product page is what applies.',
   '我收到的根本不是商品頁上的手機！這是兩支舊手機接在一起吧？':
-    'What I got isn\'t the phone on the product page at all! These are two old phones joined together, aren\'t they?',
+    'This isn\'t the phone shown on the product page at all! Aren\'t these just two old phones joined together?',
   '您收到的確實是雙手機摺疊款，摺疊功能正常。':
-    'What you received is indeed the dual-phone foldable model, and the folding function works normally.',
+    'What you received is indeed our dual-phone folding model. The folding function works normally.',
   '兩支手機各有一個充電孔，我要退貨': 'Each phone has its own charging port — I want a return',
-  '兩支手機連充電孔都各有一個！我要退貨退款。': 'The two phones even have a charging port each! I want to return this for a refund.',
+  '兩支手機連充電孔都各有一個！我要退貨退款。': 'Each phone even has its own charging port! I want to return this and get a refund.',
   '不同批次外觀可能略有差異，但商品確實具備摺疊功能。':
-    'Appearance can vary slightly between batches, but the product does have a folding function.',
+    'The appearance may vary slightly between production batches, but the product does have a folding function.',
   '不同批次外觀可能略有差異，可能您比較沒注意到，但商品確實具備摺疊功能。':
     'Appearance can vary slightly between batches — you may not have noticed — but the product does have a folding function.',
   '出貨批次是系統統一配發的，客服這邊只能依照系統紀錄回覆規格，商品確實具備摺疊功能。':
     'Shipping batches are assigned by the system, so all support can go by is what is logged for the specs. The product does have a folding function.',
   '這明明是兩支獨立手機': 'These are plainly two separate phones',
   '商品寫的是 8.7 吋摺疊手機，這明明是兩支獨立手機！':
-    'The listing says an 8.7-inch foldable phone — these are plainly two separate phones!',
+    'The listing says it\'s an 8.7-inch foldable phone, but these are clearly two separate phones!',
   '這款是雙機身摺疊設計，兩邊各自獨立運作也屬於規格的一部分。':
     'This model uses a dual-body foldable design; each side operating independently is part of the spec.',
   '賣家可能用「不同批次」「規格差異」等說法帶過貨不對版，建議先保存實際收到的商品照片與商品頁宣稱，再決定是否申請退貨。':
     'Sellers can wave away goods that don’t match the ad with talk of "different batches" or "spec variations". Save photos of what actually arrived and of what the listing claimed before deciding whether to file a return.',
   '很抱歉造成您的困擾，請透過平台申請退貨，我們會協助處理。':
-    'Sorry for the trouble. Please file the return through the platform and we\'ll help process it.',
+    'We\'re sorry for the inconvenience. Please submit a return request through the platform, and we\'ll assist you.',
   '真的很不好意思讓您久等，倉庫已經檢查過，商品摺疊功能正常，我再幫您跟他們確認一次。':
     'So sorry for the long wait. The warehouse has already checked it and the folding function works normally — I\'ll confirm with them once more for you.',
-  '經檢查，商品摺疊功能正常，與您描述不符。': 'On inspection the folding function works normally, which doesn\'t match your description.',
+  '經檢查，商品摺疊功能正常，與您描述不符。': 'After inspection, we found that the product\'s folding function works normally. This does not match your description.',
   '倉庫檢查結果是商品摺疊功能正常，與您描述不符，驗收結果都是系統統一判定的。':
     'The warehouse\'s finding is that the folding function works normally, which doesn\'t match your description. Inspection outcomes are decided by the system across the board.',
   '合起來不代表它是摺疊手機': 'Closing it doesn\'t make it a foldable',
   '能把兩支手機合起來，不代表它是摺疊手機！': 'Being able to fold two phones together doesn\'t make it a foldable phone!',
-  '目前已提交專員複核，請您耐心等候。': 'It has been submitted to a specialist for review — please bear with us.',
+  '目前已提交專員複核，請您耐心等候。': 'Your case has been submitted for further review. Please wait patiently.',
   '倉庫那邊回報機身好像有一點使用痕跡，我幫您跟主管確認一下，不好意思還要再等等。':
     'The warehouse flagged what looks like some signs of use on the body — let me check with a supervisor. Sorry, it\'ll be a little longer.',
   '倉庫回報機身外觀有使用痕跡，目前需要確認是否符合退貨條件。':
@@ -272,15 +272,15 @@ export const EN = {
   '系統顯示機身外觀有使用痕跡，這部分需要走主管覆核流程，客服無法直接判斷。':
     'The system shows signs of use on the body. That has to go through a supervisor review — support can\'t decide it directly.',
   '商品收到了為什麼還不退款': 'You have the item — why no refund?',
-  '商品你們已經收到了，為什麼還不退款？': 'You\'ve already received the item — why hasn\'t the refund gone through?',
-  '退款審核尚未完成，請勿重複提交申請。': 'The refund review isn\'t finished yet. Please don\'t submit duplicate requests.',
+  '商品你們已經收到了，為什麼還不退款？': 'You\'ve already received the returned item. Why haven\'t you issued my refund?',
+  '退款審核尚未完成，請勿重複提交申請。': 'Your refund is still under review. Please do not submit duplicate requests.',
   'VEXA FLEX X1 旗艦摺疊手機': 'VEXA FLEX X1 Flagship Foldable Phone',
   '賣家迴避提供保固或序號證明': 'Seller Dodged Providing a Warranty or Serial Number',
   '原價宣稱無法查證': 'The Claimed List Price Couldn\'t Be Verified',
   '賣家擴大解釋商品規格說法': 'Seller Stretched What the Product Spec Meant',
   '賣家以「規格差異」解釋貨不對版': 'Seller Explained the Mismatch Away as a "Spec Variation"',
-  '等等……這是兩支手機接在一起的？': 'Hold on… are these two phones joined together?',
-  '這根本是兩支獨立手機，中間用塑膠轉軸接起來的！': 'These are just two separate phones with a plastic hinge joining them in the middle!',
+  '等等……這是兩支手機接在一起的？': 'Wait... are these two phones joined together?',
+  '這根本是兩支獨立手機，中間用塑膠轉軸接起來的！': 'These are two separate phones connected by a plastic hinge!',
   '實際收到的雙機身手機': 'The dual-body phone that actually arrived',
   '中間的塑膠轉軸': 'The plastic hinge in the middle',
   '摺疊背面的兩個 Micro USB 充電孔': 'Two Micro USB charging ports on the folded rear',
@@ -295,7 +295,7 @@ export const EN = {
   '機身底部 USB-C 充電埠': 'USB-C charging port on the bottom of the body',
   '兩個獨立 Micro USB 充電孔': 'Two separate Micro USB charging ports',
   '商品頁宣稱為 VEXA FLEX X1 8.7 吋摺疊手機，實際收到兩支舊手機以轉軸拼接的商品，並非廣告所示的摺疊手機，且具有兩個獨立 Micro USB 充電孔。要求退貨並全額退款 NT$29,800。':
-    'The listing described a VEXA FLEX X1 8.7-inch foldable phone. What arrived is two old phones spliced together with a hinge - not the foldable phone advertised - and it has two separate Micro USB charging ports. Requesting a return and a full refund of NT$29,800.',
+    'The listing advertised a VEXA FLEX X1 8.7-inch foldable phone. However, I received two old phones joined together by a hinge, not the foldable phone shown in the advertisement. Each phone has its own Micro USB charging port. I request a return and a full refund of NT$29,800.',
   '遠低於原價的「限時優惠」可能只是誘餌': 'A "limited-time deal" far below list price can be nothing but bait',
   '遠低於原價的限時優惠，可能利用價格吸引消費者忽略商品真偽與賣家資訊。購買前先確認商品規格、賣家資訊與交易保障，並保存商品頁面及賣家承諾。':
     'A limited-time price far below the list price can use the discount itself to pull attention away from whether the product is genuine and who the seller is. Before buying, check the specs, the seller details and what transaction protection applies - and keep a copy of the listing and of whatever the seller promised.',
@@ -307,6 +307,7 @@ export const EN = {
   '這和商品頁展示的內容差太多了。': 'This is nothing like what the product page showed.',
   '查看商品頁與實際內容': 'Compare the Listing and Actual Items',
   '包裹已送達': 'Package Has Arrived',
+  '商品已送達，準備開箱': 'Your order has arrived. Time to unbox it.',
   '拆開外箱': 'Open the Box',
   '先拍照': 'Take Photos First',
   '繼續查看': 'Keep Going',
