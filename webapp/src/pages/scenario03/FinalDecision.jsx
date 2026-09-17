@@ -76,7 +76,7 @@ export function FinalDecision() {
           <div className="pol-bank-instruction"><strong>{t.finalDecision.pressureTitle}</strong><br />{t.finalDecision.pressureText}</div>
           <section className="pol-bank-balance">
             <div className="label">{t.finalDecision.balanceLabel}</div>
-            <div className="amount" style={{ color: '#ec3013' }}>{formatNT(BALANCE_TOTAL)}</div>
+            <div className="amount" style={{ color: 'var(--pol-danger-ink)' }}>{formatNT(BALANCE_TOTAL)}</div>
             <div className="pol-bank-row"><span>{t.finalDecision.toAccountLabel}</span><span>{session.fakeBankAccount}</span></div>
             <div className="pol-bank-row"><span>{t.finalDecision.noteLabel}</span><span>{session.caseNumber}</span></div>
           </section>
@@ -85,11 +85,11 @@ export function FinalDecision() {
               is `dual` too, so it gets the same geometry rather than a second
               one invented for it. 照對方說的 stays first and stays LEFT. */}
           <div className="pol-choices pol-choices-split" style={{ background: '#fff', border: '1px solid #dfe4ee' }}>
-            <p className="pol-choices-prompt" style={{ color: '#6b7484' }}>{t.finalDecision.prompt}</p>
-            <button type="button" className="pol-choice-btn" style={{ background: '#f3f5f9', color: '#16181d', borderColor: '#dfe4ee' }} onClick={confirmTransfer}>
+            <p className="pol-choices-prompt" style={{ color: '#000' }}>{t.finalDecision.prompt}</p>
+            <button type="button" className="pol-choice-btn" style={{ background: '#f3f5f9', color: '#000', borderColor: '#dfe4ee' }} onClick={confirmTransfer}>
               {t.finalDecision.confirmOption}
             </button>
-            <button type="button" className="pol-choice-btn" style={{ background: '#f3f5f9', color: '#16181d', borderColor: '#dfe4ee' }} onClick={call165}>
+            <button type="button" className="pol-choice-btn" style={{ background: '#f3f5f9', color: '#000', borderColor: '#dfe4ee' }} onClick={call165}>
               {t.finalDecision.call165Option(HOTLINE_165)}
             </button>
           </div>
