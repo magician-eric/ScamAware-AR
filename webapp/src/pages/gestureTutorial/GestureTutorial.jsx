@@ -23,6 +23,22 @@ import '../entryScreens.css';
 // so neither the mascot nor the masthead is ever cropped or covered.
 const BACKGROUND_SRC = `${import.meta.env.BASE_URL}assets/shared/ui/scenario-menu-background.webp`;
 
+// ONE hand, for both directions.
+//
+// The delivered master is a cute right hand, back of the hand towards the
+// player, five fingers spread (asset-sources/shared/ui/gesture/hand.png; the
+// shipped file is its lossless WebP, identical in every visible pixel and in
+// its alpha - see docs/asset-architecture.md RULE 3, which is why the served
+// raster is .webp and not the .png that was delivered).
+//
+// Both steps render THIS file, unaltered. The left step and the right step
+// differ only in which way the same picture slides: no `scaleX(-1)`, no
+// rotation, no second artwork and no per-direction variant, because a
+// mirrored hand is a LEFT hand, and the palm would be facing the player -
+// a different gesture from the one the 佐臻 module is watching for. See the
+// .gesture-tutorial-hand rules in ../entryScreens.css for the travel itself.
+const HAND_SRC = `${import.meta.env.BASE_URL}assets/shared/ui/gesture/hand.webp`;
+
 // How long the completion line stays up before the player is taken to the
 // scan screen. Spec: 0.8-1.2s, and there is no button to press - the tutorial
 // is over the moment the second step lands.
@@ -30,9 +46,14 @@ const BACKGROUND_SRC = `${import.meta.env.BASE_URL}assets/shared/ui/scenario-men
 // This timer moves the player between two screens; it never moves the state
 // machine. Nothing in this file can reach COMPLETE except a real LEFT and
 // then a real RIGHT, so the tutorial cannot time itself out into "finished".
+//
+// The hand animation is deliberately NOT in this number. It is a looping
+// demonstration with no end state, the step it belongs to is finished the
+// instant the gesture is recognised, and a player who waves on the first
+// frame waits exactly as long as one who waves on the last.
 export const GESTURE_TUTORIAL_COMPLETE_DELAY_MS = 1000;
 
-const { COMPLETE } = GESTURE_TUTORIAL_STATES;
+const { COMPLETE, WAIT_RIGHT } = GESTURE_TUTORIAL_STATES;
 const { LEFT, RIGHT } = AR_GESTURES;
 
 // The two steps, in the order the tutorial teaches them. `key` is the copy
@@ -72,9 +93,18 @@ const STEPS = Object.freeze([
 // this page having actually completed the left step and then the right one,
 // or does not leave it.
 //
+// The hand demonstration added on top of that changes none of it. It is one
+// <img> per live step with a CSS animation on it, it is never a control, it
+// never reads or writes the state machine, and it is not a gate: the step it
+// sits in is completed by a wave or a tap at any moment of the loop, mid-
+// sweep as readily as at either end.
+//
 // It also does not declare itself to the AR Interaction Contract, on purpose
 // - see ./tutorialStateMachine.js for why LEFT and RIGHT are steps here, not
-// the two options that contract exists to describe.
+// the two options that contract exists to describe. That is also why the
+// shared 10-second inactivity hint (components/hints/InteractionHint.jsx)
+// never appears on this screen: it asks the contract what the player can do,
+// and the tutorial answers nothing at all.
 export function GestureTutorial() {
   useStageClassName('gesture-tutorial-stage');
   const navigate = useNavigate();
@@ -117,6 +147,11 @@ export function GestureTutorial() {
 
   const done = completedSteps(state);
 
+  // The step whose success line is up right now - the one the player has just
+  // finished, and only that one. Reaching WAIT_RIGHT means the LEFT wave
+  // landed; reaching COMPLETE means the RIGHT one did.
+  const justCompleted = state === WAIT_RIGHT ? 'left' : (state === COMPLETE ? 'right' : null);
+
   return (
     <div className="gesture-tutorial-page">
       <img className="gesture-tutorial-background" src={BACKGROUND_SRC} alt="" />
@@ -155,6 +190,36 @@ export function GestureTutorial() {
                     picks on a two-option screen is the part only the tutorial
                     ever tells them, so it is on screen rather than implied. */}
                 <span className="gesture-tutorial-step-rule">{t[step.key].rule}</span>
+                {/* The demonstration track. It is rendered on BOTH panels, in
+                    every state, and keeps its height whether or not anything
+                    is in it - so a step becoming live, or being finished,
+                    never moves the panels, the notes below them or the
+                    artwork behind them.
+
+                    Only the live step puts the hand in it: a step waiting its
+                    turn shows nothing, and a finished step shows its own
+                    success line instead, which is why nothing is still waving
+                    once the tutorial is over. */}
+                <span className="gesture-tutorial-hand-track">
+                  {live ? (
+                    <img
+                      className={`gesture-tutorial-hand gesture-tutorial-hand-${step.key}`}
+                      src={HAND_SRC}
+                      // Decorative: the step's own title, instruction and rule
+                      // already say the direction in the player's language, and
+                      // an <img> that fails to load must leave the tutorial
+                      // working rather than putting a broken-image caption in
+                      // the middle of it.
+                      alt=""
+                      aria-hidden="true"
+                      draggable={false}
+                      decoding="async"
+                    />
+                  ) : null}
+                  {complete ? (
+                    <span className="gesture-tutorial-step-success">{t[step.key].success}</span>
+                  ) : null}
+                </span>
               </button>
             );
           })}
@@ -175,8 +240,19 @@ export function GestureTutorial() {
           <p className="gesture-tutorial-pointer-hint">{t.pointerHint}</p>
         </div>
 
+        {/* The one announcement row, holding its height while it is empty so
+            nothing above it moves when something arrives in it. It carries the
+            latest news: the step that has just landed, and then - once the
+            second one has - the tutorial being over. Each step's own success
+            line stays on the step itself (in the track its hand has just
+            vacated), so nothing that has been said is taken away to say the
+            next thing.
+
+            It is not a delay either. The navigation timer above is started by
+            reaching COMPLETE and by nothing else, so this says what happened
+            while the player is already on their way to /ar-scan. */}
         <p className="gesture-tutorial-status" aria-live="polite">
-          {state === COMPLETE ? t.complete : ''}
+          {state === COMPLETE ? t.complete : (justCompleted ? t[justCompleted].success : '')}
         </p>
 
         <div className="gesture-tutorial-dots" aria-hidden="true">

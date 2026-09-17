@@ -251,9 +251,129 @@
 .gesture-tutorial-page .gesture-tutorial-single-rule{color:rgba(180,220,250,.96);font-size:clamp(11px,min(3.2vw,2.6vh),16px);font-weight:700}
 .gesture-tutorial-page .gesture-tutorial-reminder{color:rgba(255,214,138,.96);font-size:clamp(11px,min(3.3vw,2.7vh),17px);font-weight:700}
 .gesture-tutorial-page .gesture-tutorial-pointer-hint{color:rgba(214,232,248,.88);font-size:clamp(10px,min(2.9vw,2.4vh),14px);font-weight:600}
-/* The completion line. It holds its row while it is empty so finishing the
-   second step does not shift the panels above it. */
-.gesture-tutorial-page .gesture-tutorial-status{margin:0;min-height:1.4em;color:#3ddc84;font-size:clamp(13px,min(4vw,3.2vh),19px);font-weight:800;line-height:1.4;text-shadow:0 2px 14px rgba(0,0,0,.9)}
+/* The announcement row: the step that has just landed, then the tutorial
+   being over. It holds its row while it is empty so finishing a step does not
+   shift the panels above it. */
+.gesture-tutorial-page .gesture-tutorial-status{margin:0;min-height:1.4em;color:#3ddc84;font-size:clamp(13px,min(4vw,3.2vh),19px);font-weight:800;line-height:1.4;line-break:strict;text-shadow:0 2px 14px rgba(0,0,0,.9)}
 .gesture-tutorial-page .gesture-tutorial-dots{display:flex;align-items:center;justify-content:center;gap:clamp(10px,min(3vw,2.5vh),20px)}
 .gesture-tutorial-page .gesture-tutorial-dot{width:clamp(10px,min(3vw,2.5vh),16px);height:clamp(10px,min(3vw,2.5vh),16px);flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.88);background:transparent;box-shadow:0 2px 10px rgba(0,0,0,.65)}
 .gesture-tutorial-page .gesture-tutorial-dot.is-done{background:#fff}
+/* The hand demonstration.
+   ────────────────────────
+   ONE picture, two directions. `.gesture-tutorial-hand-left` and
+   `.gesture-tutorial-hand-right` render the identical file
+   (public/assets/shared/ui/gesture/hand.webp) and differ only in the SIGN of
+   the translate: there is no `scaleX(-1)`, no `rotate`, no non-uniform
+   `scale` and no second artwork anywhere in this section. That is a product
+   rule, not a preference - the master is a right hand seen from the back, and
+   mirroring it produces a left hand with the palm forward, which is a
+   different pose from the one the 佐臻 ToF module is watching for.
+
+   The track is on BOTH panels in EVERY state and keeps its height whether it
+   holds the hand, a success line or nothing, so a step going live or being
+   finished never moves the panels, the notes below them, or the artwork
+   behind them. `overflow:hidden` is a containment guarantee rather than a
+   crop: travel + hand never exceeds the panel's inner width at any viewport
+   this stage can be (on the glasses' 430x956 box that is ~138px of swept
+   content in a ~168px track; every other size keeps at least as much margin),
+   so the hand is never clipped and can never push the page sideways.
+
+   The hand is square - the file is 1254x1254 with the hand centred in its own
+   transparency - so width == height plus `object-fit:contain` keeps the
+   delivered proportions exactly. Nothing here stretches it. */
+.gesture-tutorial-page{--gesture-hand-size:clamp(34px,min(12vw,8.6vh),60px);--gesture-hand-travel:clamp(38px,min(20vw,15vh),88px)}
+.gesture-tutorial-page .gesture-tutorial-hand-track{position:relative;flex:none;display:block;width:100%;height:var(--gesture-hand-size);margin-top:clamp(2px,min(.8vw,.7vh),6px);overflow:hidden}
+.gesture-tutorial-page .gesture-tutorial-hand{position:absolute;top:0;left:50%;width:var(--gesture-hand-size);height:var(--gesture-hand-size);margin-left:calc(var(--gesture-hand-size) / -2);display:block;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.55));
+  /* pointer-events:none, deliberately: the panel underneath is the step's
+     touch target and must stay the thing a finger lands on. The hand
+     demonstrates, it never intercepts. */
+  pointer-events:none;
+  animation:gesture-tutorial-hand-sweep-left 2.7s linear infinite}
+.gesture-tutorial-page .gesture-tutorial-hand-right{animation-name:gesture-tutorial-hand-sweep-right}
+/* The sweep, timed in segments rather than eased as one curve.
+   ────────────────────────────────────────────────────────────
+   2.7s per cycle: 2.2s of travel, then 0.5s standing still at the far end,
+   then an immediate reset to the start (a reverse sweep would teach the
+   opposite gesture, so the return is a cut, never an animation).
+
+   Keyframe %  ->  time   ->  how far along the path
+      0.00%        0.00s        0%     start
+     11.11%        0.30s       18%   ┐
+     20.37%        0.55s       31%   ├ full speed, then easing off
+     29.63%        0.80s       42%   ┘
+     51.85%        1.40s       58%     ← the slow zone: 16% of the path
+                                         spread over 0.60s, so the hand
+                                         crosses the middle at ~27 %/s
+                                         against ~60 %/s at the ends - it
+                                         keeps moving, it never parks
+     61.11%        1.65s       69%   ┐
+     70.37%        1.90s       82%   ├ picking the speed back up
+     81.48%        2.20s      100%   ┘ far end reached at 2.2s
+    100.00%        2.70s      100%     held for 0.5s, then cut back
+
+   `linear` between the stops is the point: the velocity is carried by where
+   the stops are, so the middle is measurably - not just perceptually - slower.
+   A single `ease-in-out` over the whole sweep would do the opposite of what
+   this is for, since it is fastest exactly in the middle.
+
+   Travel is symmetric about the panel's centre (±half of
+   --gesture-hand-travel), which is what lets both directions share one set of
+   distances with only the sign flipped. */
+@keyframes gesture-tutorial-hand-sweep-left{
+  0%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
+  11.11%{transform:translateX(calc(var(--gesture-hand-travel) * .32))}
+  20.37%{transform:translateX(calc(var(--gesture-hand-travel) * .19))}
+  29.63%{transform:translateX(calc(var(--gesture-hand-travel) * .08))}
+  51.85%{transform:translateX(calc(var(--gesture-hand-travel) * -.08))}
+  61.11%{transform:translateX(calc(var(--gesture-hand-travel) * -.19))}
+  70.37%{transform:translateX(calc(var(--gesture-hand-travel) * -.32))}
+  81.48%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
+  100%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
+}
+@keyframes gesture-tutorial-hand-sweep-right{
+  0%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
+  11.11%{transform:translateX(calc(var(--gesture-hand-travel) * -.32))}
+  20.37%{transform:translateX(calc(var(--gesture-hand-travel) * -.19))}
+  29.63%{transform:translateX(calc(var(--gesture-hand-travel) * -.08))}
+  51.85%{transform:translateX(calc(var(--gesture-hand-travel) * .08))}
+  61.11%{transform:translateX(calc(var(--gesture-hand-travel) * .19))}
+  70.37%{transform:translateX(calc(var(--gesture-hand-travel) * .32))}
+  81.48%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
+  100%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
+}
+/* Short windows.
+   ──────────────
+   Everything this screen is actually delivered on is portrait and tall - the
+   glasses' 430x956 box, and phones - and none of the two rules below touches
+   any of them. What they cover is the shape a reviewer or a tester will meet:
+   a desktop browser that is wider than it is tall. There the stage is capped
+   by the viewport's height while the type keeps its width-driven size, so the
+   column was already filling most of the band before there was anything to
+   demonstrate; adding the sweep to it would clip the heading and the progress
+   dots off the top and bottom.
+
+   So in those windows the sweep is scaled down, the column's gaps are tightened
+   and the band is given back the room at its bottom edge - the artwork's grid
+   glow, which carries neither the masthead nor 刑事熊, so nothing is covered
+   that the full-height layout keeps clear.
+
+   The two are written to be mutually exclusive rather than to cascade, so
+   which one applies is readable from the conditions alone. */
+@media (min-width:768px) and (min-height:521px) and (max-height:860px){
+  .gesture-tutorial-page{--gesture-hand-size:clamp(28px,5.2vh,44px);--gesture-hand-travel:clamp(34px,11vh,76px)}
+  .gesture-tutorial-page .gesture-tutorial-content{bottom:2.5%;gap:clamp(4px,1vh,10px)}
+}
+@media (max-height:520px){
+  .gesture-tutorial-page{--gesture-hand-size:clamp(24px,7vh,34px);--gesture-hand-travel:clamp(30px,12vh,60px)}
+  .gesture-tutorial-page .gesture-tutorial-content{top:16%;bottom:3%;gap:clamp(3px,1vh,10px)}
+}
+/* A player who has asked their device for less motion still gets the hand,
+   the arrow and every word - it just stands still in the middle of its track.
+   Nothing about recognition, the touch fallback or completing the tutorial
+   goes through the animation, so switching it off costs the player nothing. */
+@media (prefers-reduced-motion:reduce){
+  .gesture-tutorial-page .gesture-tutorial-hand{animation:none;transform:none}
+}
+/* The finished step's own line, in the track the hand has just vacated - so
+   confirming a step costs no height and moves nothing. */
+.gesture-tutorial-page .gesture-tutorial-step-success{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3ddc84;font-size:clamp(11px,min(3.2vw,2.6vh),15px);font-weight:800;line-height:1.25;text-align:center;line-break:strict;text-shadow:0 2px 12px rgba(0,0,0,.9)}

@@ -142,7 +142,17 @@ const ruleOf = (tree, side) => textOf(nodesWithClass(stepOf(tree, side), 'gestur
 const singleRuleOf = (tree) => textOf(nodesWithClass(tree, 'gesture-tutorial-single-rule')[0]);
 const reminderOf = (tree) => textOf(nodesWithClass(tree, 'gesture-tutorial-reminder')[0]);
 const pointerHintOf = (tree) => textOf(nodesWithClass(tree, 'gesture-tutorial-pointer-hint')[0]);
+// The announcement row carries the latest news - a step landing, then the
+// tutorial being over - so both reads below come off the same row.
 const statusOf = (tree) => textOf(nodesWithClass(tree, 'gesture-tutorial-status')[0]);
+const completeLineOf = statusOf;
+const successLineOf = statusOf;
+// The demonstration: the track is on both panels always, the hand only ever on
+// the live one, and a finished panel carries its own success line instead.
+const trackCountOf = (tree) => nodesWithClass(tree, 'gesture-tutorial-hand-track').length;
+const handsOf = (tree) => nodesWithClass(tree, 'gesture-tutorial-hand');
+const handSidesOf = (tree) => ['left', 'right'].filter((side) => nodesWithClass(stepOf(tree, side), 'gesture-tutorial-hand').length > 0);
+const stepSuccessOf = (tree, side) => textOf(nodesWithClass(stepOf(tree, side), 'gesture-tutorial-step-success')[0]);
 const arrowsOf = (tree) => nodesWithClass(tree, 'gesture-tutorial-arrow').map(textOf);
 const activeSideOf = (tree) => ['left', 'right'].find((side) => stepOf(tree, side).props.className.includes('is-active')) ?? null;
 const doneSidesOf = (tree) => ['left', 'right'].filter((side) => stepOf(tree, side).props.className.includes('is-done'));
@@ -328,7 +338,7 @@ test('a real RIGHT is ignored on the mounted page until LEFT has happened', () =
   assert.equal(filledDotsOf(page.output), 1);
 
   wave('RIGHT');
-  assert.equal(statusOf(page.output), t.complete);
+  assert.equal(completeLineOf(page.output), t.complete);
   assert.equal(activeSideOf(page.output), null, 'a finished tutorial has no live step');
   assert.deepEqual(doneSidesOf(page.output), ['left', 'right']);
   assert.equal(filledDotsOf(page.output), 2);
@@ -352,7 +362,7 @@ test('a native restart does not deafen the tutorial', () => {
   wave('LEFT');
   assert.equal(activeSideOf(page.output), 'right', 'a wave after a native restart must not be read as a duplicate');
   wave('RIGHT');
-  assert.equal(statusOf(page.output), t.complete);
+  assert.equal(completeLineOf(page.output), t.complete);
   page.unmount();
 });
 
@@ -493,55 +503,61 @@ test('the adapter is a translator, not a recogniser', () => {
 
 const EXPECTED_COPY = {
   zh: {
-    heading: '手勢教學',
+    heading: '手勢操作教學',
     left: {
       title: '向左揮',
-      instruction: '請將手掌張開，慢慢向左揮動',
-      rule: '有兩個選項時，向左揮選擇左邊的答案',
+      instruction: '張開手掌，慢慢向左揮動',
+      rule: '向左揮，選擇左邊的選項',
+      success: '左揮成功！',
     },
     right: {
       title: '向右揮',
-      instruction: '請將手掌張開，慢慢向右揮動',
-      rule: '有兩個選項時，向右揮選擇右邊的答案',
+      instruction: '張開手掌，慢慢向右揮動',
+      rule: '向右揮，選擇右邊的選項',
+      success: '右揮成功！',
     },
     singleOption: '只有一個選項時，向右揮即可選擇',
     reminder: '請放慢揮手速度，揮動太快可能無法辨識',
     pointerHint: '手機或電腦操作時，也可以直接點擊畫面上的選項',
-    complete: '手勢教學完成',
+    complete: '手勢教學完成！',
   },
   en: {
     heading: 'Gesture Tutorial',
     left: {
       title: 'Swipe left',
-      instruction: 'Open your palm and sweep it slowly to the left',
-      rule: 'When two options are on screen, swipe left to choose the one on the left',
+      instruction: 'Open your hand and slowly swipe left.',
+      rule: 'Swipe left to choose the option on the left.',
+      success: 'Left swipe successful!',
     },
     right: {
       title: 'Swipe right',
-      instruction: 'Open your palm and sweep it slowly to the right',
-      rule: 'When two options are on screen, swipe right to choose the one on the right',
+      instruction: 'Open your hand and slowly swipe right.',
+      rule: 'Swipe right to choose the option on the right.',
+      success: 'Right swipe successful!',
     },
-    singleOption: 'When there is only one option, swipe right to choose it',
+    singleOption: 'For a single option, swipe right to select it.',
     reminder: 'Keep the motion slow — a fast swipe may not be recognised',
     pointerHint: 'On a phone or computer you can also just tap the option on screen',
-    complete: 'Gesture tutorial complete',
+    complete: 'Tutorial complete!',
   },
   jp: {
     heading: 'ジェスチャー練習',
     left: {
       title: '左に振る',
-      instruction: '手のひらを開いて、ゆっくり左へ振ってください',
-      rule: '選択肢が2つあるときは、左に振ると左側の答えを選べます',
+      instruction: '手のひらを開いて、ゆっくり左に振ってください。',
+      rule: '左に振ると、左側の選択肢を選べます。',
+      success: '左への操作ができました！',
     },
     right: {
       title: '右に振る',
-      instruction: '手のひらを開いて、ゆっくり右へ振ってください',
-      rule: '選択肢が2つあるときは、右に振ると右側の答えを選べます',
+      instruction: '手のひらを開いて、ゆっくり右に振ってください。',
+      rule: '右に振ると、右側の選択肢を選べます。',
+      success: '右への操作ができました！',
     },
-    singleOption: '選択肢が1つだけのときは、右に振ると選べます',
+    singleOption: '選択肢が1つの場合は、右に振って選んでください。',
     reminder: 'ゆっくり振ってください。速すぎると認識されないことがあります',
     pointerHint: 'スマートフォンやパソコンでは、画面の選択肢を直接タップしても操作できます',
-    complete: 'ジェスチャー練習完了',
+    complete: '練習完了！',
   },
 };
 
@@ -575,9 +591,16 @@ test('the page renders the language the player chose on the previous screen', ()
     wave('LEFT');
     assert.equal(reminderOf(page.output), expected.reminder, `${lang}: the reminder is fixed, not per-step`);
     assert.equal(ruleOf(page.output, 'left'), expected.left.rule, `${lang}: a completed step keeps its rule on screen`);
+    // The left step landing says so, in the player's language, and says only
+    // that: the tutorial is not over yet.
+    assert.equal(successLineOf(page.output), expected.left.success, `${lang}: the left step landing is announced`);
+    assert.equal(stepSuccessOf(page.output, 'left'), expected.left.success, `${lang}: and stays on the step itself`);
+    assert.notEqual(statusOf(page.output), expected.complete, `${lang}: one step down is not the tutorial finished`);
 
     wave('RIGHT');
-    assert.equal(statusOf(page.output), expected.complete);
+    assert.equal(stepSuccessOf(page.output, 'right'), expected.right.success, `${lang}: the right step's own success line`);
+    assert.equal(stepSuccessOf(page.output, 'left'), expected.left.success, `${lang}: and the left one is not taken away to say it`);
+    assert.equal(completeLineOf(page.output), expected.complete);
     assert.equal(reminderOf(page.output), expected.reminder, `${lang}: the reminder stays up at the end too`);
     assert.equal(singleRuleOf(page.output), expected.singleOption, `${lang}: so does the one-option rule`);
     assert.equal(pointerHintOf(page.output), expected.pointerHint, `${lang}: and so does the tap hint`);
@@ -682,7 +705,7 @@ test('a touch or a click completes the same two steps, in the same order', () =>
   assert.equal(filledDotsOf(page.output), 1);
 
   assert.equal(press(page, 'right'), true);
-  assert.equal(statusOf(page.output), t.complete);
+  assert.equal(completeLineOf(page.output), t.complete);
   assert.equal(filledDotsOf(page.output), 2);
   assert.deepEqual(navigations, [], 'the completion line is still readable');
   page.unmount();
@@ -800,7 +823,7 @@ test('the only controls on the page are the two steps themselves', () => {
 // 6. the background
 // =============================================================================
 
-test('the tutorial reuses the language home Hero artwork, and adds no asset', async () => {
+test('the tutorial reuses the language home Hero artwork rather than a copy of it', async () => {
   const HERO = 'assets/shared/ui/scenario-menu-background.webp';
   assert.ok(SOURCES.page.includes(HERO), 'the tutorial must render the existing Hero image');
   assert.ok((await read('src/pages/LanguageSelect.jsx')).includes(HERO), 'and it must be the language home\'s own');
@@ -811,4 +834,250 @@ test('the tutorial reuses the language home Hero artwork, and adds no asset', as
   const css = await read('src/pages/entryScreens.css');
   assert.match(css, /\.gesture-tutorial-background\{[^}]*object-fit:contain/);
   assert.match(css, /\.gesture-tutorial-scrim\{[^}]*rgba\(2,9,22/);
+});
+
+// =============================================================================
+// 6. the hand demonstration
+// =============================================================================
+//
+// One delivered picture, shown on the step the player is on, sliding the way
+// that step teaches. Everything below exists to close one of the ways that
+// could stop being true:
+//
+//   - it is ONE file, used unaltered, for both directions (a mirrored right
+//     hand is a left hand with the palm forward - a different pose from the
+//     one the 佐臻 module is watching for)
+//   - it appears on the live step and nowhere else, and nothing is still
+//     waving once the tutorial is over
+//   - it costs no layout: the track is on both panels in every state
+//   - the sweep really does slow down across the middle, by the clock rather
+//     than by eye
+//   - it is a demonstration, never a gate and never a control
+
+const HAND_FILE = 'assets/shared/ui/gesture/hand.webp';
+const CSS = await read('src/pages/entryScreens.css');
+
+// The keyframe stops of one @keyframes block, as { at, offset } in fractions:
+// `at` is the point in the cycle, `offset` the multiple of
+// --gesture-hand-travel the hand is translated to there.
+function sweepStops(name) {
+  const open = CSS.indexOf(`@keyframes ${name}{`);
+  assert.notEqual(open, -1, `@keyframes ${name} must exist`);
+  const block = CSS.slice(open, CSS.indexOf('\n}', open));
+  const stops = [...block.matchAll(/([\d.]+)%\{transform:translateX\(calc\(var\(--gesture-hand-travel\) \* (-?[\d.]+)\)\)\}/g)]
+    .map(([, at, offset]) => ({ at: Number(at) / 100, offset: Number(offset) }));
+  assert.ok(stops.length >= 5, `${name} must be segmented, not a two-stop ease`);
+  return stops;
+}
+
+// Travel is symmetric about the panel centre, so "how far along the path" is
+// the distance from this stop's own start.
+function pathProgress(stops) {
+  const from = stops[0].offset;
+  const to = stops[stops.length - 1].offset;
+  // `.toFixed` normalises the -0 that `0 / -travel` produces for the first stop.
+  return stops.map(({ at, offset }) => ({ at, done: Number(((offset - from) / (to - from)).toFixed(10)) }));
+}
+
+test('both directions are the same picture, moved the other way - never a mirrored one', () => {
+  const page = mountTutorial();
+  const [hand] = handsOf(page.output);
+  assert.equal(hand.props.src, `/${HAND_FILE}`, 'the hand is the delivered file, resolved through BASE_URL');
+
+  // Reach the right step and read its hand: same `src`, different class.
+  wave('LEFT');
+  const [rightHand] = handsOf(page.output);
+  assert.equal(rightHand.props.src, hand.props.src, 'the right step must not load a second artwork');
+  assert.ok(hand.props.className.includes('gesture-tutorial-hand-left'));
+  assert.ok(rightHand.props.className.includes('gesture-tutorial-hand-right'));
+  page.unmount();
+
+  // The page composes exactly one hand URL, from BASE_URL, and names no other
+  // image file for it.
+  const page_src = stripComments(SOURCES.page);
+  assert.equal([...page_src.matchAll(/assets\/shared\/ui\/gesture\//g)].length, 1, 'one hand asset, named once');
+  assert.ok(page_src.includes('${import.meta.env.BASE_URL}assets/shared/ui/gesture/hand.webp'));
+  assert.equal(/hand-left\.|hand-right\.|hand-mirror|hand-2|hand_flipped/.test(page_src), false, 'no per-direction artwork');
+
+  // Nothing anywhere flips, turns or squashes it. Read off the tutorial's own
+  // CSS section and off the page, so a `transform: scaleX(-1)` cannot be
+  // smuggled in from either side.
+  const handCss = CSS.slice(CSS.indexOf('.gesture-tutorial-page{--gesture-hand-size'));
+  [/scaleX\s*\(\s*-/, /scale3d/, /rotate/, /\brotateY\b/, /matrix\s*\(/, /transform:\s*scale\(/].forEach((forbidden) => {
+    assert.equal(forbidden.test(handCss), false, `the hand's CSS must not use ${forbidden}`);
+    assert.equal(forbidden.test(page_src), false, `the page must not use ${forbidden}`);
+  });
+  // Its own proportions are kept: a square box for a square file, contained.
+  assert.match(handCss, /\.gesture-tutorial-hand\{[^}]*object-fit:contain/);
+  assert.match(handCss, /\.gesture-tutorial-hand\{[^}]*width:var\(--gesture-hand-size\);height:var\(--gesture-hand-size\)/);
+  // Every keyframe in both sweeps is a pure horizontal translate.
+  const sweeps = CSS.match(/@keyframes gesture-tutorial-hand-sweep-(?:left|right)\{[\s\S]*?\n\}/g) ?? [];
+  assert.equal(sweeps.length, 2);
+  sweeps.forEach((sweep) => {
+    [...sweep.matchAll(/transform:([^;}]+)/g)].forEach(([, value]) => {
+      assert.match(value, /^translateX\(/, `only horizontal movement is allowed, got ${value}`);
+    });
+  });
+});
+
+test('the hand is on the live step only, and nothing is left waving at the end', () => {
+  const page = mountTutorial();
+  const t = getGestureTutorialStrings('zh');
+
+  // Both panels carry the track from the first frame - that is what makes a
+  // step going live, or being finished, cost no height anywhere on the page.
+  assert.equal(trackCountOf(page.output), 2, 'both steps reserve the track in every state');
+  assert.deepEqual(handSidesOf(page.output), ['left'], 'only the step being taught demonstrates');
+  assert.equal(stepSuccessOf(page.output, 'left'), '', 'nothing has been completed yet');
+
+  // A wrong-direction wave changes neither the step nor the demonstration.
+  wave('RIGHT');
+  assert.deepEqual(handSidesOf(page.output), ['left'], 'the wrong direction must not move the hand either');
+
+  wave('LEFT');
+  assert.equal(trackCountOf(page.output), 2);
+  assert.deepEqual(handSidesOf(page.output), ['right'], 'the finished step stops, the new one starts');
+  assert.equal(stepSuccessOf(page.output, 'left'), t.left.success, 'the finished step says so in the track it vacated');
+
+  wave('RIGHT');
+  assert.equal(trackCountOf(page.output), 2, 'the tracks stay, so the page does not resize as it ends');
+  assert.deepEqual(handsOf(page.output), [], 'a finished tutorial has no animation left on it');
+  assert.deepEqual(handSidesOf(page.output), []);
+  assert.equal(stepSuccessOf(page.output, 'right'), t.right.success);
+  page.unmount();
+});
+
+test('the sweep slows across the middle, holds at the end, and never runs backwards', () => {
+  // The cycle: 2.2s of travel + 0.5s held at the far end = 2.7s.
+  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-hand-sweep-left 2\.7s linear infinite/);
+  assert.match(CSS, /\.gesture-tutorial-hand-right\{animation-name:gesture-tutorial-hand-sweep-right\}/);
+
+  ['gesture-tutorial-hand-sweep-left', 'gesture-tutorial-hand-sweep-right'].forEach((name) => {
+    const stops = sweepStops(name);
+    const progress = pathProgress(stops);
+    const CYCLE = 2.7;
+
+    // Monotonic: the hand only ever moves towards the far end. A stop that
+    // went back would be a visible reverse wave - the opposite gesture.
+    progress.forEach((stop, i) => {
+      if (i === 0) return;
+      assert.ok(stop.done >= progress[i - 1].done - 1e-9, `${name}: stop ${i} runs backwards`);
+      assert.ok(stop.at > progress[i - 1].at, `${name}: stops must advance in time`);
+    });
+    assert.equal(progress[0].done, 0);
+    assert.equal(progress[0].at, 0);
+    assert.equal(progress[progress.length - 1].done, 1);
+    assert.equal(progress[progress.length - 1].at, 1);
+
+    // The travel finishes at 2.2s and the rest of the cycle is a hold.
+    const arrival = progress.find((stop) => stop.done >= 1 - 1e-9);
+    assert.ok(Math.abs(arrival.at * CYCLE - 2.2) < 0.02, `${name}: one-way travel must be ~2.2s, got ${(arrival.at * CYCLE).toFixed(2)}s`);
+    assert.ok(Math.abs((1 - arrival.at) * CYCLE - 0.5) < 0.02, `${name}: the end pause must be ~0.5s`);
+
+    // Speed per segment, in path-fraction per second.
+    const speeds = [];
+    for (let i = 1; i < progress.length; i += 1) {
+      const seconds = (progress[i].at - progress[i - 1].at) * CYCLE;
+      speeds.push({
+        from: progress[i - 1].done,
+        to: progress[i].done,
+        seconds,
+        speed: (progress[i].done - progress[i - 1].done) / seconds,
+      });
+    }
+    const moving = speeds.filter((segment) => segment.speed > 0);
+
+    // The slowest segment is the one that straddles the middle, it lasts
+    // about 0.6s, and it is meaningfully - not marginally - slower than the
+    // fast ends. And it is still MOVING: the hand never parks in the centre.
+    const slowest = moving.reduce((a, b) => (b.speed < a.speed ? b : a));
+    const fastest = moving.reduce((a, b) => (b.speed > a.speed ? b : a));
+    assert.ok(slowest.from < 0.5 && slowest.to > 0.5, `${name}: the slow stretch must straddle the middle of the path`);
+    assert.ok(slowest.from >= 0.35 && slowest.to <= 0.65, `${name}: the slow stretch must sit around 40%-60% of the path`);
+    assert.ok(Math.abs(slowest.seconds - 0.6) < 0.05, `${name}: the slow stretch must last ~0.6s, got ${slowest.seconds.toFixed(2)}s`);
+    assert.ok(slowest.speed > 0, `${name}: the hand must keep moving through the middle, never freeze`);
+    assert.ok(fastest.speed / slowest.speed >= 1.8, `${name}: the middle must be clearly slower, got ${(fastest.speed / slowest.speed).toFixed(2)}x`);
+
+    // Symmetric: the run-in and the run-out are the same rhythm, so the two
+    // directions teach the same wave.
+    const half = Math.floor(moving.length / 2);
+    const leadIn = moving.slice(0, half).map((s) => Number(s.speed.toFixed(3)));
+    const runOut = moving.slice(moving.length - half).map((s) => Number(s.speed.toFixed(3))).reverse();
+    assert.deepEqual(leadIn, runOut, `${name}: decelerating in and accelerating out must mirror each other`);
+  });
+
+  // The two directions are the same rhythm with the sign flipped - not two
+  // separately tuned animations.
+  const left = pathProgress(sweepStops('gesture-tutorial-hand-sweep-left'));
+  const right = pathProgress(sweepStops('gesture-tutorial-hand-sweep-right'));
+  assert.deepEqual(left, right, 'both directions must share one timing profile');
+  assert.deepEqual(
+    sweepStops('gesture-tutorial-hand-sweep-left').map((s) => -s.offset),
+    sweepStops('gesture-tutorial-hand-sweep-right').map((s) => s.offset),
+    'the right sweep is the left one negated - the picture is not flipped, the travel is',
+  );
+});
+
+test('the demonstration is inert: it takes no touch, gates nothing and runs no timer', () => {
+  const page = mountTutorial();
+  const [hand] = handsOf(page.output);
+
+  // Decorative and unreachable: it is not a control, it carries no handler,
+  // and a finger that lands on it reaches the step underneath instead.
+  assert.equal(hand.type, 'img');
+  assert.equal(hand.props.alt, '');
+  assert.equal(hand.props['aria-hidden'], 'true');
+  assert.equal(hand.props.onClick, undefined);
+  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?pointer-events:none/);
+
+  // The step is still completed by a tap at any moment of the loop - the
+  // animation is CSS, so there is no frame the page is waiting for.
+  assert.equal(press(page, 'left'), true);
+  assert.equal(activeSideOf(page.output), 'right');
+  page.unmount();
+
+  // Nothing in the page schedules anything for the animation: the only timer
+  // on this screen is the existing navigation delay.
+  const page_src = stripComments(SOURCES.page);
+  assert.equal([...page_src.matchAll(/setTimeout|setInterval|requestAnimationFrame/g)].length, 1, 'one timer on this page, and it is the navigation one');
+  assert.ok(page_src.includes('GESTURE_TUTORIAL_COMPLETE_DELAY_MS'));
+
+  // And the recognition path is untouched by any of it.
+  assert.equal(/animation|keyframe|sweep/i.test(stripComments(SOURCES.adapter)), false, 'the input adapter knows nothing about the demonstration');
+});
+
+test('a player who asked for less motion still gets the hand, standing still', () => {
+  // entryScreens.css answers prefers-reduced-motion for more than one screen,
+  // and the scan screen's block closes with `}}` on a single line - so this
+  // finds the tutorial's own rule and walks back to the at-rule holding it,
+  // rather than matching the first block in the file.
+  const OFF = '.gesture-tutorial-page .gesture-tutorial-hand{animation:none;transform:none}';
+  const at = CSS.indexOf(OFF);
+  assert.notEqual(at, -1, 'the tutorial must stop the sweep under prefers-reduced-motion');
+  const opener = CSS.lastIndexOf('@media', at);
+  assert.ok(CSS.startsWith('@media (prefers-reduced-motion:reduce){', opener), 'and it must be prefers-reduced-motion that stops it');
+  const reduced = CSS.slice(opener, CSS.indexOf('\n}', at) + 2);
+  // The picture, the arrow and the words all stay - only the travel stops.
+  assert.equal(/display:none|visibility:hidden|opacity:0/.test(reduced), false, 'reduced motion must not remove the hand or the direction cues');
+});
+
+test('the shipped hand is the delivered master, losslessly re-containered', async () => {
+  const { readFile: readBinary } = await import('node:fs/promises');
+  const shipped = await readBinary(new URL('../public/assets/shared/ui/gesture/hand.webp', import.meta.url));
+
+  // A real WebP, in the VP8L (lossless) chunk, carrying an alpha channel -
+  // the transparent background the animation depends on.
+  assert.equal(shipped.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(shipped.toString('ascii', 8, 12), 'WEBP');
+  assert.equal(shipped.toString('ascii', 12, 16), 'VP8L', 'the shipped hand must be lossless, not re-encoded lossily');
+  // VP8L bit 28 of the header word is the alpha_is_used flag.
+  assert.equal((shipped.readUInt32LE(25) >> 3) & 1, 1, 'the shipped hand must keep its transparency');
+
+  // The delivered original is kept, unmodified, as the master it was derived
+  // from (asset-sources/ never ships - see docs/asset-architecture.md).
+  const master = await readBinary(new URL('../asset-sources/shared/ui/gesture/hand.png', import.meta.url));
+  assert.equal(master.toString('ascii', 1, 4), 'PNG');
+  assert.equal(master.readUInt32BE(16), 1254, 'the master keeps its delivered width');
+  assert.equal(master.readUInt32BE(20), 1254, 'the master keeps its delivered height');
+  assert.ok((await read('asset-sources/README.md')).includes('shared/ui/gesture/hand.png'), 'the master must be listed with what it derived into');
 });
