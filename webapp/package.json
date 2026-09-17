@@ -24,6 +24,7 @@
     "test:blackpi-navigation-boundary": "node --import=./scripts/register-jsx-loader.mjs --test ./scripts/blackpi-navigation-boundary.test.mjs",
     "test:scenario05-navigation": "node --test ./scripts/scenario05-navigation.test.mjs",
     "test:scenario05-buyer-choices": "node --experimental-loader ./scripts/extensionless-loader.mjs --test ./scripts/scenario05-buyer-choices.test.mjs",
+    "test:scenario05-verification": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/scenario05-verification.test.mjs",
     "test:mydondon-boundary": "node --import=./scripts/register-jsx-loader.mjs --test ./scripts/mydondon-boundary.test.mjs",
     "test:scenario-entry-briefing": "node --import=./scripts/register-jsx-loader.mjs --test ./scripts/scenario-entry-briefing.test.mjs",
     "test:scenario01-video": "node --test ./scripts/scenario01-video.test.mjs",

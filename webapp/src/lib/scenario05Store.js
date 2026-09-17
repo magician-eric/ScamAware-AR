@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { resolveCast } from '../experience/characters/casting';
+import { SCENARIO05_VERIFICATION_AMOUNT } from '../data/scenario05Verification';
 
 // Scenario05 (幽靈訂單 / 假買家騙賣家) state store. Same recipe as
 // scenario04's shoppingStore: one JSON blob in localStorage so a refresh or
@@ -31,12 +32,74 @@ export const DEFAULT_STATE = {
   // it has to be persisted the first time it's generated or it would reroll
   // on every re-render.
   shipmentCodeSuffix: null,
+  // --- the fake SafeDeal verification detour -----------------------------
+  //
+  // Recorded as two independent facts, never as one "was the player scammed"
+  // boolean: a run can end having transferred the deposit and still saved the
+  // item, which is a different ending from both of the other two and has to
+  // be able to say so.
+  //
+  // verificationPaid  - flipped to true by exactly one action in the whole
+  //                     scenario: confirming the simulated transfer on
+  //                     pages/scenario05/SafeDealTransfer.jsx. Nothing else
+  //                     writes it, and it is never flipped back mid-run.
+  // verificationLoss  - 0, or the one centrally-defined amount. Derived from
+  //                     verificationPaid on every read (see normalize()), so
+  //                     it is an assignment rather than a running total: a
+  //                     double tap, a refresh or a replayed navigation cannot
+  //                     charge the player twice.
+  // verificationStatus- where the fake "金流驗證" got to:
+  //                     'notStarted' -> 'requested' (the agent has asked)
+  //                     -> 'completed' (the one simulated transfer happened)
+  //                     or -> 'refused' (the player said no and stopped).
+  // shipmentDecision  - the separate, later decision: null until the player
+  //                     answers the buyer's push to ship, then 'stopped' or
+  //                     'shipped'.
+  verificationPaid: false,
+  verificationLoss: 0,
+  verificationStatus: 'notStarted',
+  shipmentDecision: null,
 };
+
+// The only values the four fields above may ever hold. Anything else - a save
+// written before this flow existed, a hand-edited blob, a half-finished write
+// - is read back as the default rather than rendered, so an old checkpoint
+// resumes into a plain screen instead of an impossible one.
+const VERIFICATION_STATUSES = ['notStarted', 'requested', 'completed', 'refused'];
+const SHIPMENT_DECISIONS = [null, 'stopped', 'shipped'];
+
+// The patch the simulated transfer applies, and the only place verificationPaid
+// becomes true. Exported as a value so the screen that owns that one action
+// cannot accidentally be written to add a second, different charge.
+export const VERIFICATION_DEPOSIT_PAID = Object.freeze({
+  verificationPaid: true,
+  verificationLoss: SCENARIO05_VERIFICATION_AMOUNT,
+  verificationStatus: 'completed',
+});
+
+function normalize(state) {
+  const verificationPaid = state.verificationPaid === true;
+  return {
+    ...state,
+    verificationPaid,
+    // Never accumulated, always derived: "the player transferred the deposit"
+    // is the fact, and the amount follows from it. A player who never
+    // transferred can therefore never be shown a deposit loss, and a player
+    // who did can never be shown two.
+    verificationLoss: verificationPaid ? SCENARIO05_VERIFICATION_AMOUNT : 0,
+    verificationStatus: VERIFICATION_STATUSES.includes(state.verificationStatus)
+      ? state.verificationStatus
+      : 'notStarted',
+    shipmentDecision: SHIPMENT_DECISIONS.includes(state.shipmentDecision)
+      ? state.shipmentDecision
+      : null,
+  };
+}
 
 export function getScenario05State() {
   try {
     const raw = localStorage.getItem(STATE_KEY);
-    return raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : { ...DEFAULT_STATE };
+    return normalize(raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : { ...DEFAULT_STATE });
   } catch {
     return { ...DEFAULT_STATE };
   }
@@ -50,6 +113,27 @@ export function saveScenario05State(patch) {
     // localStorage unavailable (private mode / quota) - state just won't persist.
   }
   return next;
+}
+
+// The fake agent has now actually asked for the deposit. Only ever moves the
+// status forward off its starting value: a refresh that lands back on the
+// same node, or a resume after the transfer, must not walk it backwards.
+export function markVerificationRequested() {
+  const state = getScenario05State();
+  if (state.verificationStatus !== 'notStarted') return state;
+  return saveScenario05State({ verificationStatus: 'requested' });
+}
+
+// The one simulated transfer in the whole scenario. Guarded here as well as
+// in the screen so that a second call - a double tap, a gesture landing on
+// top of a tap, a remount - is a no-op rather than a second charge. There is
+// no second deposit, no unfreeze fee, no top-up and no re-verification fee
+// anywhere in this scenario: this function is the only writer, and it writes
+// once.
+export function payVerificationDeposit() {
+  const state = getScenario05State();
+  if (state.verificationPaid) return state;
+  return saveScenario05State(VERIFICATION_DEPOSIT_PAID);
 }
 
 // The buyer for this run. Normally assigned by getBuyerCast() the first time
@@ -150,6 +234,13 @@ export function resetScenario05() {
     buyerId: null,
     shipStatus: 'idle',
     shipmentCodeSuffix: String(Math.floor(1000 + Math.random() * 9000)),
+    // Spelled out rather than left to the sweep above: replaying the scenario
+    // has to start from "nothing transferred, nothing shipped" even if a
+    // future reset stops clearing the state blob wholesale.
+    verificationPaid: false,
+    verificationLoss: 0,
+    verificationStatus: 'notStarted',
+    shipmentDecision: null,
   });
 }
 
