@@ -99,7 +99,8 @@
     "test:ota-release": "node --test scripts/ota-release.test.mjs",
     "test:opening-animation": "node --import=./scripts/register-jsx-loader.mjs --test ./scripts/opening-animation.test.mjs",
     "test:staff-version-panel": "node --import=./scripts/register-jsx-loader.mjs --test ./scripts/staff-version-panel.test.mjs",
-    "test:offline-web-assets": "node --test scripts/audit-offline-web-assets.test.mjs"
+    "test:offline-web-assets": "node --test scripts/audit-offline-web-assets.test.mjs",
+    "test:player-read-text": "node --test scripts/player-read-text-is-never-truncated.test.mjs"
   },
   "dependencies": {
     "@tensorflow/tfjs": "^4.16.0",

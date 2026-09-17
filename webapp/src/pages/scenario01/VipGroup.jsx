@@ -115,7 +115,7 @@ export function VipGroup() {
       onBack={() => navigate('/scenario-menu')}
       labels={{ back: t('返回'), search: t('搜尋'), call: t('通話'), menu: t('選單') }}
       bodyClassName="line-group-body"
-      bodyBefore={<FraudWarningBanner active={showWarning} theme="chat" severity="notice" body={tickerText} />}
+      bodyBefore={<FraudWarningBanner inline active={showWarning} theme="chat" severity="notice" body={tickerText} />}
       scrollRef={scrollRef}
       typing={isTyping}
       messages={rendered.map((message, index) => ({ ...message, id: index }))}

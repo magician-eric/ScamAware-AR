@@ -99,6 +99,11 @@
    to fit at every width in all three languages. */
 .line-website-card-title{font-size:var(--fs-body);font-weight:700;line-height:1.35;color:#151515;overflow-wrap:anywhere}
 .line-website-card-desc{font-size:var(--fs-caption);line-height:1.45;color:#6b7684;white-space:pre-line;overflow-wrap:anywhere}
-.line-website-card-domain{font-size:var(--fs-caption);color:#8d99a6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Measured, not assumed: at en/320 `secure.haowei-bank.tw` needs 143px in a
+   132px box, so the ellipsis was eating the end of the fake bank's address -
+   the one thing on this card the player is being taught to look at. A
+   browser-style address bar truncating is realistic; this card is evidence,
+   so it wraps instead. */
+.line-website-card-domain{font-size:var(--fs-caption);color:#8d99a6;margin-top:2px;overflow-wrap:anywhere}
 .line-website-card-actions{display:grid}
 .line-website-card-actions>.btns{padding:0;margin:0}
