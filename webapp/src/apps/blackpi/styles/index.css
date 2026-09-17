@@ -7,20 +7,39 @@
 --------------------------------------------------------------------- */
 :root{
   --bp-primary:#0ABAB5;
-  --bp-primary-dark:#089B96;
+  /* Text-safe shade of --bp-primary, deepened from #089B96: as text it runs on
+     white, --bp-surface-dim and --bp-primary-tint, and at the old value that
+     measured 3.1-3.4:1 (the logo, the active tab, the search CTA, the chat
+     avatar initial). Same hue, now 5.0-5.6:1. The FILL colour is untouched -
+     --bp-primary still paints every teal button and bubble. */
+  --bp-primary-dark:#067471;
   --bp-primary-tint:#E0F7F5;
   --bp-gold:#C9A24B;
-  --bp-gold-deep:#8C6D25;
+  /* Text-safe shade of the gold, deepened from #8C6D25: it is the text colour on
+     --bp-gold-light (the PDP promo strip and the gold badge), where it
+     measured 3.5:1. Now 5.1:1 there and 7.1:1 on white. */
+  --bp-gold-deep:#6D551D;
   --bp-gold-light:#EBD9A8;
   --bp-bg:#F0F9F8;
   --bp-surface:#FFFFFF;
   --bp-surface-dim:#EDF6F5;
   --bp-border:#E9F3F2;
-  --bp-text:#222222;
-  --bp-text-secondary:#666666;
-  --bp-text-tertiary:#999999;
-  --bp-success:#2E7D32;
-  --bp-warning:#E65100;
+  /* Three greys became one black. BlackPi is a white/mint shop UI read by
+     middle-aged and older visitors through AR glasses; measured on the real
+     surfaces, #666 ran 4.8-5.7:1 and #999 ran 2.6-2.8:1 - product meta, chat
+     subtitles, timeline captions and the whole bottom nav sat at the bottom of
+     that range. The three names stay because they still mark the HIERARCHY
+     each one carries (weight, size and placement still separate them); only
+     the colour is now the same black. */
+  --bp-text:#000000;
+  --bp-text-secondary:#000000;
+  --bp-text-tertiary:#000000;
+  /* Both are text on their own pale tint (.bp-badge.ok on #E5F3E6, .bp-badge.warn
+     on #FDEEDF), where they measured 4.5:1 and 3.3:1. Deepened along the same
+     hue to 5.0:1 so the status colour still SAYS ok/warn while the word itself
+     is readable (§1.5: keep the semantics, fix the contrast). */
+  --bp-success:#2B742F;
+  --bp-warning:#B33F00;
   --bp-error:#C62828;
   --bp-font:'Noto Sans TC',system-ui,-apple-system,"Microsoft JhengHei",sans-serif;
 }
@@ -65,12 +84,21 @@
 .bp-logo .bp-logo-mark{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,var(--bp-primary),var(--bp-primary-dark));display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900}
 
 /* ---- buttons ------------------------------------------------------- */
-.bp-btn{appearance:none;border:0;border-radius:14px;min-height:44px;padding:10px 20px;font-size:var(--fs-body-lg);font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--bp-primary);color:#fff}
+/* Black on the teal, not white. --bp-primary is a BRIGHT teal (relative
+   luminance .39), so white on it measured 2.4:1 - the least readable text
+   anywhere in this App, and it sat on its primary call to action. The fill is
+   unchanged; only the label flipped, which is the choice §1.4 asks for on a
+   coloured button. Black on the same teal measures 8.7:1. */
+.bp-btn{appearance:none;border:0;border-radius:14px;min-height:44px;padding:10px 20px;font-size:var(--fs-body-lg);font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--bp-primary);color:#000}
 .bp-btn:active{transform:scale(.98)}
 .bp-btn.bp-btn-block{width:100%}
 .bp-btn.bp-btn-secondary{background:var(--bp-surface);color:var(--bp-primary-dark);border:1px solid var(--bp-primary)}
 .bp-btn.bp-btn-ghost{background:none;color:var(--bp-text-secondary);border:1px solid var(--bp-border)}
-.bp-btn.bp-btn-gold{background:linear-gradient(135deg,var(--bp-gold),var(--bp-gold-deep));color:#fff}
+/* The dark stop is the literal --bp-gold-deep used to hold. That token is now a
+   text-safe gold, and reading it here would have darkened a FILL - which this
+   change may not do. Label flipped for the same reason .bp-btn's did: white ran
+   2.4:1 at the light end of this gradient, black runs 8.8:1. */
+.bp-btn.bp-btn-gold{background:linear-gradient(135deg,var(--bp-gold),#8C6D25);color:#000}
 .bp-btn.bp-btn-danger{background:var(--bp-error);color:#fff}
 .bp-btn:disabled{opacity:.45;cursor:not-allowed}
 .bp-btn-pill{border-radius:999px}
@@ -169,7 +197,10 @@
 .bp-msg-row.theirs{justify-content:flex-start}
 .bp-bubble{max-width:76%;padding:10px 14px;font-size:var(--fs-body);line-height:1.5;white-space:pre-line;border-radius:18px}
 .bp-bubble.theirs{background:var(--bp-surface);color:var(--bp-text);border-bottom-left-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.bp-bubble.mine{background:var(--bp-primary);color:#fff;border-bottom-right-radius:5px}
+/* The player's own chat bubble, and the same teal as .bp-btn - so the same flip,
+   for the same measured reason (2.4:1 white -> 8.7:1 black). §1.4 keeps light
+   text on a DARK bubble; this one is a bright teal, not a dark one. */
+.bp-bubble.mine{background:var(--bp-primary);color:#000;border-bottom-right-radius:5px}
 .bp-msg-status{font-size:var(--fs-caption);color:var(--bp-text-tertiary);align-self:flex-end;margin-bottom:2px;white-space:nowrap}
 .bp-system-row{align-self:center;background:rgba(34,34,34,.06);color:var(--bp-text-secondary);font-size:var(--fs-caption);padding:5px 14px;border-radius:999px;margin:10px 0}
 .bp-typing{align-self:flex-start;display:flex;gap:4px;background:var(--bp-surface);border-radius:18px 18px 18px 5px;padding:12px 16px;margin:4px 0}
@@ -392,7 +423,10 @@
 .blackpi-app.bp-mood-dispute{filter:saturate(.92)}
 .blackpi-app.bp-mood-delay{filter:saturate(.8)}
 .blackpi-app.bp-mood-unreachable{filter:saturate(.5) brightness(.99);transition:filter .6s ease}
-.bp-mood-unreachable .bp-chat-avatar{background:#E5E5E5!important;color:#9a9a9a!important}
+/* The grey circle is what says "this shop has gone dark"; the initial inside it
+   does not have to be unreadable to repeat the point. #9a9a9a on #E5E5E5 was
+   2.2:1. The background keeps the state (§1.5). */
+.bp-mood-unreachable .bp-chat-avatar{background:#E5E5E5!important;color:#000!important}
 
 /* ---- ending score cards -------------------------------------------------- */
 .bp-score-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--bp-border)}
@@ -518,7 +552,9 @@
 
 .bp-pdp-promo{display:flex;align-items:center;gap:10px;margin:14px 0 0;padding:10px 12px;border-radius:12px;background:var(--bp-gold-light);color:var(--bp-gold-deep)}
 .bp-pdp-promo-title{font-weight:800;font-size:var(--fs-body-sm)}
-.bp-pdp-promo-sub{font-size:var(--fs-caption);opacity:.85}
+/* No opacity. .85 over the promo strip's own gold tint took this line to 2.8:1 -
+   dimming is the same defect as a pale colour, one layer up (§1.2). */
+.bp-pdp-promo-sub{font-size:var(--fs-caption)}
 
 .bp-pdp-info-card{margin-top:14px;background:var(--bp-surface);border:1px solid var(--bp-border);border-radius:14px;padding:4px 14px}
 .bp-pdp-info-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bp-border);font-size:var(--fs-body-sm)}

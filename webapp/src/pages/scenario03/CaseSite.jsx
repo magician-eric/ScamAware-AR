@@ -159,7 +159,7 @@ export function CaseSite() {
               </dd>
               <dt>{t.caseSite.directingAgencyLabel}</dt><dd>{prosecutors}</dd>
               <dt>{t.caseSite.prosecutorLabel}</dt><dd>{getProsecutorDisplayName(session, lang)}</dd>
-              <dt>{t.caseSite.caseStatusLabel}</dt><dd style={{ color: '#ec3013' }}>{t.caseSite.caseStatusValue}</dd>
+              <dt>{t.caseSite.caseStatusLabel}</dt><dd style={{ color: 'var(--pol-danger-ink)' }}>{t.caseSite.caseStatusValue}</dd>
             </dl>
           </section>
 

@@ -73,7 +73,7 @@
    most likely to appear exactly on the weak connection a narrow device is on.
    The buttons themselves, and the handlers behind them, are unchanged. */
 .line-video-error-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;width:100%;max-width:452px;align-items:stretch}
-.line-video-error-btn{width:100%;min-width:0;border:0;border-radius:12px;min-height:46px;padding:10px 12px;font-size:var(--fs-body-lg);font-weight:700;cursor:pointer;background:#fff;color:#111;overflow-wrap:anywhere}
+.line-video-error-btn{width:100%;min-width:0;border:0;border-radius:12px;min-height:46px;padding:10px 12px;font-size:var(--fs-body-lg);font-weight:700;cursor:pointer;background:#fff;color:#000;overflow-wrap:anywhere}
 .line-video-error-btn.secondary{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.4)}
 
 /* "即將返回幣勝客" pill shown briefly before every return-to-platform switch. */
