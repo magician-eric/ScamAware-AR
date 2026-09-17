@@ -1,13 +1,32 @@
 import { FraudClueAnalysis } from '../../components/outcome/FraudClueAnalysis';
+import { useScenario05State } from '../../lib/scenario05Store';
 import { useT } from './i18n';
 
 // 詐騙疑點分析 for the ghost-order scenario - the five stages of the trap, in
 // the order the player met them.
 //
-// The last clue is written conditionally on purpose. All three結局 come
-// through this page, and one of them belongs to a player who stopped before
-// shipping: it names what shipping before payment can cost, rather than
-// telling someone who did not ship that they did.
+// All three結局 arrive here, and they did not all live through the same run.
+// A player who stopped the moment MyDonDon showed no order never reached the
+// fake support desk at all, so the last three clues are not their story: they
+// are what the scammer had lined up next. Telling them otherwise would teach
+// the wrong lesson twice over - it would credit them with spotting a trap they
+// never saw, and it would describe a transfer and a parcel that never
+// happened.
+//
+// So the split is read off this run's own state and nothing else (see
+// lib/scenario05Store.js - no second source of truth is introduced here):
+//
+//   verificationStatus === 'notStarted'  the demand was never put to them, so
+//                                        clues 1-2 are what they lived through
+//                                        and 3-5 are labelled as the tactics
+//                                        the scammer would have used next
+//   anything else ('requested' /         they met the fake support desk, so
+//   'refused' / 'completed')             all five clues are their own run
+//
+// Clue 5 is written the same way on every path on purpose: it names what
+// shipping before payment CAN cost, never that this player shipped. A run that
+// paid the deposit and then stopped reads it as the loss they avoided, not as
+// one they took.
 //
 // This page renders CIBAR's own UI like every other scenario's analysis step -
 // the simulation ended at the結局, so no PhoneShell and no result bar.
@@ -34,13 +53,31 @@ const CLUES = [
   },
 ];
 
+// The clues everyone reaches: the platform switch and the payment that was
+// only ever a claim. Everything after these two happens on the fake site.
+const LIVED_THROUGH_BY_EVERY_RUN = 2;
+
 export function Reveal() {
   const t = useT();
+  const [state] = useScenario05State();
+  // 'notStarted' is the one value that means the fake support desk never got
+  // as far as asking: the player stopped at the missing order.
+  const metTheFakeSupport = state.verificationStatus !== 'notStarted';
+
+  const clues = CLUES.map(({ title, note }, index) => {
+    const heading = t(title);
+    const upcoming = !metTheFakeSupport && index >= LIVED_THROUGH_BY_EVERY_RUN;
+    return {
+      title: upcoming ? t('詐騙者後續可能使用的手法：{clue}', { clue: heading }) : heading,
+      note: t(note),
+    };
+  });
+
   return (
     <FraudClueAnalysis
       scenarioId="order"
       lede={t('幽靈訂單是怎麼出現的？')}
-      clues={CLUES.map(({ title, note }) => ({ title: t(title), note: t(note) }))}
+      clues={clues}
       quizTo="/scenario05-atm/quiz"
     />
   );

@@ -15,6 +15,17 @@ import { useT } from './i18n';
 // The deposit figure is read off the run's own state (which is 0 or the one
 // centrally-defined amount and nothing else - see lib/scenario05Store.js), so
 // this page cannot show a loss the player never paid.
+//
+// The takeaway is this ending's own, not EndingCaught's: this player did lose
+// money, so the lesson that still helps them is the one they can act on -
+// receiving payment never requires paying first, and stopping the moment
+// something looks wrong is what keeps a second loss off the first.
+//
+// It starts at "收取貨款…" rather than at the delivered copy's own "請記住："
+// lead-in because the shared shell prints that label itself, on its own line,
+// in all three languages (components/outcome/outcomeStrings.js). Repeating it
+// here would read "請記住 請記住：…" on screen, and no結局 page is allowed to
+// spell it - validate-outcome-ownership.mjs fails the build on exactly that.
 export function EndingStopped() {
   const t = useT();
   const [state] = useScenario05State();
@@ -33,7 +44,7 @@ export function EndingStopped() {
         { label: t('商品'), value: t('未寄出') },
       ]}
       explanation={t('你相信假客服的說法，轉出了所謂可退還的驗證金。雖然你在寄件前停下來，保住了商品，但轉出的款項並未退回。')}
-      takeaway={t('沒在官方平台看到訂單與入帳，不要只憑買家提供的畫面寄出商品。')}
+      takeaway={t('收取貨款不需要先支付驗證金。即使已經轉帳，只要發現異常就應立即停止後續操作，避免連商品也一起損失。')}
       analysisTo="/scenario05-atm/reveal"
     />
   );

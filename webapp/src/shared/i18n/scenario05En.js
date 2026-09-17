@@ -266,6 +266,8 @@ export const EN = {
   '你保住了商品，但已損失驗證金': 'You saved the item, but lost the verification deposit',
   '你相信假客服的說法，轉出了所謂可退還的驗證金。雖然你在寄件前停下來，保住了商品，但轉出的款項並未退回。':
     'You believed the fake support agent and transferred a supposedly refundable verification deposit. You stopped before shipping and saved the item, but the money you transferred was never returned.',
+  '收取貨款不需要先支付驗證金。即使已經轉帳，只要發現異常就應立即停止後續操作，避免連商品也一起損失。':
+    "You should never have to pay a verification deposit just to receive payment. Even if you've already transferred money, stop any further action as soon as you notice something suspicious to avoid losing the item as well.",
   '你付出了錢，也失去了商品': 'You lost both your money and your item',
   '你相信假客服，支付了所謂可退還的驗證金，也在尚未確認入帳時寄出商品。商品已送達，但買家帳號消失，SafeDeal 也無法連線。驗證金沒有退回，貨款也沒有入帳。':
     "You believed the fake support agent and paid a supposedly refundable verification deposit. You also shipped the item without confirming that the payment had reached your account. The item was delivered, but the buyer's account disappeared and SafeDeal became inaccessible. The deposit was never refunded, and you never received the sale payment.",
@@ -273,6 +275,7 @@ export const EN = {
   // -----------------------------------------------------------------------
   // pages/scenario05/Reveal.jsx - the five clues, in the order met
   // -----------------------------------------------------------------------
+  '詐騙者後續可能使用的手法：{clue}': 'Tactics the scammer would have used next: {clue}',
   '誘導離開原平台': 'Lured Off the Original Platform',
   '假買家要求你離開原本的交易平台，改用他指定的外部網站。這讓你失去原平台交易紀錄的保護與查證依據。':
     'The fake buyer directed you away from the original marketplace to an external website of their choosing. This removed the original platform’s transaction records as a source of protection and verification.',

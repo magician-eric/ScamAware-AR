@@ -25,7 +25,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { findLeak } from './localization-leak-rules.mjs';
+import { findLeak, JAPANESE_BRAND_MARKS } from './localization-leak-rules.mjs';
 import { mountSurface } from './ar-surface-harness.mjs';
 
 const WEBAPP = new URL('../', import.meta.url).pathname;
@@ -57,6 +57,10 @@ const store = await import('../src/lib/scenario05Store.js');
 const { buildBuyerTree, buildSupportTree } = await import('../src/data/scenario05Dialogues.js');
 const { getProduct } = await import('../src/apps/mydondon/data/catalog.js');
 const { SafeDealTransfer } = await import('../src/pages/scenario05/SafeDealTransfer.jsx');
+const { Reveal } = await import('../src/pages/scenario05/Reveal.jsx');
+const { EN: EN_DICT } = await import('../src/shared/i18n/scenario05En.js');
+const { JP: JP_DICT } = await import('../src/shared/i18n/scenario05Jp.js');
+const { JP: MYDONDON_JP } = await import('../src/apps/mydondon/i18n/jp.js');
 const { EndingCaught } = await import('../src/pages/scenario05/EndingCaught.jsx');
 const { EndingStopped } = await import('../src/pages/scenario05/EndingStopped.jsx');
 const { EndingScammed } = await import('../src/pages/scenario05/EndingScammed.jsx');
@@ -65,9 +69,10 @@ const TABLET = { id: 'tablet', name: '10.9 吋二手平板' };
 const STROLLER = { id: 'stroller', name: '輕量型嬰兒手推車' };
 const PRICE = { tablet: 12000, stroller: 4500 };
 
-function freshRun(patch = {}) {
+function freshRun(patch = {}, lang = 'zh') {
   localStorage.clear();
   sessionStorage.clear();
+  localStorage.setItem('language', lang);
   store.resetScenario05();
   if (Object.keys(patch).length) store.saveScenario05State(patch);
 }
@@ -433,3 +438,120 @@ for (const language of ['en', 'jp']) {
     }
   });
 }
+
+// ---------------------------------------------------------------------------
+// 詐騙疑點分析 reports the run the player actually had
+// ---------------------------------------------------------------------------
+
+// The clue list Reveal hands the shared analysis screen, for a given run.
+function clues(state, lang = 'zh') {
+  freshRun({ selectedProduct: 'tablet', ...state }, lang);
+  const mounted = mount(Reveal);
+  const list = mounted.output.props.clues;
+  mounted.unmount();
+  return list;
+}
+
+const MARKER = {
+  zh: '詐騙者後續可能使用的手法：',
+  en: 'Tactics the scammer would have used next: ',
+  jp: '詐欺犯がこの後に使う可能性のある手口：',
+};
+
+test('a player who stopped at the missing order is not told they met the fake support desk', () => {
+  for (const lang of ['zh', 'en', 'jp']) {
+    const list = clues({ verificationStatus: 'notStarted' }, lang);
+    assert.equal(list.length, 5, `${lang}: the教育 content stays, all five of it`);
+    // What they lived through, stated plainly.
+    for (const lived of list.slice(0, 2)) {
+      assert.ok(!lived.title.startsWith(MARKER[lang]), `${lang}: "${lived.title}" is this run's own story`);
+    }
+    // What the scammer had lined up next, marked as exactly that.
+    for (const upcoming of list.slice(2)) {
+      assert.ok(upcoming.title.startsWith(MARKER[lang]),
+        `${lang}: "${upcoming.title}" reads as something the player already went through`);
+    }
+  }
+});
+
+for (const verificationStatus of ['requested', 'refused', 'completed']) {
+  test(`a player who met the fake support desk (${verificationStatus}) reads all five clues as their own run`, () => {
+    for (const lang of ['zh', 'en', 'jp']) {
+      const list = clues({ verificationStatus }, lang);
+      assert.equal(list.length, 5);
+      for (const clue of list) {
+        assert.ok(!clue.title.startsWith(MARKER[lang]), `${lang}: "${clue.title}" must not be marked as未經歷`);
+      }
+    }
+  });
+}
+
+test('the shipping clue never claims the item was shipped, on any path', () => {
+  // The run that pays the deposit and then stops is the one this protects: it
+  // has to read as the loss they avoided, not one they took.
+  const paths = [
+    { verificationStatus: 'notStarted' },
+    { verificationStatus: 'refused' },
+    { verificationStatus: 'completed', shipmentDecision: 'stopped' },
+    { verificationStatus: 'completed', shipmentDecision: 'shipped' },
+  ];
+  for (const path of paths) {
+    const last = clues(path).at(-1);
+    for (const claim of ['你已經寄出', '你寄出了', '商品已送達', '商品已經寄出']) {
+      assert.ok(!last.note.includes(claim), `${JSON.stringify(path)}: the shipping clue asserts "${claim}"`);
+    }
+    assert.match(last.note, /尚未確認實際入帳就寄出商品/, 'the shipping clue must stay a warning');
+  }
+});
+
+test('the 及時止損 ending carries its own takeaway, not the one for a run that lost nothing', async () => {
+  const stopped = await read('src/pages/scenario05/EndingStopped.jsx');
+  const caught = await read('src/pages/scenario05/EndingCaught.jsx');
+  const takeaway = '收取貨款不需要先支付驗證金。即使已經轉帳，只要發現異常就應立即停止後續操作，避免連商品也一起損失。';
+  assert.ok(stopped.includes(`takeaway={t('${takeaway}')}`), 'EndingStopped must use its own takeaway');
+  assert.ok(!stopped.includes('沒在官方平台看到訂單與入帳'), 'EndingStopped must not reuse EndingCaught’s takeaway');
+  assert.ok(caught.includes('沒在官方平台看到訂單與入帳'), 'EndingCaught keeps its own');
+  for (const [dictionary, language] of [[EN_DICT, 'en'], [JP_DICT, 'jp']]) {
+    const value = dictionary[takeaway];
+    assert.ok(value, `${language}: the takeaway is missing`);
+    assert.notEqual(value, takeaway, `${language}: the takeaway falls back to Chinese`);
+    assert.equal(findLeak(value, language), null, `${language}: ${findLeak(value, language)?.reason}`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// The三 brands read the same way in a Japanese run as they do anywhere else
+// ---------------------------------------------------------------------------
+
+test('a Japanese run writes 買東東, 黑皮通 and SafeDeal - never MyDonDon, HPE or 黒皮通', () => {
+  const offenders = [];
+  for (const [name, dictionary] of [['Scenario 05', JP_DICT], ['App: mydondon', MYDONDON_JP]]) {
+    for (const [key, value] of Object.entries(dictionary)) {
+      if (typeof value !== 'string') continue;
+      for (const wrong of ['MyDonDon', 'HPE', '黒皮通']) {
+        if (value.includes(wrong)) offenders.push(`${name} ${JSON.stringify(key)} -> ${wrong}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], 'a Japanese run must use the official brand marks');
+  // And the marks really are there, not simply dropped.
+  assert.equal(JP_DICT['黑皮通'], '黑皮通');
+  assert.equal(MYDONDON_JP['買東東'], '買東東');
+  assert.match(JP_DICT['我相信對方，使用黑皮通寄件。'], /黑皮通/);
+  assert.match(JP_DICT['奇怪，買東東怎麼沒有這筆訂單？'], /買東東/);
+  assert.match(JP_DICT['我再去 SafeDeal 確認一下。'], /SafeDeal/);
+});
+
+test('the brands are registered proper nouns, not a switched-off Japanese check', () => {
+  assert.deepEqual(JAPANESE_BRAND_MARKS, ['買東東', '黑皮通', 'SafeDeal']);
+  // Allowed, because the mark is the mark.
+  for (const ok of ['相手を信じて、黑皮通で発送します。', 'あれ？買東東にこの注文が表示されないのはどうして？', '黑皮通コンビニ受け取り']) {
+    assert.equal(findLeak(ok, 'jp'), null, `${ok} should pass`);
+  }
+  // Still caught, in the same sentence as a brand: the scan runs on
+  // everything around the mark rather than skipping the string.
+  assert.ok(findLeak('黑皮通の追跡番號', 'jp'), 'a Traditional form beside a brand must still fail');
+  assert.ok(findLeak('這是買東東的訂單', 'jp'), 'a Chinese sentence containing a brand must still fail');
+  // Japanese-only: an English run has no such allowance.
+  assert.ok(findLeak('黑皮通で発送', 'en'), 'an English run must not inherit the Japanese brand allowance');
+});

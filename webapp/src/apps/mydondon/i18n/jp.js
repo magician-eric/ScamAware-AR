@@ -19,7 +19,9 @@
 // The internal locale code for Japanese is always 'jp', never 'ja'.
 export const JP = {
   // apps/mydondon/brand/manifest.js
-  '買東東': 'MyDonDon',
+  // The marketplace's Japanese name is the Chinese mark itself, the same way
+  // English keeps MyDonDon: a brand, not a string to translate.
+  '買東東': '買東東',
 
   // apps/mydondon/components/ChatScreen.jsx
   '對方輸入中': '相手が入力中',
@@ -29,7 +31,7 @@ export const JP = {
   '選擇你的回覆': '返信を選択',
 
   // apps/mydondon/components/MyDonDonBottomNav.jsx
-  'MyDonDon 主要導覽': 'MyDonDon メインナビゲーション',
+  'MyDonDon 主要導覽': '買東東 メインナビゲーション',
   '探索': '探す',
   '刊登': '出品',
   '我的': 'マイページ',
@@ -63,11 +65,11 @@ export const JP = {
   // apps/mydondon/screens/MyDonDonOrders.jsx
   '我的訂單': 'マイ注文',
   '目前沒有新的交易訂單': '現在、新しい注文はありません',
-  '目前沒有任何買家透過 MyDonDon 對這件商品下單。': 'この商品について、MyDonDonを通じて注文した購入者はいません。',
+  '目前沒有任何買家透過 MyDonDon 對這件商品下單。': 'この商品について、買東東を通じて注文した購入者はいません。',
   '返回對話': 'チャットに戻る',
 
   // apps/mydondon/screens/PhoneHome.jsx
-  '開啟買東東 MyDonDon': 'MyDonDonを開く',
+  '開啟買東東 MyDonDon': '買東東を開く',
 
   // apps/mydondon/screens/ProductSelect.jsx
   '刊登商品': '商品を出品する',

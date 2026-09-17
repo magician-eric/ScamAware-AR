@@ -3,13 +3,23 @@
 // ./i18n.js for how this is looked up. The internal locale code is always
 // 'jp' - never 'ja'.
 //
-// Brand names: MyDonDon 買東東 -> MyDonDon (never translated, never
-// re-cased, and never given an invented Japanese brand name - spec section
-// 47), 黑皮通 -> HPE. SafeDeal (the fake external trading site the buyer
-// links the player to - see data/scenario05FakeSite.js) is a wholly
-// fictional brand kept in Roman letters across every language, the same
-// way HPE is. Fictional domains (safe-deal.tw), NT$ amounts and the 165
-// hotline number are also left unchanged.
+// Brand names. A Japanese run of Scenario 05 uses the owner's official
+// Japanese names for the three platforms, which are the marks themselves and
+// are never translated or re-spelled:
+//
+//   買東東    the marketplace (written 買東東 in Japanese, not MyDonDon)
+//   黑皮通    the courier (written 黑皮通 - 黑, never the Japanese form 黒,
+//             which is a different mark rather than a spelling of this one)
+//   SafeDeal  the fake external trading site (data/scenario05FakeSite.js),
+//             a wholly fictional brand kept in Roman letters everywhere
+//
+// English keeps MyDonDon and HPE; only the Japanese run changed. These three
+// marks are registered as proper nouns in scripts/localization-leak-rules.mjs,
+// so the Japanese leak check still runs on every other character of the same
+// sentence rather than being switched off around them.
+//
+// Fictional domains (safe-deal.tw), NT$ amounts and the 165 hotline number
+// are also left unchanged.
 export const JP = {
   // -----------------------------------------------------------------------
   // MyDonDon shell: header / bottom nav / chat screen
@@ -19,7 +29,7 @@ export const JP = {
   '快速回覆': 'クイック返信',
   '在線上': 'オンライン',
   '已加入 MyDonDon 4 年 ・ 有一般生活貼文\n共同社團：二手交易交流':
-    'MyDonDon歴4年・日常の投稿あり\n共通グループ：中古売買交流',
+    '買東東歴4年・日常の投稿あり\n共通グループ：中古売買交流',
 
   // -----------------------------------------------------------------------
   // apps/mydondon/screens/MyDonDonOrders.jsx - "目前沒有新的交易訂單"
@@ -72,8 +82,8 @@ export const JP = {
   // -----------------------------------------------------------------------
   // The SafeDeal pitch, the missing order, and - after the fake
   // verification detour - the push to ship. Brand marks follow the rule at
-  // the top of this file: 買東東 reads MyDonDon and 黑皮通 reads HPE in
-  // every language, including inside a line of dialogue.
+  // the top of this file: a Japanese run reads 買東東, 黑皮通 and SafeDeal,
+  // inside a line of dialogue as well as on a label.
   // -----------------------------------------------------------------------
   '我確定要買～不過我平常都用 SafeDeal 交易，覺得對買賣雙方比較有保障。': '購入したいです！ただ、普段は売り手と買い手の双方にとって安心だと思って、SafeDealを使っています。',
   '你只要建立這個商品的專屬賣場，把連結傳給我，我就能直接付款。': 'この商品の専用販売ページを作って、リンクを送ってもらえれば、すぐに支払えます。',
@@ -84,8 +94,8 @@ export const JP = {
   '我上課跟打工的時間都排滿了，真的很難另外約面交。原本以為這樣交易可以讓我們都省點時間……':
     '授業とアルバイトで予定がいっぱいなので、直接会う時間を別に作るのは難しいんです。この方法なら、お互いに時間を節約できると思っていたのですが……。',
   '好了～我這邊已經付款完成了！你那邊應該可以看到交易資訊了。': '完了しました！こちらでは支払いを済ませました。そちらでも取引情報が確認できるはずです。',
-  '奇怪，買東東怎麼沒有這筆訂單？': 'あれ？MyDonDonにこの注文が表示されないのはどうして？',
-  '因為我們這次不是走買東東付款，所以買東東本來就不會有這筆訂單啊。': '今回はMyDonDonの決済を使っていないので、MyDonDonにこの注文が表示されないのは当然ですよ。',
+  '奇怪，買東東怎麼沒有這筆訂單？': 'あれ？買東東にこの注文が表示されないのはどうして？',
+  '因為我們這次不是走買東東付款，所以買東東本來就不會有這筆訂單啊。': '今回は買東東の決済を使っていないので、買東東にこの注文が表示されないのは当然ですよ。',
   '我這邊都已經照流程付款了，你現在才說找不到訂單，我也很困擾耶。': 'こちらは手順どおりに支払ったのに、今になって注文が見つからないと言われても、私も困ります。',
   '你先回 SafeDeal 看一下好不好？不要還沒確認，就覺得是我沒有付款。': 'まずSafeDealを確認してもらえませんか？確認もしないうちに、私が支払っていないと決めつけないでください。',
   '沒有官方訂單，也沒有入帳，我先停止交易。': '元のプラットフォームに注文がなく、入金も確認できないので、取引を中止します。',
@@ -95,7 +105,7 @@ export const JP = {
     '本当に必要だから購入したんですし、ずっと我慢して待っています。それなのに今度は入金されるまで待つと言われても、あとどれだけ待てばいいのか分かりません……。',
   '你不是說今天可以寄嗎？如果你不想賣，也可以直接跟我說，不用讓我一直等。': '今日発送できると言っていませんでしたか？もう売りたくないなら、そう言ってくれればいいです。ずっと待たせないでください。',
   '還沒確認實際入帳，我先不寄件。': '実際の入金を確認できていないので、まだ発送しません。',
-  '我相信對方，使用黑皮通寄件。': '相手を信じて、HPEで発送します。',
+  '我相信對方，使用黑皮通寄件。': '相手を信じて、黑皮通で発送します。',
 
   // 購入者が消える場面：商品は届き、売り手が入金について尋ねるが、相手は
   // もういない。淡々としたステータス表示のみで、警告文は入れない。
@@ -110,7 +120,7 @@ export const JP = {
   '商品名稱': '商品名',
   '商品價格': '商品価格',
   '配送方式': '配送方法',
-  '黑皮通超商取貨': 'HPEコンビニ受け取り',
+  '黑皮通超商取貨': '黑皮通コンビニ受け取り',
   '安全交易・安心收付': '安全な取引・安心の入金',
   '寄件人資料（預填）': '送り主情報（入力済み）',
   '{name} ・ {phone}': '{name}・{phone}',
@@ -162,7 +172,7 @@ export const JP = {
   // -----------------------------------------------------------------------
   // pages/scenario05/EndingScammed.jsx - 受騙結局
   // -----------------------------------------------------------------------
-  '黑皮通': 'HPE',
+  '黑皮通': '黑皮通',
   '商品': '商品',
   '實際入帳': '実際の入金額',
   '外部交易網站': '外部取引サイト',
@@ -250,6 +260,8 @@ export const JP = {
   '你保住了商品，但已損失驗證金': '商品は守れましたが、認証保証金を失いました',
   '你相信假客服的說法，轉出了所謂可退還的驗證金。雖然你在寄件前停下來，保住了商品，但轉出的款項並未退回。':
     'あなたは偽のサポート担当者を信じ、返金されるはずの認証保証金を振り込みました。発送前に思いとどまり商品は守れましたが、振り込んだお金は返ってきませんでした。',
+  '收取貨款不需要先支付驗證金。即使已經轉帳，只要發現異常就應立即停止後續操作，避免連商品也一起損失。':
+    '商品代金を受け取るために、先に認証保証金を支払う必要はありません。すでに振り込んでしまった場合でも、不審な点に気づいたら直ちにその後の操作を中止し、商品まで失うことを防ぎましょう。',
   '你付出了錢，也失去了商品': 'お金も商品も失ってしまいました',
   '你相信假客服，支付了所謂可退還的驗證金，也在尚未確認入帳時寄出商品。商品已送達，但買家帳號消失，SafeDeal 也無法連線。驗證金沒有退回，貨款也沒有入帳。':
     'あなたは偽のサポート担当者を信じ、返金されるはずの認証保証金を支払いました。さらに、入金を確認しないまま商品を発送しました。商品は配達されましたが、買い手のアカウントは消え、SafeDealにもアクセスできなくなりました。保証金は返金されず、商品代金も入金されませんでした。',
@@ -257,6 +269,7 @@ export const JP = {
   // -----------------------------------------------------------------------
   // pages/scenario05/Reveal.jsx - the five clues, in the order met
   // -----------------------------------------------------------------------
+  '詐騙者後續可能使用的手法：{clue}': '詐欺犯がこの後に使う可能性のある手口：{clue}',
   '誘導離開原平台': '元のプラットフォームからの誘導',
   '假買家要求你離開原本的交易平台，改用他指定的外部網站。這讓你失去原平台交易紀錄的保護與查證依據。':
     '偽の買い手は、元の取引プラットフォームから離れ、指定した外部サイトを使うよう誘導しました。その結果、元のプラットフォームの取引記録による保護や確認ができなくなりました。',
