@@ -20,9 +20,12 @@ export const ROBOT_VACUUM_PRODUCT = {
   route: 'health',
   name: '智慧掃拖機器人｜APP 遠端控制｜自動回充｜掃拖二合一',
   shop: '智選家電生活館',
-  price: 1680,
-  shipping: 60,
-  total: 1740,
+  // NT$8,888 is the whole of the money this route ever charges: free
+  // shipping, so 商品金額 / 訂單金額 / 實際付款 / 退款金額 / 受騙損失 are one
+  // number on every screen that shows any of them, including the ending.
+  price: 8888,
+  shipping: 0,
+  total: 8888,
   claims: [
     '智慧導航自動規劃清掃路線',
     'APP 遠端控制與預約排程',
@@ -40,8 +43,8 @@ export const ROBOT_VACUUM_PRODUCT = {
   shopItemCount: 68,
   shopRating: 4.9,
   promoTitle: '限時優惠',
-  promoSub: '售完不補，恢復原價 NT$2,280',
-  deliveryInfo: '宅配 NT$60｜預計 3 至 5 天送達',
+  promoSub: '原價 NT$20,000，限時特惠 NT$8,888',
+  deliveryInfo: '宅配免運｜預計 3 至 5 天送達',
   guaranteeInfo: '平台付款保障｜七天鑑賞期',
   description: '主打智慧導航與 APP 遠端控制的掃拖二合一機器人，可自動規劃清掃路線，電量不足時自動回到充電座，適合小坪數與租屋族日常使用。',
   notice: '商品規格可能因批次調整，實際內容以出貨商品為準。',
