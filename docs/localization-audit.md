@@ -65,12 +65,12 @@ ScenarioSessionFactory.getPoliceUnitDisplay(session, lang)
 所有玩家可見的畫面都改成走上面的 accessor。
 
 - **英文**：機關自己有的官方羅馬拼音優先（Taipei、Kaohsiung、Tamsui、Lukang），
-  其餘用台灣官方羅馬拼音標準漢語拼音，含 `Da'an` 這種必要的隔音符號。
+  其餘用臺灣官方羅馬拼音標準漢語拼音，含 `Da'an` 這種必要的隔音符號。
   `區/鄉/鎮/市 → District/Township/Township/City`、`分局 → Precinct`、
   `派出所 → Police Station`、`分駐所 → Substation`、`駐在所 → Police Post`、
   `地方檢察署 → District Prosecutors Office`、`地方法院 → District Court`。
 - **日文**：同樣的漢字，換成日本的字體形（`臺北市信義區 → 台北市信義区`、
-  `臺灣臺北地方檢察署 → 台湾台北地方検察署`）—— 這正是日文寫台灣地名／機關名的方式。
+  `臺灣臺北地方檢察署 → 台湾台北地方検察署`）—— 這正是日文寫臺灣地名／機關名的方式。
 
 產生器是 `webapp/scripts/generate-location-localization.mjs`。它需要 `pinyin-pro`，
 而那**不是** app 的相依套件（執行期不需要字典）：
