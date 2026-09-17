@@ -90,8 +90,15 @@
 .line-website-card-tappable{cursor:pointer}
 .line-website-card-image{display:block;width:100%;aspect-ratio:40/21;object-fit:cover;background:#dce5ef}
 .line-website-card-text{padding:10px 13px 11px;display:flex;flex-direction:column;gap:3px;min-width:0}
-.line-website-card-title{font-size:var(--fs-body);font-weight:700;line-height:1.35;color:#151515;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
-.line-website-card-desc{font-size:var(--fs-caption);line-height:1.45;color:#6b7684;white-space:pre-line;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}
+/* Title and description are not chrome on this card: they are the scam's
+   pitch, and in Scenario 03 they are the fake bank's name and 'security
+   verification centre' line the player is supposed to weigh against the real
+   thing. The 2- and 3-line clamps here were LINE-realistic and educationally
+   wrong, so the card grows to its copy instead. The domain below keeps its
+   ellipsis: a browser-style address really does truncate, and it is measured
+   to fit at every width in all three languages. */
+.line-website-card-title{font-size:var(--fs-body);font-weight:700;line-height:1.35;color:#151515;overflow-wrap:anywhere}
+.line-website-card-desc{font-size:var(--fs-caption);line-height:1.45;color:#6b7684;white-space:pre-line;overflow-wrap:anywhere}
 .line-website-card-domain{font-size:var(--fs-caption);color:#8d99a6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .line-website-card-actions{display:grid}
 .line-website-card-actions>.btns{padding:0;margin:0}

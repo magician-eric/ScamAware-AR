@@ -260,7 +260,10 @@ img.go-ph{display:block;padding:0;object-fit:cover}
 .md-link-card-body{background:var(--md-surface);border:1px solid var(--md-line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .md-link-card-icon{width:38px;height:38px;border-radius:9px;background:var(--sq-purple);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .md-link-card-info{min-width:0}
-.md-link-card-title{font-size:var(--fs-body-sm);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Was nowrap+ellipsis, which at 320px left this title about 167px next to
+   its 38px icon - enough for roughly eleven Chinese characters of what the
+   fake buyer is sending the player to. It wraps now; the card grows. */
+.md-link-card-title{font-size:var(--fs-body-sm);font-weight:700;overflow-wrap:anywhere}
 .md-link-card-url{font-size:var(--fs-caption);color:var(--md-text-2)}
 
 /* A centred empty-state card - reused by MyDonDon's own "no orders" screen

@@ -123,7 +123,9 @@
 .meetu-profile-distance{display:flex;align-items:center;gap:6px;font-size:var(--fs-body);color:rgba(255,255,255,.82);margin-top:2px}
 .meetu-online-dot{width:6px;height:6px;border-radius:50%;background:var(--meetu-online);flex:none}
 .meetu-profile-job{font-size:var(--fs-body-lg);font-weight:600;margin-top:8px}
-.meetu-profile-bio{font-size:var(--fs-body);line-height:1.5;margin:4px 0 10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* The scammer's cover story, on the card the player swipes. Clamped to three
+   lines it lost the end of the English bio at 360 and 393. */
+.meetu-profile-bio{font-size:var(--fs-body);line-height:1.5;margin:4px 0 10px;overflow-wrap:anywhere}
 .meetu-profile-tags{display:flex;gap:8px;flex-wrap:wrap}
 .meetu-profile-tag{background:rgba(255,255,255,.18);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 13px;font-size:var(--fs-caption);font-weight:600}
 

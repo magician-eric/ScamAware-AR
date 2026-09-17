@@ -350,7 +350,11 @@
 .pol-headsup-icon{flex:none;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:900;color:#fff}
 .pol-headsup-body{min-width:0}
 .pol-headsup-title{font-size:var(--fs-caption);font-weight:800}
-.pol-headsup-message{font-size:var(--fs-caption);line-height:1.4;margin-top:1px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+/* A real Android heads-up notification clamps its body to two lines. This
+   one carries what the fake officer is telling the player to do next, so it
+   grows instead - the notification is absolutely positioned and has nothing
+   under it to push. */
+.pol-headsup-message{font-size:var(--fs-caption);line-height:1.4;margin-top:1px;overflow-wrap:anywhere}
 .pol-headsup-line{background:#fff;color:#16181d}
 .pol-headsup-line .pol-headsup-icon{background:#06c755}
 .pol-headsup-line .pol-headsup-message{color:#6b7484}
