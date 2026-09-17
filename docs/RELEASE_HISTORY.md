@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.7.3-20260917.006` | 1.2.0 | 1.7.3 | 2026-09-17 | #14 | `e6a9e0e` | PATCH | Merge pull request #14 from magician-eric/claude/inspiring-galileo-rx4x1c |
 | `1.7.2-20260917.005` | 1.2.0 | 1.7.2 | 2026-09-17 | #13 | `0c314bd` | PATCH | Merge pull request #13 from magician-eric/claude/gesture-arrow-sync |
 | `1.7.1-20260917.004` | 1.2.0 | 1.7.1 | 2026-09-17 | #12 | `de8513a` | PATCH | Merge pull request #12 from magician-eric/claude/youthful-euler-pvpjd6 |
 | `1.7.0-20260917.003` | 1.2.0 | 1.7.0 | 2026-09-17 | #11 | `c06e9fc` | MINOR | Merge pull request #11 from magician-eric/claude/inspiring-cannon-dh30oq |
