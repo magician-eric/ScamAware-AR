@@ -110,7 +110,7 @@ Web bundle 的版本（Release ID）是 `MAJOR.MINOR.PATCH-YYYYMMDD.NNN`，例�
 
 - `MAJOR.MINOR.PATCH` 來自 `release/versions.json` 的 `webBundleVersion`，由人手動決定並 review；
   規則見 [`docs/RELEASE_VERSIONING.md`](../docs/RELEASE_VERSIONING.md)。
-- `YYYYMMDD` 是發布日期（台北時間），`NNN` 是當天第幾次發布，從 `001` 起算。
+- `YYYYMMDD` 是發布日期（臺北時間），`NNN` 是當天第幾次發布，從 `001` 起算。
 - 這兩段**只有 `.github/workflows/ota-release.yml` 在 merge 進 main 之後才會產生**。
   PR 上不會有、也不該有 Release ID。
 

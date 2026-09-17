@@ -34,17 +34,18 @@ const PHASE = {
 };
 
 // Casual short city name (drops the 市/縣 suffix, matching how people
-// actually say it in conversation - "剛搬來台北" not "剛搬來臺北市") for
+// actually say it in conversation - "剛搬來臺北" not "剛搬來臺北市") for
 // {datingLead}'s bio, keyed by the same county names the location-init system
 // (lib/location/LocationProfileStore.js) and scenario03's session factory
-// already use. jp reuses the zh kanji form, same as how Taiwanese place
-// names normally appear in Japanese text.
+// already use. zh writes the toponym 臺, matching the county keys and the
+// location datasets; jp keeps the Japanese shinjitai form 台, which is how
+// Taiwanese place names are normally written in Japanese text.
 const CITY_NAMES = {
-  臺北市: { zh: '台北', en: 'Taipei', jp: '台北' },
+  臺北市: { zh: '臺北', en: 'Taipei', jp: '台北' },
   新北市: { zh: '新北', en: 'New Taipei', jp: '新北' },
   桃園市: { zh: '桃園', en: 'Taoyuan', jp: '桃園' },
-  臺中市: { zh: '台中', en: 'Taichung', jp: '台中' },
-  臺南市: { zh: '台南', en: 'Tainan', jp: '台南' },
+  臺中市: { zh: '臺中', en: 'Taichung', jp: '台中' },
+  臺南市: { zh: '臺南', en: 'Tainan', jp: '台南' },
   高雄市: { zh: '高雄', en: 'Kaohsiung', jp: '高雄' },
   基隆市: { zh: '基隆', en: 'Keelung', jp: '基隆' },
   新竹市: { zh: '新竹', en: 'Hsinchu', jp: '新竹' },
@@ -58,7 +59,7 @@ const CITY_NAMES = {
   屏東縣: { zh: '屏東', en: 'Pingtung', jp: '屏東' },
   宜蘭縣: { zh: '宜蘭', en: 'Yilan', jp: '宜蘭' },
   花蓮縣: { zh: '花蓮', en: 'Hualien', jp: '花蓮' },
-  臺東縣: { zh: '台東', en: 'Taitung', jp: '台東' },
+  臺東縣: { zh: '臺東', en: 'Taitung', jp: '台東' },
   澎湖縣: { zh: '澎湖', en: 'Penghu', jp: '澎湖' },
   金門縣: { zh: '金門', en: 'Kinmen', jp: '金門' },
   連江縣: { zh: '連江', en: 'Lienchiang', jp: '連江' },
@@ -67,7 +68,7 @@ const CITY_NAMES = {
 const DATING_LEAD_BIO_SUFFIX = '喜歡咖啡、電影、散步。希望遇到可以好好聊天的人。';
 
 // {datingLead}'s "just moved to <city>" line tracks the device's staff-configured
-// location profile instead of a hardcoded "台北" - same county the 165
+// location profile instead of a hardcoded "臺北" - same county the 165
 // hotline page's local police precinct is drawn from, so the story reads as
 // "here" wherever this device is actually deployed. Falls back to Taipei
 // (DEFAULT_LOCATION_PROFILE's own fallback) if staff never ran setup.

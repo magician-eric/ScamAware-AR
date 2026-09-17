@@ -46,7 +46,7 @@ export const EN = {
   // ---------------------------------------------------------------------
   // pages/scenario04/Checkout.jsx
   // ---------------------------------------------------------------------
-  '台北市中正區○○路＊＊號': 'No. **, ○○ Rd., Zhongzheng District, Taipei City',
+  '臺北市中正區○○路＊＊號': 'No. **, ○○ Rd., Zhongzheng District, Taipei City',
 
   // ---------------------------------------------------------------------
   // pages/scenario04/DisputeChat.jsx
@@ -227,7 +227,7 @@ export const EN = {
   '原價真的是 NT$69,800 嗎？': 'Is the original price really NT$69,800?',
   '為什麼只賣 29,800？': 'Then why only NT$29,800?',
   '為什麼只賣 NT$29,800？': 'Then why is it only NT$29,800?',
-  '原價是品牌公布的建議售價，這個型號在台灣還沒有正式上市通路，所以查不到相同品項。':
+  '原價是品牌公布的建議售價，這個型號在臺灣還沒有正式上市通路，所以查不到相同品項。':
     'That\'s the brand\'s published recommended retail price. This model hasn\'t launched through official channels in Taiwan yet, so you won\'t find the same item listed anywhere.',
   '這是品牌體驗與庫存回饋活動，數量有限，所以才有這個價格。':
     'It\'s a brand experience and inventory give-back promotion — limited quantities, which is why the price is what it is.',

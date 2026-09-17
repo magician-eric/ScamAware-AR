@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npm run validate:boundaries && npm run validate:shared-ui-ownership && npm run validate:outcome-ownership && npm run validate:asset-ownership && npm run validate:localized-assets && npm run test:localized-assets && npm run validate:i18n && npm run test:localization-coverage && npm run test:location-localization && npm run test:dynamic-localization && npm run validate:dialogue && npm run validate:fake-phone && npm run validate:police-organization && npm run test:outcome-reachability",
+    "prebuild": "npm run validate:boundaries && npm run validate:shared-ui-ownership && npm run validate:outcome-ownership && npm run validate:asset-ownership && npm run validate:localized-assets && npm run test:localized-assets && npm run validate:i18n && npm run validate:zh-place-names && npm run test:localization-coverage && npm run test:location-localization && npm run test:dynamic-localization && npm run validate:dialogue && npm run validate:fake-phone && npm run validate:police-organization && npm run test:outcome-reachability",
     "build": "vite build",
     "build:image-targets": "node scripts/compile-image-targets.mjs",
     "lint": "oxlint",
@@ -81,6 +81,7 @@
     "validate:scenario05-i18n": "npm run validate:i18n",
     "validate:fake-phone": "node --experimental-loader ./scripts/extensionless-loader.mjs scripts/validate-fake-phone.mjs",
     "validate:police-organization": "node scripts/validate-police-organization.mjs",
+    "validate:zh-place-names": "node scripts/validate-zh-place-names.mjs",
     "validate:line": "node scripts/validate-line-boundaries.mjs",
     "validate:boundaries": "node scripts/validate-app-boundaries.mjs",
     "validate:app-boundaries": "node scripts/validate-app-boundaries.mjs",

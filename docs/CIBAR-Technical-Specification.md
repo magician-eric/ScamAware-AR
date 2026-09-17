@@ -419,7 +419,7 @@ Scenario 01、04、05 完全不讀取 location 資料。驗證：`test:location`
 
 | 項目 | 規格 |
 | --- | --- |
-| 使用者 | **台灣現場工作人員**（展場人員／館方人員），非參觀者 |
+| 使用者 | **臺灣現場工作人員**（展場人員／館方人員），非參觀者 |
 | 入口 | **語言首頁右上角的齒輪按鈕（正式）＋ 隱藏長按手勢（維護後門）**；除這兩者外不得再有其他入口。可見入口**只以圖示呈現、畫面上不出現任何文字標籤**（`aria-label` 供輔助技術使用），不對玩家宣傳那是工作人員頁 |
 | 語言 | **固定正體中文 `zh-TW`**，`IMPLEMENTED`（產品決策，見 §13 AD-13 `RESOLVED / BY DESIGN`） |
 | 是否跟隨玩家語言 | **否。**玩家在語言頁選擇 `zh`／`en`／`jp` **不會**改變 Staff Setup 的顯示語言 |
@@ -1203,7 +1203,7 @@ Phase 3 **沒有**接任何手勢辨識、depth sensor 或 AR 眼鏡 SDK，沒�
 
 ## 6.4 Location / Context
 
-僅用於主線角色 bio 的城市名（`CITY_NAMES` 對照，取短名如「台北」而非「臺北市」）。不套 `RequireLocationProfile`。
+僅用於主線角色 bio 的城市名（`CITY_NAMES` 對照，取短名如「臺北」而非「臺北市」）。不套 `RequireLocationProfile`。
 
 ## 6.5 Flow & Acceptance
 
@@ -1614,7 +1614,7 @@ Phase 3 **沒有**接任何手勢辨識、depth sensor 或 AR 眼鏡 SDK，沒�
 | 介面 | 語言 | 說明 |
 | --- | --- | --- |
 | **玩家-facing UI** | **`zh-TW` / `English` / `日本語`** | 語言選擇頁、AR 掃描頁、情境選單、五個 Scenario 的全部畫面、對話、警示、結算、測驗、App module UI |
-| **staff-only UI**（`pages/staff/`） | **`zh-TW` only** | 工作人員皆為台灣現場人員；不跟隨玩家選擇的 `zh`／`en`／`jp` 切換。規格見 §2.7.2，決策見 §13 AD-13（`RESOLVED / BY DESIGN`） |
+| **staff-only UI**（`pages/staff/`） | **`zh-TW` only** | 工作人員皆為臺灣現場人員；不跟隨玩家選擇的 `zh`／`en`／`jp` 切換。規格見 §2.7.2，決策見 §13 AD-13（`RESOLVED / BY DESIGN`） |
 
 ## 10.2 字典歸屬
 
@@ -1874,7 +1874,7 @@ Repository root 的 `assets/`、`icons/`、`data/`、`index.html`、`manifest.js
 | AD-10 | 共用手機桌面覆蓋不足 | `shared/phone/PhoneHome.jsx` 只有 S05 使用 | `pages/scenario02/PhoneDesktop.jsx`、`pages/scenario03/PhoneHome.jsx`、`pages/scenario04/SimPhoneHome.jsx` 仍各自實作 | 四個手機桌面共用同一 shell，圖示與導航以 props 提供 | Medium |
 | AD-12 | lint warning 未清 | `oxlint` exit 0，但有 9 筆 warning：8 筆 `react(only-export-components)`（fast-refresh 提示）、1 筆未使用參數 `size`（原先的 11 筆含 2 筆重複字典鍵，已隨 AD-30 解決） | `apps/gugo-invest/app/routing.tsx`、`app/store/AppStoreContext.tsx`、`shell/StageClassContext.jsx`、`pages/scenario03/components/Countdown.jsx`、`pages/scenario02/CoinWinnerScreens.jsx`、`apps/blackpi/components/Placeholder.jsx` | 驗收前可決定是否清為 0 warning | Low |
 | AD-30 | 三語字典重複鍵 | ~~Scenario 04 的英日字典各有一個重複的 `'物流進度'` 鍵；後定義者覆蓋先定義者~~（**已解決**）：兩個字典各刪去一份重複定義。JP 兩次定義的值完全相同（皆為 `'配送状況'`）；EN 兩次定義的值其實**不同**（`'Tracking Progress'` vs `'Shipping Progress'`），先前本表記錄的「兩者的值相同」並不正確。因 JavaScript object literal 後定義者勝出，畫面實際顯示的一直是第二次定義的 `'Shipping Progress'`——與已審定的 `docs/translations/scenario3-shopping-text-en.md`（`OrderDetail.jsx` 段）及 Scenario 05 的同名鍵一致；被覆蓋的 `'Tracking Progress'` 在翻譯文件中沒有依據，且從未 render。因此兩個字典都保留第二次定義、刪除第一次定義；修正前後以 729 個鍵逐鍵比對，鍵集合與值完全相同，畫面文案零變動 | `shared/i18n/scenario04En.js:209`、`shared/i18n/scenario04Jp.js:223`（各只剩唯一一處定義） | 一個 key 只定義一次 | RESOLVED |
-| AD-13 | Localization 覆蓋範圍 | ~~工作人員設定頁全部文案硬編中文，未經任何字典~~（**產品決策：BY DESIGN**）：工作人員皆為**台灣現場人員**，Staff Setup 是 **staff-only UI**（由語言頁右上角的齒輪按鈕或隱藏長按進入，現場人員在交付裝置前使用），正式語言**固定 `zh-TW`**，**不跟隨**玩家選擇的 `zh`／`en`／`jp` 切換。因此硬編中文**不是 Localization 落差**，而是刻意不納入 Localization layer 的結果；規格已在 §2.7.2（Staff Setup 規格）、§10.1（語言覆蓋範圍）與 §10.2（字典歸屬）三處明訂一致。**未來不得把 staff-only UI 補成三語**。<br>**入口的部分已於 2026-08-25 修正回來**：2026-08-21 曾把 `LanguageSelect` 上可見的 map-pin 捷徑一併移除，理由是「可見入口與 staff-only 矛盾」。那一步推得太遠——AD-13 要保護的是**畫面語言**（`pages/staff/` 固定 `zh-TW`、不進 Localization layer），不是「所在地設定必須藏起來」。移除的結果是把**每場次都要做**的現場設定步驟關進一段沒人能寫進操作說明的 5 秒長按裡。**現已還原為語言首頁右上角的可見入口**（見 §2.7.2 入口表）：先是一顆寫著「定位」的文字按鈕，其後改為**只有圖示、不畫任何文字的齒輪**（`aria-label` 為工作人員設定／Staff settings／スタッフ設定），不在畫面上對玩家宣傳工作人員頁；它開啟的畫面**一個字都沒有改**，仍固定 `zh-TW`。AD-13 的實質結論因此完全不變——**未來仍不得把 staff-only UI 補成三語** | `pages/staff/*.jsx`（維持硬編正體中文，**自始未修改**）；`pages/LanguageSelect.jsx`＋`pages/entryScreens.css`（2026-08-21 移除可見入口，2026-08-25 還原為「定位」按鈕，其後改為齒輪圖示）、`scripts/language-select-staff-entry.test.mjs`（回歸測試釘住「有且僅有一個可見的齒輪入口」，15 項） | 已達成：玩家-facing UI ＝ `zh-TW`／`English`／`日本語`；staff-only UI ＝ `zh-TW` only。入口可見與否**不影響**本條決策 | RESOLVED / BY DESIGN |
+| AD-13 | Localization 覆蓋範圍 | ~~工作人員設定頁全部文案硬編中文，未經任何字典~~（**產品決策：BY DESIGN**）：工作人員皆為**臺灣現場人員**，Staff Setup 是 **staff-only UI**（由語言頁右上角的齒輪按鈕或隱藏長按進入，現場人員在交付裝置前使用），正式語言**固定 `zh-TW`**，**不跟隨**玩家選擇的 `zh`／`en`／`jp` 切換。因此硬編中文**不是 Localization 落差**，而是刻意不納入 Localization layer 的結果；規格已在 §2.7.2（Staff Setup 規格）、§10.1（語言覆蓋範圍）與 §10.2（字典歸屬）三處明訂一致。**未來不得把 staff-only UI 補成三語**。<br>**入口的部分已於 2026-08-25 修正回來**：2026-08-21 曾把 `LanguageSelect` 上可見的 map-pin 捷徑一併移除，理由是「可見入口與 staff-only 矛盾」。那一步推得太遠——AD-13 要保護的是**畫面語言**（`pages/staff/` 固定 `zh-TW`、不進 Localization layer），不是「所在地設定必須藏起來」。移除的結果是把**每場次都要做**的現場設定步驟關進一段沒人能寫進操作說明的 5 秒長按裡。**現已還原為語言首頁右上角的可見入口**（見 §2.7.2 入口表）：先是一顆寫著「定位」的文字按鈕，其後改為**只有圖示、不畫任何文字的齒輪**（`aria-label` 為工作人員設定／Staff settings／スタッフ設定），不在畫面上對玩家宣傳工作人員頁；它開啟的畫面**一個字都沒有改**，仍固定 `zh-TW`。AD-13 的實質結論因此完全不變——**未來仍不得把 staff-only UI 補成三語** | `pages/staff/*.jsx`（維持硬編正體中文，**自始未修改**）；`pages/LanguageSelect.jsx`＋`pages/entryScreens.css`（2026-08-21 移除可見入口，2026-08-25 還原為「定位」按鈕，其後改為齒輪圖示）、`scripts/language-select-staff-entry.test.mjs`（回歸測試釘住「有且僅有一個可見的齒輪入口」，15 項） | 已達成：玩家-facing UI ＝ `zh-TW`／`English`／`日本語`；staff-only UI ＝ `zh-TW` only。入口可見與否**不影響**本條決策 | RESOLVED / BY DESIGN |
 | AD-14 | App 字串寄生於 Scenario 字典 | ~~App module 的介面文案存在以 Scenario 命名的字典中~~（**已解決**）：五個 App 全部改為自有字典。BlackPi（231 鍵）、Coin Winner（84）、MyDonDon（32）、MeetU（13）取回原本 `t()` 的字串；HPE（9）取回原本由 Scenario 04 以 `translate` prop 逐字注入的字串。共用的只有查表機制 `shared/i18n/createTranslator.js`——**它不含任何文案**，刻意沒有建立 `shared/commonTranslations.js`：`返回`／`首頁`／`訊息` 這類標籤在每個 App 各留一份，因為歸屬看的是「誰擁有這個 UI」，不是字串長相。本次是 ownership 搬遷、不是重新翻譯：369 個 key、738 個 value（EN＋JP）逐一與 `origin/main` 的 Scenario 字典 byte-for-byte 比對相同，45 個 App 畫面 × 三語 render 快照與變更前**完全一致**（0 行差異）。搬走後已無任何 Scenario consumer 的鍵一併從 Scenario 字典刪除（S02 92 鍵／S04 219 鍵／S05 30 鍵），不留重複翻譯來源；仍有 Scenario consumer 的鍵兩邊各持一份，屬不同 ownership、不算不必要重複。回歸防線：`validate:boundaries` 新增規則（5）擋住 App import 任何 Scenario-owned localization module；`validate:i18n` 逐 unit 檢查缺鍵與 EN／JP 鍵集合一致；`test:app-i18n-ownership` 以實際 render 驗證三語文案 | `shared/i18n/createTranslator.js`、`apps/{blackpi,coin-winner,mydondon,meetu,hpe-logistics}/i18n/`；`pages/scenario02/CoinWinnerScreens.jsx`（推薦碼改以 prop 傳入）、`pages/scenario02/DatingBrowse.jsx`（交友對象檔案先翻譯再傳給 MeetU）、`pages/scenario04/ReturnLogistics.jsx`（移除 `translate` prop） | 已達成：App 擁有自己的字典，host 只決定語言、不逐字傳入翻譯 | RESOLVED |
 | AD-15 | App 讀取 Scenario 素材表 | ~~BlackPi 直接讀 Scenario 04 的中央素材表（`apps/blackpi/**` → `data/assetMap`，3 處）~~（**已解決**）：那張表根本不是 Scenario 的。`src/data/assetMap.js` 位於共用的 scenario data 資料夾，但它的 runtime consumer 從頭到尾只有 BlackPi 一個——`components/AssetImage.jsx`、`components/ChatScreen.jsx`、`screens/ProductDetail.jsx` 三個 importer 全在 `apps/blackpi/` 之下，模組外從來沒有人向它要過任何東西。因此不是「App 不該讀它」，而是**它的位置宣稱了一種不存在的共用**。表已移入 `src/apps/blackpi/data/assetMap.js`，與它解析 assetKey 的 `catalog.js` 並列；三個 importer 由 `'../../../data/assetMap'` 改為 `'../data/assetMap'`。**這是 source module relocation，沒有任何 binary 移動**。<br>四張店面裝飾照（行動電源、機械鍵盤、防水喇叭、掛耳咖啡）**刻意不搬進 `src/apps/blackpi/assets/`**：本表原先的「App 的商品圖屬 App assets」是把兩個問題混為一談。這四張是為這個情境的店面拍的**故事素材**，不是 BlackPi 的品牌素材（品牌素材是 logo／icon／wordmark，見 §11.1 App assets 列），因此與其餘 22 張一起留在 `public/assets/scenarios/scenario-04/images/products/`。這也讓 26 張維持**單一解析機制**（DIR 組出的 runtime URL），而不是四張走 Vite bundled import、其餘走 URL。該決策已寫進 assetMap 檔內以免日後再被誤判 | `src/apps/blackpi/data/assetMap.js`（新位置）、`apps/blackpi/components/{AssetImage,ChatScreen}.jsx`、`apps/blackpi/screens/ProductDetail.jsx`、`scripts/scenario04-navigation.test.mjs` | 已達成：唯一的 consumer 擁有這份表；故事素材仍由情境擁有 | RESOLVED |
 | AD-16 | Legacy route 命名 | Scenario 05 整組 URL 仍用 `scenario05-atm`，內容早已不是 ATM 情境 | `routes.jsx`（15 個 route） | 刻意保留以相容既有連結與儲存鍵，已於程式註明 | `LEGACY` / Low |
@@ -1996,7 +1996,7 @@ Known debt/allowlist audit：`SCENARIO_STATE_DEBT` 對應 AD-01，該 AD 已 RES
 
 | 項目 | 產品決策 | 規格落點 |
 | --- | --- | --- |
-| **AD-13** | 工作人員皆為台灣現場人員；Staff Setup 是 staff-only UI，正式語言固定 `zh-TW`，不跟隨玩家語言切換。硬編中文為刻意設計，**不補三語**。本條**只約束畫面語言，不約束入口是否可見**——語言首頁**右上角的齒輪按鈕**是正式入口（2026-08-21 誤刪、2026-08-25 以「定位」按鈕還原，其後改為齒輪圖示） | §2.7.2、§10.1、§10.2、§10.4、§3.6；把關：`test:language-select-staff-entry` |
+| **AD-13** | 工作人員皆為臺灣現場人員；Staff Setup 是 staff-only UI，正式語言固定 `zh-TW`，不跟隨玩家語言切換。硬編中文為刻意設計，**不補三語**。本條**只約束畫面語言，不約束入口是否可見**——語言首頁**右上角的齒輪按鈕**是正式入口（2026-08-21 誤刪、2026-08-25 以「定位」按鈕還原，其後改為齒輪圖示） | §2.7.2、§10.1、§10.2、§10.4、§3.6；把關：`test:language-select-staff-entry` |
 | **AD-24** | 第一次入金**不顯示強制風險警示**，直接進入 Deposit flow；強制警示只出現在第二次繳交「驗證金／安全驗證金」時。`DepositWarning` 無入口為正確行為，**不得接回** | §6.5（AR2-11）、§6.6.1、§6.7 |
 
 **把關差異**：
