@@ -23,7 +23,12 @@ import { useT } from './i18n';
 //   anything else ('requested' /         they met the fake support desk, so
 //   'refused' / 'completed')             all five clues are their own run
 //
-// Clue 5 is written the same way on every path on purpose: it names what
+// Clue 2 is written the same way for the same reason. It rests on what every
+// run really saw - the buyer's claim, and MyDonDon with no such order - and
+// deliberately says nothing about the fake site's own "transaction
+// information", which a player who stopped at the missing order never opened.
+//
+// Clue 5 is written the same way on every path on purpose too: it names what
 // shipping before payment CAN cost, never that this player shipped. A run that
 // paid the deposit and then stopped reads it as the loss they avoided, not as
 // one they took.
@@ -37,7 +42,7 @@ const CLUES = [
   },
   {
     title: '假付款資訊',
-    note: '買家聲稱已付款，假網站也顯示交易資訊，但你始終沒有確認到可信的付款紀錄或實際入帳。',
+    note: '買家聲稱已經付款，但買東東沒有這筆訂單，你也沒有確認到可信的付款紀錄或實際入帳。對方提供的付款說法不能當作收款證明。',
   },
   {
     title: '假身分驗證',

@@ -504,6 +504,36 @@ test('the shipping clue never claims the item was shipped, on any path', () => {
   }
 });
 
+test('the fake-payment clue rests on what every run saw, not on the fake site', () => {
+  // A player who stopped at the missing order never opened SafeDeal's own
+  // "payment status" page, so the clue cannot credit them with having read it.
+  // What every run did see is the buyer's claim and MyDonDon with no such order.
+  const bySite = {
+    zh: ['假網站', '外部網站顯示', 'SafeDeal 也顯示'],
+    en: ['fake website', 'fake site', 'the site displayed'],
+    jp: ['偽サイト', '偽のサイト'],
+  };
+  for (const [lang, forbidden] of Object.entries(bySite)) {
+    for (const path of [{ verificationStatus: 'notStarted' }, { verificationStatus: 'completed', shipmentDecision: 'shipped' }]) {
+      const clue = clues(path, lang)[1];
+      for (const phrase of forbidden) {
+        assert.ok(!clue.note.includes(phrase),
+          `${lang}: the fake-payment clue points at something the player may never have opened ("${phrase}")`);
+      }
+    }
+  }
+  // It still names the check that actually failed.
+  assert.match(clues({ verificationStatus: 'notStarted' }, 'zh')[1].note, /買東東沒有這筆訂單/);
+  assert.match(clues({ verificationStatus: 'notStarted' }, 'en')[1].note, /no corresponding order on MyDonDon/);
+  assert.match(clues({ verificationStatus: 'notStarted' }, 'jp')[1].note, /買東東には該当する注文がなく/);
+  // The other four clues are untouched by this change.
+  const zh = clues({ verificationStatus: 'completed' }, 'zh');
+  assert.match(zh[0].note, /假買家要求你離開原本的交易平台/);
+  assert.match(zh[2].note, /假客服把無法收款歸咎於你的帳戶尚未認證/);
+  assert.match(zh[3].note, /假客服宣稱先轉帳一筆驗證金就能開通收款/);
+  assert.match(zh[4].note, /即使物流服務是真的/);
+});
+
 test('the 及時止損 ending carries its own takeaway, not the one for a run that lost nothing', async () => {
   const stopped = await read('src/pages/scenario05/EndingStopped.jsx');
   const caught = await read('src/pages/scenario05/EndingCaught.jsx');

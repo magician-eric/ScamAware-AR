@@ -280,8 +280,8 @@ export const EN = {
   '假買家要求你離開原本的交易平台，改用他指定的外部網站。這讓你失去原平台交易紀錄的保護與查證依據。':
     'The fake buyer directed you away from the original marketplace to an external website of their choosing. This removed the original platform’s transaction records as a source of protection and verification.',
   '假付款資訊': 'Fake Payment Information',
-  '買家聲稱已付款，假網站也顯示交易資訊，但你始終沒有確認到可信的付款紀錄或實際入帳。':
-    'The buyer claimed to have paid, and the fake website displayed transaction information, but you never confirmed a trustworthy payment record or an actual deposit.',
+  '買家聲稱已經付款，但買東東沒有這筆訂單，你也沒有確認到可信的付款紀錄或實際入帳。對方提供的付款說法不能當作收款證明。':
+    "The buyer claimed to have paid, but there was no corresponding order on MyDonDon, and you could not verify a trustworthy payment record or actual receipt of funds. The buyer's claim is not proof that you have received payment.",
   '假身分驗證': 'Fake Identity Verification',
   '假客服把無法收款歸咎於你的帳戶尚未認證，讓你以為問題出在自己身上，必須依照指示處理。':
     'The fake support agent blamed the payment problem on your unverified account, making you think the problem was yours to fix by following their instructions.',
