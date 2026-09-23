@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "反詐AR體驗";
+"NSCameraUsageDescription" = "需要使用相機辨識反詐海報上的圖卡，以進入對應的反詐情境。影像只在手機上即時處理，不會儲存或上傳。";
+"NSLocationWhenInUseUsageDescription" = "工作人員設定場地時，可選擇用目前位置自動帶入所在縣市，讓假檢警情境顯示當地機關名稱。也可以不授權、改用手動選擇。";

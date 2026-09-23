@@ -1,0 +1,25 @@
+# Generated - never commit
+/ScamAwareIOS.xcodeproj/
+/ios/www/
+/build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Signed or unsigned builds are delivered through Codemagic artifacts, not git
+# (an .ipa is ~80 MB and GitHub rejects files over 100 MB).
+/dist/ios/**/*.ipa
+/dist/ios/**/*.app
+/dist/ios/**/*.zip
+/dist/ios/**/*.dSYM*
+
+# Signing material must never be committed (use Codemagic secure variables)
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.pem
+*_key
+*.key
+.env
+scripts/browser-smoke/out/

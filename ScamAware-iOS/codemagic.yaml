@@ -1,0 +1,164 @@
+# Codemagic cloud build for ScamAware-iOS (no Mac needed on our side).
+#
+# Two workflows, both started MANUALLY from the Codemagic web UI (no automatic
+# triggers, so nothing builds or spends minutes unless someone asks for it):
+#
+#   ios-compile-check   Needs NO Apple account. Builds the web bundle, generates
+#                       the Xcode project and compiles it for the simulator and
+#                       for iPhone with code signing OFF. Proves the project
+#                       builds; produces NOTHING installable.
+#
+#   ios-adhoc           Needs the Apple Developer / App Store Connect settings in
+#                       docs/CODEMAGIC_SETUP.md. Produces the Ad Hoc–signed
+#                       dist/ios/<version>/ScamAware-iOS-v<version>-build<N>.ipa,
+#                       installable only on iPhones whose UDIDs are registered.
+#
+# Where this file must live: Codemagic only reads codemagic.yaml from the ROOT of
+# the connected repository. It is written to work in both layouts:
+#   * ScamAware-iOS pushed as its own repository (recommended) - this file is
+#     already at the root;
+#   * the ScamAware-AR monorepo - copy this file to the repo root; the first
+#     script step detects the ScamAware-iOS/ sub-directory by itself.
+#
+# Secrets: NOTHING secret is in this file. The signing values come from the
+# Codemagic environment variable group `scamaware_ios_signing` (marked Secure).
+
+definitions:
+  locate_app_dir: &locate_app_dir
+    name: Locate ScamAware-iOS directory
+    script: |
+      if [ -f "$CM_BUILD_DIR/ScamAware-iOS/project.yml" ]; then
+        APP_DIR="$CM_BUILD_DIR/ScamAware-iOS"
+      elif [ -f "$CM_BUILD_DIR/project.yml" ]; then
+        APP_DIR="$CM_BUILD_DIR"
+      else
+        echo "Cannot find project.yml (looked in repo root and ScamAware-iOS/)" >&2; exit 1
+      fi
+      echo "APP_DIR=$APP_DIR" >> "$CM_ENV"
+      if [ -z "${BUNDLE_ID:-}" ]; then
+        echo "BUNDLE_ID=$(node -e "process.stdout.write(require('$APP_DIR/version.json').bundleId)")" >> "$CM_ENV"
+      fi
+      echo "APP_DIR=$APP_DIR"
+  build_web: &build_web
+    name: Build offline web bundle + static checks
+    script: |
+      cd "$APP_DIR"
+      bash scripts/build-web.sh
+  generate_project: &generate_project
+    name: Stamp version and generate Xcode project
+    script: |
+      cd "$APP_DIR"
+      bash scripts/set-version.sh
+      command -v xcodegen >/dev/null || brew install xcodegen
+      xcodegen generate
+
+workflows:
+  ios-compile-check:
+    name: ScamAware-iOS compile check (unsigned, NOT installable)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      node: 22
+      xcode: latest
+    scripts:
+      - *locate_app_dir
+      - *build_web
+      - *generate_project
+      - name: Compile for iOS Simulator (no signing)
+        script: |
+          cd "$APP_DIR"
+          set -o pipefail
+          xcodebuild -project ScamAwareIOS.xcodeproj -scheme ScamAwareIOS -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tee /tmp/xcodebuild-simulator.log | tail -n 40
+      - name: Compile for iPhone (arm64, signing OFF - not installable)
+        script: |
+          cd "$APP_DIR"
+          set -o pipefail
+          xcodebuild -project ScamAwareIOS.xcodeproj -scheme ScamAwareIOS -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build | tee /tmp/xcodebuild-device.log | tail -n 40
+          echo "Compile check passed. This workflow deliberately produces no .ipa:"
+          echo "an unsigned build cannot be installed on any iPhone."
+    artifacts:
+      - /tmp/xcodebuild-*.log
+
+  ios-adhoc:
+    name: ScamAware-iOS Ad Hoc IPA (signed, for registered company iPhones)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      groups:
+        # Secure variables (see docs/CODEMAGIC_SETUP.md):
+        #   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+        #   APP_STORE_CONNECT_PRIVATE_KEY (contents of the .p8),
+        #   CERTIFICATE_PRIVATE_KEY (RSA key used for the distribution certificate)
+        # Optional: BUNDLE_ID (defaults to version.json bundleId)
+        - scamaware_ios_signing
+      node: 22
+      xcode: latest
+    scripts:
+      - *locate_app_dir
+      - name: Check signing inputs (fail fast, never build unsigned)
+        script: |
+          missing=""
+          for v in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_IDENTIFIER \
+                   APP_STORE_CONNECT_PRIVATE_KEY CERTIFICATE_PRIVATE_KEY; do
+            if [ -z "${!v:-}" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "Missing Codemagic secure variables:$missing" >&2
+            echo "Add them to the 'scamaware_ios_signing' group - see docs/CODEMAGIC_SETUP.md." >&2
+            exit 1
+          fi
+          echo "Signing inputs present for bundle id $BUNDLE_ID"
+      - name: Set up keychain
+        script: keychain initialize
+      - name: Fetch or create Ad Hoc certificate + provisioning profile
+        script: |
+          # Creates the Apple Distribution certificate and an Ad Hoc profile that
+          # contains every iPhone currently registered under Devices in the
+          # Apple Developer account, if they do not exist yet.
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_ADHOC \
+            --create
+      - name: Add certificates to keychain
+        script: keychain add-certificates
+      - *build_web
+      - *generate_project
+      - name: Apply provisioning profile to the Xcode project
+        script: |
+          cd "$APP_DIR"
+          xcode-project use-profiles --project ScamAwareIOS.xcodeproj
+      - name: Build Ad Hoc IPA
+        script: |
+          cd "$APP_DIR"
+          xcode-project build-ipa \
+            --project ScamAwareIOS.xcodeproj \
+            --scheme ScamAwareIOS \
+            --config Release
+      - name: Verify signature and package into dist/ios/<version>/
+        script: |
+          cd "$APP_DIR"
+          IPA="$(ls build/ios/ipa/*.ipa | head -n1)"
+          bash scripts/package-ipa.sh "$IPA"
+    artifacts:
+      - ScamAware-iOS/dist/ios/**/*
+      - dist/ios/**/*
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      # Codemagic e-mails the build result to the person who started it.
+      # Add colleagues here if they should get the download link too:
+      # email:
+      #   recipients:
+      #     - someone@example.com
+      #
+      # Optional - one-tap install on each iPhone via Firebase App Distribution
+      # (see docs/INSTALL_WINDOWS_IPHONE.md, method A). Create the Firebase
+      # project first, then uncomment and fill in:
+      # firebase:
+      #   firebase_service_account: $FIREBASE_SERVICE_ACCOUNT
+      #   ios:
+      #     app_id: 1:000000000000:ios:0000000000000000
+      #     groups:
+      #       - company-iphones

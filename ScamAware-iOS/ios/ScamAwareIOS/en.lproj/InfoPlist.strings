@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "ScamAware AR";
+"NSCameraUsageDescription" = "The camera is used to recognise the cards on the anti-fraud poster and open the matching scenario. Images are processed live on this iPhone and are never saved or uploaded.";
+"NSLocationWhenInUseUsageDescription" = "During venue setup, staff can fill in the city from the current location so the fake-police scenario names local agencies. You can decline and choose the location manually instead.";

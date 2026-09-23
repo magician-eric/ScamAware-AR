@@ -1,0 +1,73 @@
+{
+  "$comment": [
+    "Every absolute http(s) origin that may appear anywhere in the production web build that",
+    "the offline APK bundles. audit-offline-web-assets.mjs fails the offline build on any origin",
+    "that is not listed here, so adding a runtime CDN, a web font, an analytics beacon or a",
+    "remote API to the webapp cannot reach the offline APK without someone deliberately writing",
+    "it down in this file - at which point the reason field is where they have to justify it.",
+    "",
+    "Being listed here does NOT mean the URL is fetched. Almost none of these are: they are XML",
+    "namespaces, error-message links baked into libraries, and scam websites that CIBAR renders",
+    "as text because inventing them is the point of the exercise. What the list asserts is that",
+    "somebody looked at each one and established that it is not a network dependency.",
+    "",
+    "The offline APK also declares no INTERNET permission (app/src/offline/AndroidManifest.xml),",
+    "so a URL that slipped past this audit still could not be fetched. This list is the check",
+    "that fails at build time, in CI, with a name and a line number - rather than on a phone in",
+    "aeroplane mode in front of an audience."
+  ],
+  "origins": [
+    {
+      "origin": "http://www.w3.org",
+      "reason": "XML/SVG/XHTML namespace identifiers (xmlns=\"http://www.w3.org/2000/svg\"). Namespace URIs are names, not addresses; nothing ever resolves them."
+    },
+    {
+      "origin": "http://localhost",
+      "reason": "react-router's internal placeholder base for parsing relative URLs when window.location has an opaque origin. Never navigated to."
+    },
+    {
+      "origin": "https://github.com",
+      "reason": "Text inside @tensorflow/tfjs error messages (\"file an issue at ...\", \"install our node backend, visit ...\")."
+    },
+    {
+      "origin": "https://react.dev",
+      "reason": "React's own error-message links, printed to the console when a React invariant fires."
+    },
+    {
+      "origin": "https://reactrouter.com",
+      "reason": "react-router's error and deprecation message links."
+    },
+    {
+      "origin": "https://react.i18next.com",
+      "reason": "react-i18next's useSuspense warning links to its own documentation."
+    },
+    {
+      "origin": "https://developer.mozilla.org",
+      "reason": "MDN link inside an i18next error message about the fetch API signature."
+    },
+    {
+      "origin": "https://arxiv.org",
+      "reason": "Paper citations in @tensorflow/tfjs kernel source comments."
+    },
+    {
+      "origin": "https://www.shadertoy.com",
+      "reason": "Attribution comment in a @tensorflow/tfjs WebGL shader."
+    },
+    {
+      "origin": "https://www.tradingview.com",
+      "reason": "lightweight-charts builds its required attribution <a> element with this href. It is a link the user may see on the GuGo Invest chart, not a resource the page loads; offline it simply cannot be followed, exactly like every other outbound link."
+    },
+    {
+      "origin": "https://bition-invest.tw",
+      "reason": "A fictional scam site. Scenario 01 renders the string as the fake investment platform's address - inventing a convincing fake URL is the teaching content. The domain is not owned by us and is never requested."
+    },
+    {
+      "origin": "https://case-verify-",
+      "reason": "The first half of a fictional police case-verification URL (https://case-verify-<caseNumber>.sim-example.tw), assembled in Scenario 03's markup around the generated case number and shown as text. sim-example.tw is a reserved example domain."
+    },
+    {
+      "origin": "https://appassets.androidplatform.net",
+      "reason": "The offline APK's own local origin (WebViewAssetLoader). The only entry here that is actually served - by OfflineWebAssetHandler, out of the APK's assets, with no socket involved."
+    }
+  ]
+}

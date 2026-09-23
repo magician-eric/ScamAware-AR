@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "反詐欺AR体験";
+"NSCameraUsageDescription" = "詐欺防止ポスターのカードを認識し、対応するシナリオを開くためにカメラを使用します。映像はこのiPhone上でリアルタイムに処理され、保存やアップロードはされません。";
+"NSLocationWhenInUseUsageDescription" = "会場設定の際、現在地から市区町村を自動入力し、ニセ警察シナリオに地元の機関名を表示するために使用します。許可せず手動で選択することもできます。";

@@ -1,0 +1,12 @@
+{
+  "appName": "ScamAware-iOS",
+  "bundleId": "com.bigxreality.scamaware.ios",
+  "marketingVersion": "1.0.0",
+  "buildNumber": 1,
+  "minimumIOS": "15.0",
+  "sourceSnapshot": {
+    "repository": "magician-eric/ScamAware-AR",
+    "webapp": "webapp/ (Web Bundle 1.7.6, commit 817df36)",
+    "note": "The web content in web/ is a one-time copy. It is NOT synced with the Android project; re-copy deliberately (see README.md)."
+  }
+}

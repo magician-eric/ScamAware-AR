@@ -1,0 +1,887 @@
+/* The opening sequence's own sheet, imported by OpeningSequence.jsx and by
+   nothing else. Its rules are rendered by exactly one screen, which is why they
+   live here rather than in styles/global.css - that file is the shared
+   foundation and validate-shared-ui-ownership.mjs rejects a rule only one owner
+   renders.
+
+   WHAT THIS SEQUENCE IS
+   SCAN → ASSEMBLE → LOCK → EXPAND → PROJECT → PULSE → REVEAL. It is not three
+   headlines arriving and leaving: the space is scanned first, the Chinese title
+   is assembled out of pieces rather than flown in, AR locks on hard enough to be
+   the first climax, the frame then opens outward, English and Japanese are
+   projected out of depth as an information layer, the whole composition holds
+   long enough to be read, one system pulse throws the information layer back
+   out, the title re-locks alone, and only then is the home screen revealed.
+
+   HOW THE TIMELINE IS BUILT
+   Every animated element runs ONE animation, and every one of them is 7000ms
+   long - the whole sequence - with its own moments expressed as keyframe
+   percentages of that. It reads oddly at first and it is deliberate: an element
+   with two overlapping `animation` entries that both write `transform` keeps
+   only the last one (CSS animations do not compose transforms), so a "project
+   in, then drift, then be pushed out" element built the obvious way loses its
+   entrance. One long animation per element makes the whole of its life a single
+   interpolation and makes the timeline readable in one place.
+
+   The same rule is why there are four ring elements rather than one: a ring is a
+   single expansion at a single moment, and one element cannot fire four times.
+
+     ms         %          what
+     0- 700     0- 10.0    SCAN: the sweep crosses, grid/axes/brackets come up
+     600-1150   8.6- 16.4  ASSEMBLE: 沉 浸 式 converge onto their marks
+     1000-1350  14.3- 19.3 LOCK: AR 1.6 → .92 → 1.045 → 1, brackets close on it
+     1350-1450  19.3- 20.7 ...and the lock lands: slice, scan, beams, ring
+     1350-1800  19.3- 25.7 REVEAL: 詐騙體驗 uncovered left to right by a wipe
+     1800-2700  25.7- 38.6 EXPAND: the frame opens outward, the title holds still
+     2600-3300  37.1- 47.1 PROJECT: English out of depth from the right...
+     2720-3420  38.9- 48.9 ...Japanese from the left, 120ms behind it
+     3700-5100  52.9- 72.9 COMPOSITION: all three held, the HUD still working
+     5100-5400  72.9- 77.1 PULSE: AR flares, two rings out, everything pushed
+     5250-6200  75.0- 88.6 English and Japanese retreat into depth
+     5900-6350  84.3- 90.7 FINAL LOCK: brackets snap home, a scan crosses 中文
+     6550       93.6       the home UI starts coming up (OPENING_REVEAL_MS)
+     7000       100        the overlay is unmounted (OPENING_TOTAL_MS)
+
+   All movement is transform/opacity, with clip-path for the one mask reveal and
+   two very short `filter: brightness` flashes. Nothing here animates width,
+   height, top, left or a box-shadow, so nothing can reflow or repaint the real
+   home screen underneath. `will-change` is set on the moving layers and needs no
+   cleanup: the whole overlay is unmounted at the end. */
+
+.opening {
+  /* Against the stage, which useFitStage makes `position: fixed`. The home
+     screen is a sibling underneath and is never unmounted. */
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  /* ON, on purpose: while this exists it is the only thing a finger can reach,
+     so nothing on the home screen - the language buttons, the staff gear - can
+     be hit before the opening is over. It ends when the element is unmounted. */
+  pointer-events: auto;
+  /* Deliberately no background of its own: the ONLY background on screen for
+     the whole sequence is the home screen's own artwork, showing through. */
+  contain: layout paint;
+  animation: openingCurtain 7000ms linear both;
+}
+
+/* The overlay's own exit, and the only thing that fades at the end. The artwork
+   underneath is untouched, so there is no frame in which the background is
+   black, white, reloading or moving. */
+@keyframes openingCurtain {
+  0%, 93.6% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* The one layer between the type and the artwork. A wash rather than a curtain:
+   the artwork's own masthead and mascot stay readable through it, which is what
+   makes the opening feel like it is happening ON the home screen. */
+.opening .opening__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 6, 16, .5) 0%, rgba(0, 6, 16, 0) 34%),
+    radial-gradient(118% 76% at 50% 46%, rgba(1, 10, 26, .5) 0%, rgba(1, 8, 20, .74) 58%, rgba(0, 5, 14, .86) 100%);
+}
+
+/* ---------------------------------------------------------------- HUD ---- */
+
+.opening .opening__hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.opening .opening__hud > * {
+  position: absolute;
+  display: block;
+  will-change: transform, opacity;
+}
+
+/* PHASE 01. The wake sweep: one band of light down the whole screen before any
+   type exists, and a second, much quieter pass while the composition holds -
+   the sequence's proof that the system is still computing. It is what the
+   Chinese title waits for: 沉浸式 starts as the sweep reaches the middle. */
+.opening .opening__sweep {
+  left: -10%;
+  right: -10%;
+  top: 0;
+  height: 20%;
+  background: linear-gradient(180deg, rgba(80, 205, 255, 0) 0%, rgba(122, 224, 255, .3) 44%, rgba(198, 246, 255, .6) 52%, rgba(122, 224, 255, .28) 60%, rgba(80, 205, 255, 0) 100%);
+  animation: openingSweep 7000ms linear both;
+}
+
+@keyframes openingSweep {
+  0% { opacity: 0; transform: translate3d(0, -130%, 0); }
+  1.4% { opacity: .95; }
+  7% { opacity: .8; }
+  10% { opacity: 0; transform: translate3d(0, 430%, 0); }
+  55.7% { opacity: 0; transform: translate3d(0, -130%, 0); }
+  57% { opacity: .26; }
+  68% { opacity: .2; }
+  70%, 100% { opacity: 0; transform: translate3d(0, 430%, 0); }
+}
+
+/* The space itself. A hairline grid that comes up with the scan, GROWS at the
+   depth shift (which is what sells "the frame is opening" without a camera or a
+   3D library), and is pushed out again by the pulse. */
+.opening .opening__grid {
+  left: -20%;
+  right: -20%;
+  top: -20%;
+  height: 160%;
+  background:
+    repeating-linear-gradient(90deg, rgba(120, 205, 255, .12) 0 1px, transparent 1px 13%),
+    repeating-linear-gradient(0deg, rgba(120, 205, 255, .09) 0 1px, transparent 1px 9%);
+  animation: openingGrid 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes openingGrid {
+  0% { opacity: 0; transform: scale(1.06) translate3d(0, 1.6%, 0); }
+  5.7% { opacity: .5; }
+  25.7% { opacity: .5; transform: scale(1) translate3d(0, 0, 0); }
+  38.6% { opacity: .42; transform: scale(1.08) translate3d(0, -.6%, 0); }
+  72.9% { opacity: .34; transform: scale(1.1) translate3d(0, -1%, 0); }
+  76.4% { opacity: .5; transform: scale(1.17) translate3d(0, -1.3%, 0); }
+  93.6% { opacity: .18; transform: scale(1.18) translate3d(0, -1.5%, 0); }
+  100% { opacity: 0; transform: scale(1.19) translate3d(0, -1.6%, 0); }
+}
+
+/* The two coordinate lines through the centre of the frame. They are drawn by
+   scaling a hairline out from the middle, so the drawing itself is a transform. */
+.opening .opening__axis {
+  background: linear-gradient(var(--axis-angle, 90deg), rgba(126, 214, 255, 0), rgba(140, 224, 255, .5), rgba(126, 214, 255, 0));
+}
+
+.opening .opening__axis--v {
+  left: 50%;
+  top: 8%;
+  bottom: 8%;
+  width: 1px;
+  margin-left: -.5px;
+  --axis-angle: 180deg;
+  transform-origin: 50% 50%;
+  animation: openingAxisV 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__axis--h {
+  top: 50%;
+  left: 6%;
+  right: 6%;
+  height: 1px;
+  transform-origin: 50% 50%;
+  animation: openingAxisH 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes openingAxisV {
+  0%, 1.4% { opacity: 0; transform: scale3d(1, 0, 1); }
+  5.7% { opacity: .55; transform: scale3d(1, 1, 1); }
+  25.7% { opacity: .3; transform: scale3d(1, 1, 1); }
+  52.9% { opacity: .22; transform: scale3d(1, 1, 1); }
+  72.9% { opacity: .8; transform: scale3d(1, 1, 1); }
+  76.4% { opacity: .2; transform: scale3d(1, 1.06, 1); }
+  93.6%, 100% { opacity: 0; transform: scale3d(1, 1.06, 1); }
+}
+
+@keyframes openingAxisH {
+  0%, 1.4% { opacity: 0; transform: scale3d(0, 1, 1); }
+  5.7% { opacity: .55; transform: scale3d(1, 1, 1); }
+  25.7% { opacity: .3; transform: scale3d(1, 1, 1); }
+  52.9% { opacity: .22; transform: scale3d(1, 1, 1); }
+  72.9% { opacity: .8; transform: scale3d(1, 1, 1); }
+  76.4% { opacity: .2; transform: scale3d(1.06, 1, 1); }
+  93.6%, 100% { opacity: 0; transform: scale3d(1.06, 1, 1); }
+}
+
+/* Data ticks: two short columns of marks down the outside edges. Atmosphere,
+   and the one element on screen that never stops moving - it drifts slowly for
+   the whole sequence, so even the still moments are not a poster. */
+.opening .opening__tick {
+  top: 30%;
+  height: 40%;
+  width: 10px;
+  background: repeating-linear-gradient(180deg, rgba(150, 228, 255, .55) 0 1px, transparent 1px 9px);
+  animation: openingTick 7000ms linear both;
+}
+
+.opening .opening__tick--left { left: 4%; }
+.opening .opening__tick--right { right: 4%; }
+
+@keyframes openingTick {
+  0% { opacity: 0; transform: translate3d(0, 3%, 0); }
+  7% { opacity: .5; }
+  52.9% { opacity: .45; transform: translate3d(0, -1%, 0); }
+  72.9% { opacity: .4; transform: translate3d(0, -2%, 0); }
+  76.4% { opacity: .75; transform: translate3d(0, -3.4%, 0); }
+  93.6% { opacity: .2; transform: translate3d(0, -4.4%, 0); }
+  100% { opacity: 0; transform: translate3d(0, -4.8%, 0); }
+}
+
+/* The tracking frame the title locks into. Its whole life is the sequence in
+   miniature: it arrives oversized and settles, tightens when AR locks, opens
+   outward at the depth shift, breathes through the hold, flares and is thrown
+   out by the pulse, then snaps home for the final lock. */
+.opening .opening__reticle {
+  left: 8%;
+  right: 8%;
+  top: 26%;
+  bottom: 22%;
+  border: 1px solid rgba(126, 214, 255, .32);
+  border-radius: 4px;
+  animation: openingReticle 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes openingReticle {
+  0% { opacity: 0; transform: scale(1.18); }
+  2.9% { opacity: .5; }
+  10% { opacity: .55; transform: scale(1); }
+  19.3% { opacity: .85; transform: scale(.985); }
+  21.4% { opacity: .5; transform: scale(1); }
+  25.7% { opacity: .5; transform: scale(1); }
+  38.6% { opacity: .34; transform: scale(1.09); }
+  52.9% { opacity: .3; transform: scale(1.1); }
+  70% { opacity: .34; transform: scale(1.13); }
+  72.9% { opacity: .9; transform: scale(1.06); }
+  76.4% { opacity: .32; transform: scale(1.2); }
+  84.3% { opacity: .3; transform: scale(1.12); }
+  90% { opacity: .85; transform: scale(1.02); }
+  93.6% { opacity: .5; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* The four AR tracking corners. One set of keyframes for all four: each corner
+   carries its own direction as --x/--y, so "spread outward", "snap inward" and
+   "pushed out by the pulse" are the same interpolation seen from four places. */
+.opening .opening__corner {
+  width: clamp(22px, 7vw, 40px);
+  height: clamp(22px, 7vw, 40px);
+  border: 2px solid rgba(150, 228, 255, .85);
+  animation: openingCorner 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.opening .opening__corner--tl { left: 8%; top: 26%; --x: -1; --y: -1; border-right: 0; border-bottom: 0; }
+.opening .opening__corner--tr { right: 8%; top: 26%; --x: 1; --y: -1; border-left: 0; border-bottom: 0; }
+.opening .opening__corner--bl { left: 8%; bottom: 22%; --x: -1; --y: 1; border-right: 0; border-top: 0; }
+.opening .opening__corner--br { right: 8%; bottom: 22%; --x: 1; --y: 1; border-left: 0; border-top: 0; }
+
+@keyframes openingCorner {
+  0% { opacity: 0; transform: translate3d(calc(var(--x) * 30px), calc(var(--y) * 30px), 0); }
+  2.9% { opacity: .5; }
+  8.6% { opacity: .6; transform: translate3d(0, 0, 0); }
+  19.3% { opacity: 1; transform: translate3d(calc(var(--x) * -7px), calc(var(--y) * -7px), 0); }
+  21.4% { opacity: .5; transform: translate3d(0, 0, 0); }
+  25.7% { opacity: .5; transform: translate3d(0, 0, 0); }
+  38.6% { opacity: .36; transform: translate3d(calc(var(--x) * 22px), calc(var(--y) * 22px), 0); }
+  52.9% { opacity: .34; transform: translate3d(calc(var(--x) * 24px), calc(var(--y) * 24px), 0); }
+  65.7% { opacity: .44; transform: translate3d(calc(var(--x) * 31px), calc(var(--y) * 31px), 0); }
+  70% { opacity: .34; transform: translate3d(calc(var(--x) * 24px), calc(var(--y) * 24px), 0); }
+  72.9% { opacity: .95; transform: translate3d(calc(var(--x) * 14px), calc(var(--y) * 14px), 0); }
+  76.4% { opacity: .3; transform: translate3d(calc(var(--x) * 42px), calc(var(--y) * 42px), 0); }
+  84.3% { opacity: .35; transform: translate3d(calc(var(--x) * 32px), calc(var(--y) * 32px), 0); }
+  90% { opacity: 1; transform: translate3d(0, 0, 0); }
+  93.6% { opacity: .6; transform: translate3d(0, 0, 0); }
+  100% { opacity: 0; transform: translate3d(0, 0, 0); }
+}
+
+/* Two hairlines that shoot out from the centre at the moment AR locks - half of
+   what makes that moment read as "positioned" rather than "arrived". */
+.opening .opening__rule {
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(126, 214, 255, 0), rgba(150, 228, 255, .75), rgba(126, 214, 255, 0));
+  transform-origin: 50% 50%;
+  animation: openingRule 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__rule--top { top: 26%; }
+.opening .opening__rule--bottom { bottom: 22%; }
+
+@keyframes openingRule {
+  0%, 19.3% { opacity: 0; transform: scale3d(0, 1, 1); }
+  20% { opacity: 1; }
+  24.3% { opacity: .8; transform: scale3d(1, 1, 1); }
+  52.9% { opacity: .5; transform: scale3d(1, 1, 1); }
+  72.9% { opacity: 1; transform: scale3d(1.04, 1, 1); }
+  76.4% { opacity: .4; transform: scale3d(1.14, 1, 1); }
+  90% { opacity: .7; transform: scale3d(1, 1, 1); }
+  93.6%, 100% { opacity: 0; transform: scale3d(1, 1, 1); }
+}
+
+/* The rings. Four elements, four moments, one expansion each - never a loop: a
+   system that keeps pinging is a screensaver. */
+.opening .opening__ring {
+  left: 50%;
+  border: 1px solid rgba(120, 216, 255, .55);
+  border-radius: 50%;
+}
+
+/* The AR lock ring, on the title's first line rather than the middle of the
+   screen, because what it is bursting out of is the letters AR. */
+.opening .opening__ring--lock {
+  top: 44%;
+  width: min(52vw, 52vh);
+  height: min(52vw, 52vh);
+  margin-left: calc(min(52vw, 52vh) / -2);
+  margin-top: calc(min(52vw, 52vh) / -2);
+  border-color: rgba(169, 233, 255, .8);
+  animation: openingRingLock 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__ring--depth,
+.opening .opening__ring--pulse-a,
+.opening .opening__ring--pulse-b {
+  top: 50%;
+  width: min(96vw, 96vh);
+  height: min(96vw, 96vh);
+  margin-left: calc(min(96vw, 96vh) / -2);
+  margin-top: calc(min(96vw, 96vh) / -2);
+}
+
+.opening .opening__ring--depth { animation: openingRingDepth 7000ms cubic-bezier(.16, 1, .3, 1) both; }
+.opening .opening__ring--pulse-a { animation: openingRingPulseA 7000ms cubic-bezier(.16, 1, .3, 1) both; }
+.opening .opening__ring--pulse-b { animation: openingRingPulseB 7000ms cubic-bezier(.16, 1, .3, 1) both; }
+
+@keyframes openingRingLock {
+  0%, 19.3% { opacity: 0; transform: scale(.24); }
+  20.2% { opacity: .8; }
+  26% { opacity: 0; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes openingRingDepth {
+  0%, 28.6% { opacity: 0; transform: scale(.5); }
+  30% { opacity: .4; }
+  45% { opacity: 0; transform: scale(1.45); }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+
+@keyframes openingRingPulseA {
+  0%, 72.9% { opacity: 0; transform: scale(.4); }
+  74% { opacity: .65; }
+  85% { opacity: 0; transform: scale(1.7); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+
+@keyframes openingRingPulseB {
+  0%, 74.6% { opacity: 0; transform: scale(.4); }
+  75.7% { opacity: .45; }
+  87% { opacity: 0; transform: scale(1.95); }
+  100% { opacity: 0; transform: scale(1.95); }
+}
+
+/* --------------------------------------------------------------- TYPE ---- */
+
+/* The three type sizes, in one place.
+
+   Each is `clamp(floor, min(vw, vh), ceiling)`, and all three numbers in each
+   were measured rather than guessed - the widths they produce on a real phone
+   are in the table below, taken from Chromium at four portrait sizes:
+
+                 360x800   412x915   390x844   320x568   spec
+     Chinese       79%       79%       79%       78%     75-88%
+     English       82%       82%       82%       75%     70-85%
+     Japanese      74%       74%       74%       67%     65-80%
+
+   The vw term is what a phone actually gets. The vh term keeps a short window
+   (and the 320x568 floor above) from overflowing vertically, which is why the
+   narrowest column comes in slightly under. The ceiling is for >=768px
+   viewports, where .ar-stage is a 430px column inside a much wider window and
+   vw alone would be several times too big.
+
+   The English line is the one that had to be watched: it is by far the longest
+   string, and the obvious way to fit it - shrink it until it goes on one line -
+   is exactly what makes it a caption. It is two authored lines at 82% instead.
+
+   None of these three numbers changed when the motion did. Every new effect had
+   to fit around the type at the size the design asks for, not the other way
+   round. */
+.opening {
+  --opening-zh: clamp(30px, min(16.4vw, 9.2vh), 74px);
+  --opening-en: clamp(12px, min(5vw, 2.6vh), 22px);
+  --opening-jp: clamp(16px, min(7.6vw, 3.9vh), 34px);
+  --opening-cyan: #a9e9ff;
+}
+
+.opening .opening__stack {
+  position: absolute;
+  inset: 0;
+}
+
+/* Chinese: the whole point of the sequence, and the only block that is the size
+   of the screen rather than the size of a caption. Two lines by design -
+   沉浸式 AR / 詐騙體驗 - not four; the sentence is still a sentence.
+
+   The centring is done with flexbox and NOT with a transform, because the
+   transform belongs to the animation: this block gives ground when English and
+   Japanese are projected in, swells on the pulse, and comes back to re-lock
+   when they are thrown out. */
+.opening .opening__zh {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--opening-zh);
+  line-height: 1.12;
+  color: #fff;
+  text-align: center;
+  will-change: transform, filter;
+  animation: openingZh 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes openingZh {
+  /* Dead still while it is being assembled and while the frame opens around it:
+     the title is the one thing in this sequence that never drifts. */
+  0%, 37.1% { transform: translate3d(0, 0, 0) scale(1); }
+  /* Room made for English above and Japanese below - and made BEFORE they
+     arrive, so nothing appears to shove it. */
+  47.1%, 72.9% { transform: translate3d(0, -.42em, 0) scale(1); }
+  /* The pulse. 2.5% is small on purpose: this is the core of the composition
+     holding its ground while everything else is thrown outward. */
+  74.3% { transform: translate3d(0, -.42em, 0) scale(1.025); }
+  77.1% { transform: translate3d(0, -.42em, 0) scale(1); }
+  /* Alone again, and re-locking at the centre. */
+  84.3% { transform: translate3d(0, -.12em, 0) scale(.985); }
+  90%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+
+  /* The two flashes, as their own track: written into the percentages above,
+     the long holds would land in the middle of a flash and flatten it. Both are
+     short and both are on the type itself rather than on the whole screen. */
+  0%, 18.6% { filter: brightness(1); }
+  19.6% { filter: brightness(1.32); }
+  22%, 72.9% { filter: brightness(1); }
+  73.6% { filter: brightness(1.28); }
+  76%, 100% { filter: brightness(1); }
+}
+
+.opening .opening__zh-inner {
+  position: relative;
+  display: inline-block;
+}
+
+.opening .opening__zh-line {
+  display: block;
+  white-space: nowrap;
+  font-weight: 800;
+  letter-spacing: .012em;
+  text-shadow: 0 0 26px rgba(20, 120, 190, .55), 0 3px 18px rgba(0, 0, 0, .75);
+}
+
+/* 1 - 沉浸式, CALIBRATED rather than animated in.
+
+   Each glyph is its own element starting off its own mark, and the three of them
+   converge at once. The offsets live on the elements as --dx/--dy (see
+   ZH_LEAD_GLYPHS in the JSX) so all three share these keyframes.
+
+   Per-glyph transforms and NOT an animated `letter-spacing`: letter-spacing is
+   layout, and animating it on the largest text on screen would relayout the
+   title on every frame of the convergence. */
+.opening .opening__zh-lead,
+.opening .opening__zh-ar {
+  display: inline-block;
+}
+
+.opening .opening__zh-glyph {
+  display: inline-block;
+  will-change: transform, opacity;
+  animation: openingZhGlyph 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* 10%, which is 700ms, and not a percent earlier: PHASE 01 is the scan, and the
+   promise it makes is that there is NO type on screen while it runs. A hold that
+   ends at 8.6% starts interpolating the opacity at 602ms, so the glyphs were
+   faintly up while the sweep was still crossing - a hundred milliseconds that
+   made the phase a cross-fade instead of a hand-over. The convergence still gets
+   448ms, which is inside the 200-600ms this sequence gives any single movement. */
+@keyframes openingZhGlyph {
+  0%, 10% {
+    opacity: 0;
+    transform: translate3d(calc(var(--dx) * 1em), calc(var(--dy) * 1em), 0) scale(1.09);
+  }
+  11.6% { opacity: .55; }
+  16.4%, 100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* 2 - AR, and the sequence's first climax.
+   1.6 → .92 → 1.045 → 1 in 350ms: too big, overshoot past the mark, rebound,
+   lock. Everything else in this block is that landing being witnessed - the
+   brackets closing on it, the slice, the scan, the beams and the ring. */
+.opening .opening__zh-ar {
+  position: relative;
+  margin-left: .2em;
+  color: var(--opening-cyan);
+  will-change: transform, filter;
+  animation: openingZhAr 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes openingZhAr {
+  0%, 14.3% { opacity: 0; transform: scale(1.6); }
+  15.7% { opacity: 1; transform: scale(.92); }
+  17.7% { transform: scale(1.045); }
+  19.3%, 100% { transform: scale(1); }
+
+  /* The pulse flare, on the two letters the pulse comes out of. */
+  0%, 72.9% { filter: brightness(1); }
+  73.4% { filter: brightness(1.85); }
+  76%, 100% { filter: brightness(1); }
+}
+
+/* The slice: a second copy of the same two letters, clipped to a band across
+   their middle and offset for about a tenth of a second as the lock lands. Not
+   an RGB split and not a glitch - one displacement, once, and gone. */
+.opening .opening__zh-ar-slice {
+  position: absolute;
+  left: 0;
+  top: 0;
+  clip-path: inset(34% 0 42% 0);
+  color: #fff;
+  will-change: transform, opacity;
+  animation: openingArSlice 7000ms steps(1, end) both;
+}
+
+@keyframes openingArSlice {
+  0%, 19.3% { opacity: 0; transform: translate3d(0, 0, 0); }
+  19.6% { opacity: 1; transform: translate3d(.09em, 0, 0); }
+  20.4% { opacity: 1; transform: translate3d(-.06em, 0, 0); }
+  21.4%, 100% { opacity: 0; transform: translate3d(0, 0, 0); }
+}
+
+/* The light that crosses AR as it lands. */
+.opening .opening__zh-ar-scan {
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  left: -60%;
+  width: 42%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(235, 250, 255, .72), rgba(255, 255, 255, 0));
+  will-change: transform, opacity;
+  animation: openingArScan 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes openingArScan {
+  0%, 17.1% { opacity: 0; transform: translate3d(0, 0, 0) skewX(-16deg); }
+  18.6% { opacity: .9; }
+  22.9%, 100% { opacity: 0; transform: translate3d(330%, 0, 0) skewX(-16deg); }
+}
+
+/* Four brackets that close onto AR itself, inside the title, while the four big
+   ones outside are still holding the frame. This is the detail that makes the
+   lock read as AR tracking a target rather than as text scaling. */
+.opening .opening__ar-bracket {
+  position: absolute;
+  width: .26em;
+  height: .26em;
+  border: 2px solid rgba(190, 240, 255, .95);
+  will-change: transform, opacity;
+  animation: openingArBracket 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__ar-bracket--tl { left: -.16em; top: -.1em; --x: -1; --y: -1; border-right: 0; border-bottom: 0; }
+.opening .opening__ar-bracket--tr { right: -.16em; top: -.1em; --x: 1; --y: -1; border-left: 0; border-bottom: 0; }
+.opening .opening__ar-bracket--bl { left: -.16em; bottom: -.05em; --x: -1; --y: 1; border-right: 0; border-top: 0; }
+.opening .opening__ar-bracket--br { right: -.16em; bottom: -.05em; --x: 1; --y: 1; border-left: 0; border-top: 0; }
+
+@keyframes openingArBracket {
+  0%, 14.3% {
+    opacity: 0;
+    transform: translate3d(calc(var(--x) * .6em), calc(var(--y) * .5em), 0);
+  }
+  15.7% { opacity: .9; }
+  19.3% {
+    opacity: 1;
+    transform: translate3d(calc(var(--x) * .05em), calc(var(--y) * .04em), 0);
+  }
+  21.9%, 100% { opacity: 0; transform: translate3d(0, 0, 0); }
+}
+
+/* And the two hairlines that fire out of AR to left and right as it locks. */
+.opening .opening__ar-beam {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  width: 42vw;
+  background: linear-gradient(90deg, rgba(169, 233, 255, 0), rgba(200, 244, 255, .85));
+  will-change: transform, opacity;
+  animation: openingArBeam 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__ar-beam--left { right: 100%; transform-origin: 100% 50%; }
+.opening .opening__ar-beam--right { left: 100%; transform-origin: 0 50%; background: linear-gradient(270deg, rgba(169, 233, 255, 0), rgba(200, 244, 255, .85)); }
+
+@keyframes openingArBeam {
+  0%, 19.3% { opacity: 0; transform: scale3d(0, 1, 1); }
+  20% { opacity: 1; }
+  25.7%, 100% { opacity: 0; transform: scale3d(1, 1, 1); }
+}
+
+/* 3 - 詐騙體驗, UNCOVERED rather than delivered.
+   The line is in place from the first frame and clipped to nothing; the clip
+   opens left to right, so the system appears to be building the characters
+   where they stand. clip-path rather than a width or a translate: a width
+   animation is layout, and a translate would move the text instead of
+   revealing it. */
+/* Shrink-wrapped and centred, so the wipe below spans exactly the four
+   characters being uncovered rather than the width of the longer line above
+   them - the bright edge has to sit ON the clip edge, not near it. A WebView
+   that does not know `fit-content` falls back to a full-width block, which is
+   still centred by `text-align` and still correct; only the wipe's leading edge
+   loses a few percent of its alignment. */
+.opening .opening__zh-line--2 {
+  position: relative;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.opening .opening__zh-tail {
+  display: inline-block;
+  will-change: clip-path;
+  animation: openingZhTail 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes openingZhTail {
+  0%, 19.3% { clip-path: inset(0 100% 0 0); }
+  25.7%, 100% { clip-path: inset(0 0 0 0); }
+}
+
+/* The bright edge that rides the reveal, so the wipe has a leading edge instead
+   of being an invisible boundary. */
+.opening .opening__zh-wipe {
+  position: absolute;
+  left: -8%;
+  top: -6%;
+  bottom: -6%;
+  width: 14%;
+  background: linear-gradient(90deg, rgba(169, 233, 255, 0), rgba(215, 247, 255, .95), rgba(169, 233, 255, 0));
+  will-change: transform, opacity;
+  animation: openingZhWipe 7000ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes openingZhWipe {
+  0%, 19.3% { opacity: 0; transform: translate3d(0, 0, 0); }
+  20.2% { opacity: 1; }
+  26.4%, 100% { opacity: 0; transform: translate3d(760%, 0, 0); }
+}
+
+/* The line that crosses the whole title: once, quietly, while the composition
+   holds, and once, bright, for the final lock. The element is the size of the
+   title box and the bar is a band painted inside it, so `translateY(110%)`
+   means "one title height" - on a 2px-tall element it would have meant 2px. */
+.opening .opening__zh-lock {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: 0;
+  bottom: 0;
+  background:
+    linear-gradient(180deg,
+      rgba(215, 245, 255, 0) 46%,
+      rgba(215, 245, 255, .95) 49%,
+      rgba(215, 245, 255, .95) 51%,
+      rgba(215, 245, 255, 0) 54%),
+    linear-gradient(180deg,
+      rgba(120, 216, 255, 0) 30%,
+      rgba(120, 216, 255, .22) 50%,
+      rgba(120, 216, 255, 0) 70%);
+  will-change: transform, opacity;
+  animation: openingZhLock 7000ms linear both;
+}
+
+@keyframes openingZhLock {
+  0%, 57.1% { opacity: 0; transform: translate3d(0, -110%, 0); }
+  58% { opacity: .5; }
+  62.9% { opacity: 0; transform: translate3d(0, 110%, 0); }
+  85.7% { opacity: 0; transform: translate3d(0, -110%, 0); }
+  86.5% { opacity: 1; }
+  90.7%, 100% { opacity: 0; transform: translate3d(0, 110%, 0); }
+}
+
+/* English and Japanese: an AR information layer, PROJECTED out of depth.
+
+   They start small, far, turned away and dark, come forward onto the plane of
+   the title, and are lit by a line passing across them - which is what makes
+   them read as being placed into the scene rather than as two more headlines
+   sliding in. They then drift very slightly outward for the whole hold, are
+   shoved by the pulse, and retreat the way they came.
+
+   The rotateY is what a slide cannot do, and it is cheap: `perspective()` inside
+   the transform means no parent needs a perspective, and the whole thing stays
+   one composited matrix. */
+.opening .opening__en,
+.opening .opening__jp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0 3%;
+  text-align: center;
+  color: #eaf8ff;
+  will-change: transform, opacity;
+}
+
+.opening .opening__en-body,
+.opening .opening__jp-body {
+  position: relative;
+  display: inline-block;
+}
+
+/* 30%, not higher: the home artwork carries the CIB masthead and 刑事熊 across
+   its top quarter, and English set over them is English nobody can read. It sits
+   in the open band between them and the title instead. */
+.opening .opening__en {
+  top: 30%;
+  font-size: var(--opening-en);
+  font-weight: 800;
+  line-height: 1.22;
+  letter-spacing: .1em;
+  text-shadow: 0 0 22px rgba(20, 120, 190, .5), 0 2px 14px rgba(0, 0, 0, .7);
+  animation: openingEn 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__en-line {
+  display: block;
+  white-space: nowrap;
+}
+
+@keyframes openingEn {
+  0%, 37.1% { opacity: 0; transform: perspective(760px) translate3d(11vw, 0, 0) rotateY(-16deg) scale(.88); }
+  41.4% { opacity: .45; }
+  47.1% { opacity: 1; transform: perspective(760px) translate3d(0, 0, 0) rotateY(0deg) scale(1); }
+  52.9% { opacity: 1; transform: perspective(760px) translate3d(0, 0, 0) rotateY(0deg) scale(1); }
+  /* still moving while the composition holds - very slightly, outward */
+  72.9% { opacity: 1; transform: perspective(760px) translate3d(.9vw, 0, 0) rotateY(0deg) scale(1); }
+  /* the pulse hits it */
+  75% { opacity: 1; transform: perspective(760px) translate3d(3.2vw, 0, 0) rotateY(-5deg) scale(1.01); }
+  /* and it retreats into depth rather than fading on the spot */
+  88.6%, 100% { opacity: 0; transform: perspective(760px) translate3d(16vw, 0, 0) rotateY(-19deg) scale(.94); }
+}
+
+/* Japanese. `lang="ja"` in the markup and a Japanese-first stack here, so 験 and
+   体 are drawn from a Japanese face where the device has one and never fall back
+   to a glyph that is not there. Every family named is a system font - nothing is
+   fetched. */
+.opening .opening__jp {
+  top: 68%;
+  font-family: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic",
+    "Yu Gothic UI", Meiryo, "Noto Sans CJK JP", system-ui, -apple-system, sans-serif;
+  font-size: var(--opening-jp);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  text-shadow: 0 0 22px rgba(20, 120, 190, .5), 0 2px 14px rgba(0, 0, 0, .7);
+  animation: openingJp 7000ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.opening .opening__jp-line { display: block; }
+
+/* 120ms behind the English, mirrored. Far enough apart to be a stagger and near
+   enough to be one arrival. */
+@keyframes openingJp {
+  0%, 38.9% { opacity: 0; transform: perspective(760px) translate3d(-11vw, 0, 0) rotateY(16deg) scale(.88); }
+  43% { opacity: .45; }
+  48.9% { opacity: 1; transform: perspective(760px) translate3d(0, 0, 0) rotateY(0deg) scale(1); }
+  54.3% { opacity: 1; transform: perspective(760px) translate3d(0, 0, 0) rotateY(0deg) scale(1); }
+  72.9% { opacity: 1; transform: perspective(760px) translate3d(-.9vw, 0, 0) rotateY(0deg) scale(1); }
+  75% { opacity: 1; transform: perspective(760px) translate3d(-3.2vw, 0, 0) rotateY(5deg) scale(1.01); }
+  88.6%, 100% { opacity: 0; transform: perspective(760px) translate3d(-16vw, 0, 0) rotateY(19deg) scale(.94); }
+}
+
+/* The line that lights each of them as it lands. Two rules rather than one,
+   because the Japanese one is 120ms behind - the same reason the two blocks
+   have their own keyframes at all. */
+.opening .opening__proj-scan {
+  position: absolute;
+  top: -18%;
+  bottom: -18%;
+  left: -30%;
+  width: 26%;
+  background: linear-gradient(90deg, rgba(200, 244, 255, 0), rgba(235, 251, 255, .85), rgba(200, 244, 255, 0));
+  will-change: transform, opacity;
+}
+
+.opening .opening__en .opening__proj-scan { animation: openingEnScan 7000ms cubic-bezier(.16, 1, .3, 1) both; }
+.opening .opening__jp .opening__proj-scan { animation: openingJpScan 7000ms cubic-bezier(.16, 1, .3, 1) both; }
+
+@keyframes openingEnScan {
+  0%, 41.4% { opacity: 0; transform: translate3d(0, 0, 0); }
+  43% { opacity: .85; }
+  48.6%, 100% { opacity: 0; transform: translate3d(500%, 0, 0); }
+}
+
+@keyframes openingJpScan {
+  0%, 43.1% { opacity: 0; transform: translate3d(0, 0, 0); }
+  44.7% { opacity: .85; }
+  50.3%, 100% { opacity: 0; transform: translate3d(500%, 0, 0); }
+}
+/* The hidden staff exit: three taps here, within 1.5s, and the opening is over.
+   See src/pages/opening/openingStaffExit.js, which creates this element.
+
+   FIXED, AND NOT A CHILD OF THE STAGE. The element is appended to document.body,
+   because `top: 0; right: 0` has to mean the screen's corner and nothing else. It used
+   to be `position: absolute` inside the opening screen, which is inside `.app.ar-stage` -
+   and useFitStage gives that stage `position: fixed` plus a `transform`. On a
+   phone-width viewport the stage fills the screen and the two corners coincide, which
+   is why it looked right; from 768 CSS px up, the same stylesheet letterboxes the
+   stage into a 430px column and the corner moved with it - measured 112px in from the
+   right edge at 800x1280, and 425px in at 1280x720. A thumb on the real corner hit
+   <body>. Switching to `position: fixed` in place would have fixed nothing: a
+   transformed ancestor is the containing block for fixed descendants too. Leaving the
+   stage is the fix, and it is why this rule may not be moved back inside .opening.
+
+   88x88 CSS px, a flat size rather than a percentage. What has to be comfortable is a
+   thumb on a moving head-mounted display, and a thumb is the same size on every stage;
+   a percentage made the target smaller exactly where the screen was smallest. It is
+   still unmistakably a corner - a tenth of the height of a phone screen - and the
+   number is duplicated in openingStaffExit.js as its pre-layout fallback, with a test
+   that fails if the two drift.
+
+   Everything else about this rule is about NOT being findable. No background, no
+   border, no outline, no cursor change - a `cursor: pointer` alone would give it away
+   to anybody moving a mouse across the screen while testing. */
+.opening__staff-exit {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 88px;
+  height: 88px;
+  background: transparent;
+  /* Above everything, including the home UI that is revealed underneath a
+     millisecond after the opening ends. */
+  z-index: 2147483647;
+  /* Not a scroll gesture, not a text selection, and no 300ms tap delay: three
+     taps in 1.5 seconds is tight enough that a synthesised double-tap-zoom
+     would eat one of them. */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The home screen underneath, for as long as the opening is on top of it: its
+   artwork is drawn (it is the sequence's background) and its own UI is not.
+
+   Opacity only, and on the four layers that carry the interface - the artwork
+   <img> is deliberately untouched. Nothing is unmounted, nothing is display:none
+   and nothing moves, so revealing the home screen costs one composited fade and
+   cannot re-fetch, re-decode or re-lay-out anything.
+
+   Applied by pages/opening/OpeningHome.jsx to the home page's own root, and
+   removed at OPENING_REVEAL_MS - 450ms before the overlay goes, so the buttons
+   are already up as the last of the HUD fades. */
+.scenario-selection-page.is-booting > .scenario-selection-heading,
+.scenario-selection-page.is-booting > .scenario-button-layer,
+.scenario-selection-page.is-booting > .language-location-entry,
+.scenario-selection-page.is-booting > .scenario-selection-hidden-entry {
+  opacity: 0;
+}
+
+.scenario-selection-page > .scenario-selection-heading,
+.scenario-selection-page > .scenario-button-layer,
+.scenario-selection-page > .language-location-entry {
+  transition: opacity 420ms cubic-bezier(.22, 1, .36, 1);
+}
+

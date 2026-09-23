@@ -1,0 +1,38 @@
+{
+  "name": "scamaware-ios-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "oxlint",
+    "check:ios-port": "node ../scripts/check-ios-port.mjs",
+    "check:offline": "node ../scripts/check-offline-bundle.mjs dist"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.16.0",
+    "i18next": "^26.3.6",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "lightweight-charts": "^5.2.0",
+    "lucide-react": "^1.31.0",
+    "mind-ar": "^1.2.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-i18next": "^17.0.11",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.1.1"
+  },
+  "overrides": {
+    "canvas": "^3.2.3"
+  }
+}
