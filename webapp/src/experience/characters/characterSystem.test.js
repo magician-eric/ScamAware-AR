@@ -244,15 +244,21 @@ test('recorded character clips resolve per language and declare what they are', 
 
   for (const lang of ['en', 'jp']) {
     const clip = getVisualVideo('dating_visual_03', 0, lang);
-    // Falling back keeps the conversation playable; `localized: false` is what
-    // stops that fallback from passing itself off as the localized asset.
-    assert.equal(clip.path, zh.path, lang);
-    assert.equal(clip.resolvedLang, 'zh', lang);
-    assert.equal(clip.localized, false, lang);
+    assert.equal(clip.path, `assets/shared/characters/dating_visual_03/emily-video-01-${lang}.mp4`, lang);
+    assert.equal(clip.resolvedLang, lang, lang);
+    assert.equal(clip.localized, true, lang);
   }
 
+  // A language with no recording at an index still falls back to zh, and
+  // says so with `localized: false` instead of passing itself off as localized.
+  const missing = getVisualVideo('dating_visual_03', 0, 'xx');
+  assert.equal(missing.path, zh.path);
+  assert.equal(missing.resolvedLang, 'zh');
+  assert.equal(missing.localized, false);
+
   assert.equal(getVisualVideos('dating_visual_03', 'zh').length, 3);
-  assert.equal(getVisualVideos('dating_visual_03', 'en').every((clip) => !clip.localized), true);
+  assert.equal(getVisualVideos('dating_visual_03', 'en').every((clip) => clip.localized), true);
+  assert.equal(getVisualVideos('dating_visual_03', 'jp').every((clip) => clip.localized), true);
   // A recorded kind has no language-free URL, so no caller can reach one by
   // accident and lose the locale on the way.
   assert.equal(getVisualAssetUrl('dating_visual_03', 'videos', 0), '');

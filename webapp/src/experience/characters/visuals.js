@@ -38,18 +38,15 @@ const NO_VIDEOS = { zh: [], en: [], jp: [] };
 // Japanese player needs an English or Japanese RECORDING - there is no
 // subtitle track and no dubbing here, the audio is the content.
 //
-// `en` and `jp` are empty on purpose. They are a declaration that those
-// recordings do not exist yet, not an oversight, and they must stay empty
-// until real files land: naming a file that is not on disk is exactly what
-// scripts/validate-asset-ownership.mjs RULE 1 rejects. What the empty list
-// costs is recorded per locale by getVisualVideo() below and reported by
-// scripts/validate-localized-assets.mjs, so an en/jp run playing her Chinese
-// clips is a known, listed gap rather than something the app hides.
-// The gap itself is written up in docs/asset-localization-audit.md 5.
+// Each language is its own recording, and the lists are in story order:
+// index 0 is the Day 2 clip (v1), 1 is Day 4 (v2), 2 is Day 5 (v3). The zh
+// files and the en/jp files are not named in parallel - they arrived from
+// different shoots - which is exactly why this is a lookup table and not a
+// suffix pattern. Nothing may derive one language's file from another's.
 const DV3_VIDEOS = {
   zh: [dv3('video-010.mp4'), dv3('video-020.mp4'), dv3('video-030.mp4')],
-  en: [],
-  jp: [],
+  en: [dv3('emily-video-01-en.mp4'), dv3('emily-video-02-en.mp4'), dv3('emily-video-03-en.mp4')],
+  jp: [dv3('emily-video-01-jp.mp4'), dv3('emily-video-02-jp.mp4'), dv3('emily-video-03-jp.mp4')],
 };
 
 export const VISUALS = [

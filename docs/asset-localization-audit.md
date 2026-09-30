@@ -69,18 +69,23 @@ Scenario 02 全情境**只有這三支影片**，全部由 `{datingLead}`（`dat
 | Beat | 對話節點 | videoId | 語系 | 實際檔案 |
 | --- | --- | --- | --- | --- |
 | Scenario 02 video 01（Day 2） | `day2-video` | `v1` | zh-TW | `assets/shared/characters/dating_visual_03/video-010.mp4` |
-| | | | en | **不存在** → 目前退回 `video-010.mp4`（中文版） |
-| | | | ja | **不存在** → 目前退回 `video-010.mp4`（中文版） |
+| | | | en | `assets/shared/characters/dating_visual_03/emily-video-01-en.mp4` |
+| | | | ja | `assets/shared/characters/dating_visual_03/emily-video-01-jp.mp4` |
 | Scenario 02 video 02（Day 4） | `day4-video` | `v2` | zh-TW | `assets/shared/characters/dating_visual_03/video-020.mp4` |
-| | | | en | **不存在** → 目前退回 `video-020.mp4`（中文版） |
-| | | | ja | **不存在** → 目前退回 `video-020.mp4`（中文版） |
+| | | | en | `assets/shared/characters/dating_visual_03/emily-video-02-en.mp4` |
+| | | | ja | `assets/shared/characters/dating_visual_03/emily-video-02-jp.mp4` |
 | Scenario 02 video 03（Day 5） | `day5-video` | `v3` | zh-TW | `assets/shared/characters/dating_visual_03/video-030.mp4` |
-| | | | en | **不存在** → 目前退回 `video-030.mp4`（中文版） |
-| | | | ja | **不存在** → 目前退回 `video-030.mp4`（中文版） |
+| | | | en | `assets/shared/characters/dating_visual_03/emily-video-03-en.mp4` |
+| | | | ja | `assets/shared/characters/dating_visual_03/emily-video-03-jp.mp4` |
 
-三支都是 480×854、H.264 / AAC，12–15 秒，AI 生成的自拍講話影片。
+中文三支是 480×854、H.264 / AAC，12–15 秒，AI 生成的自拍講話影片。
 **畫面裡沒有任何燒死的字幕或文字** —— 語系問題完全出在「她講的是中文」。
-所以能修的只有 source selection，內容本身必須重錄。
+
+> **後續變更（2026-09-30）：** en／ja 各三支錄影已補齊（1080×1920、H.264 / AAC、
+> 15 秒），檔名 `emily-video-0N-en.mp4`／`emily-video-0N-jp.mp4`，N 依序對應
+> Day 2／Day 4／Day 5。已接進 `visuals.js`，英日文版不再退回中文影片。
+> 注意：這六支第一次上傳後在 GitHub 網頁改檔名時，內容被網頁編輯器換成 2 bytes
+> 的 `\r\n`，是從上傳當下的 commit 還原回來的。**不要用 GitHub 網頁改影片檔名。**
 
 ---
 
@@ -297,13 +302,11 @@ Scenario 05
 
 ```
 Scenario 02 zh：完整（3 支）
-Scenario 02 en：3 recorded clips MISSING
-Scenario 02 jp：3 recorded clips MISSING
+Scenario 02 en：完整（3 支）—— 2026-09-30 補齊
+Scenario 02 jp：完整（3 支）—— 2026-09-30 補齊
 ```
 
-英日目前播放的是中文版影片。**那不算 EN／JP localization PASS** ——
-它是一個被宣告、被驗證、被列在缺件清單上的頂替（`localized: false`），
-不是覆蓋率。沒有複製中文影片改檔名，也沒有在 registry 裡填任何不存在的路徑。
+補齊之前英日播放的是中文版影片，那段期間不算 EN／JP localization PASS。
 
 ### 4.3 UI 文字這一塊為什麼全部 PASS
 
@@ -327,40 +330,13 @@ Scenario 02 jp：3 recorded clips MISSING
 以下素材 repo 內**確實不存在**。程式端的 mapping 全部已經就緒，**沒有任何一項
 在等 Claude Code**；未自行生成，也未複製中文檔改名冒充。
 
-合計 **6 支影片 ＋ 11 張圖**（其中 7 張是結局畫面）。
+合計 **11 張圖**（其中 7 張是結局畫面）。原列的 Scenario 02 en／ja 6 支影片已於 2026-09-30 補齊，見 5.1。
 
-### 5.1 影片（最高優先）
+### 5.1 影片 —— 已補齊（2026-09-30）
 
-```
-Missing localized asset
-Scenario: 02
-Step:     Day 2 / day2-video / videoId v1
-Current zh-TW file: webapp/public/assets/shared/characters/dating_visual_03/video-010.mp4
-Missing en:  webapp/public/assets/shared/characters/dating_visual_03/<en 錄影>
-Missing ja:  webapp/public/assets/shared/characters/dating_visual_03/<jp 錄影>
-
-Missing localized asset
-Scenario: 02
-Step:     Day 4 / day4-video / videoId v2
-Current zh-TW file: webapp/public/assets/shared/characters/dating_visual_03/video-020.mp4
-Missing en:  webapp/public/assets/shared/characters/dating_visual_03/<en 錄影>
-Missing ja:  webapp/public/assets/shared/characters/dating_visual_03/<jp 錄影>
-
-Missing localized asset
-Scenario: 02
-Step:     Day 5 / day5-video / videoId v3
-Current zh-TW file: webapp/public/assets/shared/characters/dating_visual_03/video-030.mp4
-Missing en:  webapp/public/assets/shared/characters/dating_visual_03/<en 錄影>
-Missing ja:  webapp/public/assets/shared/characters/dating_visual_03/<jp 錄影>
-```
-
-規格：480×854 直式、H.264 + AAC、12–15 秒、同一位角色、口說內容對應原本中文台詞。
-檔名不必跟中文版對稱 —— registry 是查表，不是加後綴推導（Scenario 01 的三語檔名
-本來就完全不對稱）。
-
-**素材到位後怎麼接：** 把檔案放進 `dating_visual_03/`，然後在 `visuals.js` 把
-`en: []` / `jp: []` 填成三個路徑，並移除 `validate-localized-assets.mjs` 裡
-`scenario02/dating-lead-clips` 的 `gaps` 宣告。**不需要改任何元件。**
+Scenario 02 Day 2／Day 4／Day 5 三支影片的 en、ja 版本已放進
+`webapp/public/assets/shared/characters/dating_visual_03/`，並接進 `visuals.js`；
+`validate-localized-assets.mjs` 的 `gaps` 宣告已移除。
 
 ### 5.2 含中文的圖片素材
 
@@ -443,9 +419,7 @@ H.264/AAC 解碼器**（`canPlayType('video/mp4; codecs="avc1.42E01E"')` 回傳�
 
 ### 需要 Eric 製作素材（Claude Code 無法代勞）
 
-1. **Scenario 02 的 en / ja 影片**（3 支 × 2 語系 = **6 支**）。這是原始回報的
-   問題；wiring 已就緒，素材放進 `dating_visual_03/`、把 `visuals.js` 的
-   `en: []` / `jp: []` 填上、移除 validator 的 `gaps` 宣告即可，**元件一行都不用改**。
+1. ~~**Scenario 02 的 en / ja 影片**（3 支 × 2 語系 = **6 支**）~~ —— **已於 2026-09-30 補齊並接上。**
 2. **7 張結局圖的 en / ja 版本**（S02 stopped ×1、S03 ×2、S04 ×2、S05 ×2）。
    每個情境的收尾教學目前對英日玩家完全失效 —— 影響最大的一項。
 3. **`photo-villa-booking-paid.webp` 的 en / ja 版本。** 會被
