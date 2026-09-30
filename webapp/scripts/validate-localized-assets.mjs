@@ -109,6 +109,12 @@ const FAMILIES = [
     table: (module) => module.getVisual('dating_visual_03').assets.videos,
   },
   {
+    id: 'scenario02/guesthouse-booking-screenshot',
+    what: "{datingLead}'s guesthouse booking screenshot (drawn order page)",
+    from: 'src/pages/scenario02/guesthousePhotos.js',
+    table: (module) => module.GUESTHOUSE_BOOKING_IMG_BY_LANG,
+  },
+  {
     id: 'shared/ar-scan-hero',
     what: 'AR scan home artwork (drawn masthead text)',
     from: 'src/pages/arScan/heroLayout.js',

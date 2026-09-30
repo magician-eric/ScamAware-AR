@@ -29,7 +29,7 @@ full set of rules, and where each kind of asset belongs, is in
 | Scenario | Contents |
 | --- | --- |
 | `scenario-01` (投資詐騙) | `images/results/` ending artwork (2), `videos/` the three per-language Coach Chen pitch recordings |
-| `scenario-02` (交友詐騙) | `images/chat/` the two Yilan villa story photos, `images/results/` ending artwork (2). The MeetU app mark is **not** here — MeetU is an App module and owns it at `src/apps/meetu/assets/` |
+| `scenario-02` (交友詐騙) | `images/chat/` the two Yilan villa story photos (the booking screenshot once per language, `-en` / `-jp` beside the zh original, chosen by `src/pages/scenario02/guesthousePhotos.js`), `images/results/` ending artwork (2). The MeetU app mark is **not** here — MeetU is an App module and owns it at `src/apps/meetu/assets/` |
 | `scenario-03` (假冒公務員) | `audio/police/` (45) and `audio/prosecutor/` (18) per-language dialogue lines, `images/results/` ending artwork (2) |
 | `scenario-04` (包裹詐騙) | `images/products/` product, unboxing and storefront décor artwork (26), `images/results/` ending artwork (2). The photos are resolved by logical key through `src/apps/blackpi/data/assetMap.js` — no screen names a path |
 | `scenario-05` (幽靈訂單) | `images/results/` ending artwork (2), and nothing else. Its two product photos and the MyDonDon brand marks belong to the MyDonDon App module (`src/apps/mydondon/assets/`); its entry key visual is bundled at `src/assets/scenarios/scenario-05/images/` |

@@ -18,6 +18,7 @@ import { useStageClassName } from '../../shell/StageClassContext';
 import { SafetyAlert } from './components/SafetyAlert';
 import { t, useT, useScenario02Lang, getDatingLeadName } from './i18n';
 import { getVisualAssetUrl, getVisualVideo } from '../../experience/characters/visuals';
+import { GUESTHOUSE_ROOM_IMG, GUESTHOUSE_BOOKING_IMG_BY_LANG } from './guesthousePhotos';
 import './PrivateChat.css';
 
 // The three clips {datingLead} sends, keyed by the id her dialogue nodes use.
@@ -50,11 +51,9 @@ const DATING_LEAD_PHOTO = getVisualAssetUrl('dating_visual_03');
 // started. Keep this map explicit so dividers and timestamps share one source.
 const DAY_OFFSETS = Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`Day ${index + 1}`, index]));
 
-// Story props owned by scenario02, not by whoever is cast as {datingLead} -
-// so they come from this scenario's folder, not the character registry.
-const CHAT_IMG_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/chat/`;
-const GUESTHOUSE_ROOM_IMG = `${CHAT_IMG_BASE}photo-villa-room.webp`;
-const GUESTHOUSE_BOOKING_IMG = `${CHAT_IMG_BASE}photo-villa-booking-paid.webp`;
+// Every language's copy of the booking screenshot, so the thumbnail and the
+// lightbox can recognise it whichever language this run is in.
+const GUESTHOUSE_BOOKING_IMGS = new Set(Object.values(GUESTHOUSE_BOOKING_IMG_BY_LANG));
 
 // Built as a function of `lang` (not a module-level constant) so the whole
 // scripted conversation re-localizes together - same pattern as
@@ -258,7 +257,7 @@ export function buildNodes(lang) {
   ] },
   { id: 's20-lead1', from: 'datingLead', text: tt('我有件事一直沒跟你說。'), next: 's20-lead2' },
   { id: 's20-lead2', from: 'datingLead', text: tt('我本來想等確定一點再給你看。'), next: 's20-image' },
-  { id: 's20-image', image: { src: GUESTHOUSE_BOOKING_IMG, alt: tt('民宿訂房付款成功截圖'), label: tt('民宿訂房付款成功截圖'), displayDuration: 6000 }, next: 's20-booked1' },
+  { id: 's20-image', image: { src: GUESTHOUSE_BOOKING_IMG_BY_LANG[lang] ?? GUESTHOUSE_BOOKING_IMG_BY_LANG.zh, alt: tt('民宿訂房付款成功截圖'), label: tt('民宿訂房付款成功截圖'), displayDuration: 6000 }, next: 's20-booked1' },
   { id: 's20-booked1', from: 'datingLead', text: tt('你看，我真的訂了。'), next: 's20-booked2' },
   { id: 's20-booked2', from: 'datingLead', text: tt('我不是嘴巴說說而已。'), next: 's20-booked3' },
   { id: 's20-booked3', from: 'datingLead', text: tt('我是真的一直在等我們不用再隔著手機的那一天。'), next: 's20-choice' },
@@ -343,7 +342,7 @@ function VideoThumb({ item, src }) {
 function PhotoThumb({ item }) {
   const t = useT();
   const [failed, setFailed] = useState(false);
-  const isBookingScreenshot = item.src === GUESTHOUSE_BOOKING_IMG;
+  const isBookingScreenshot = GUESTHOUSE_BOOKING_IMGS.has(item.src);
   return (
     <div className={`line-image-thumb line-photo-thumb${isBookingScreenshot ? ' line-booking-screenshot' : ''}`} aria-label={t('{datingLead} 傳來的照片')}>
       {!failed && (
@@ -370,7 +369,7 @@ function PhotoThumb({ item }) {
 // every player on every device.
 function PhotoLightbox({ item }) {
   const [failed, setFailed] = useState(false);
-  const isBookingScreenshot = item.src === GUESTHOUSE_BOOKING_IMG;
+  const isBookingScreenshot = GUESTHOUSE_BOOKING_IMGS.has(item.src);
   return (
     <div className="line-image-lightbox">
       <div className={`line-image-lightbox-card line-photo-lightbox-card${isBookingScreenshot ? ' line-booking-screenshot' : ''}`}>
