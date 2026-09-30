@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.7.7-20260930.001` | 1.2.0 | 1.7.7 | 2026-09-30 | #19 | `1cd3c53` | PATCH | Merge pull request #19 from magician-eric/claude/serene-pasteur-nfqa4x |
 | `1.7.6-20260918.002` | 1.2.0 | 1.7.6 | 2026-09-18 | #18 | `1277702` | PATCH | Merge pull request #18 from magician-eric/claude/verify-conditional-surfaces |
 | `1.7.5-20260918.001` | 1.2.0 | 1.7.5 | 2026-09-18 | #17 | `c357b14` | PATCH | Merge pull request #17 from magician-eric/claude/lucid-feynman-3ruaep |
 | `1.7.4-20260917.007` | 1.2.0 | 1.7.4 | 2026-09-17 | #15 | `b291d70` | PATCH | Merge pull request #15 from magician-eric/claude/lucid-feynman-3ruaep |
