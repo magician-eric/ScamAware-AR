@@ -107,9 +107,6 @@ const FAMILIES = [
     what: "{datingLead}'s three selfie clips",
     from: 'src/experience/characters/visuals.js',
     table: (module) => module.getVisual('dating_visual_03').assets.videos,
-    // The en/jp recordings do not exist. Declared here so pass 2 reports the
-    // gap instead of failing on a fallback that is deliberate and known.
-    gaps: ['en', 'jp'],
   },
   {
     id: 'shared/ar-scan-hero',

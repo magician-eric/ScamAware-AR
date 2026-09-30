@@ -46,19 +46,19 @@ test('Scenario02 clip resolution reports the language it actually returned', () 
   assert.equal(zh.length, 3);
   assert.equal(zh.every((clip) => clip.localized && clip.resolvedLang === 'zh'), true);
 
-  // en/jp have no recordings yet. The fallback keeps the conversation
-  // playable, and `localized: false` is what stops it from passing itself off
-  // as the localized asset - that flag is what the audit and
-  // scripts/validate-localized-assets.mjs both read.
+  // en and jp each have their own three recordings, in the same story order
+  // as zh (Day 2, Day 4, Day 5). An en/jp run must never be handed a zh clip:
+  // that is a Chinese voice inside an English or Japanese run.
   for (const lang of ['en', 'jp']) {
     const clips = getVisualVideos('dating_visual_03', lang);
     assert.equal(clips.length, 3, lang);
-    assert.equal(clips.every((clip) => clip.localized === false), true, lang);
-    assert.equal(clips.every((clip) => clip.resolvedLang === 'zh'), true, lang);
+    assert.equal(clips.every((clip) => clip.localized === true), true, lang);
+    assert.equal(clips.every((clip) => clip.resolvedLang === lang), true, lang);
+    clips.forEach((clip, index) => {
+      assert.equal(clip.path.endsWith(`emily-video-0${index + 1}-${lang}.mp4`), true, `${lang} ${index}`);
+    });
   }
 
-  // The moment an en recording lands in the registry, en stops being a
-  // fallback with no other change anywhere - that is the wiring being right.
   assert.equal(getVisualVideo('dating_visual_03', 0, 'zh').path.endsWith('video-010.mp4'), true);
 });
 
@@ -82,8 +82,8 @@ test('every locale-varying asset family passes the coverage validator', () => {
     { cwd: new URL('..', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
   assert.match(output, /Localized assets OK/);
-  // The two gaps are expected and listed; the check is that they are still
-  // being REPORTED rather than having quietly become "covered".
-  assert.match(output, /scenario02\/dating-lead-clips {2}en/);
-  assert.match(output, /scenario02\/dating-lead-clips {2}jp/);
+  // Every language now has its own recordings, so nothing may be listed as
+  // missing for this family any more.
+  assert.match(output, /scenario02\/dating-lead-clips +zh PASS\(3\) +en PASS\(3\) +jp PASS\(3\)/);
+  assert.doesNotMatch(output, /Missing localized assets/);
 });
