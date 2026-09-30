@@ -330,7 +330,8 @@ Scenario 02 jp：完整（3 支）—— 2026-09-30 補齊
 以下素材 repo 內**確實不存在**。程式端的 mapping 全部已經就緒，**沒有任何一項
 在等 Claude Code**；未自行生成，也未複製中文檔改名冒充。
 
-合計 **11 張圖**（其中 7 張是結局畫面）。原列的 Scenario 02 en／ja 6 支影片已於 2026-09-30 補齊，見 5.1。
+合計 **10 張圖**（其中 7 張是結局畫面）。原列的 Scenario 02 en／ja 6 支影片已於 2026-09-30 補齊，見 5.1；
+Scenario 02 民宿訂房截圖的 en／ja 版本也已於 2026-09-30 補齊，見 5.2。
 
 ### 5.1 影片 —— 已補齊（2026-09-30）
 
@@ -340,12 +341,19 @@ Scenario 02 Day 2／Day 4／Day 5 三支影片的 en、ja 版本已放進
 
 ### 5.2 含中文的圖片素材
 
+> **已補齊（2026-09-30）：** Scenario 02 的民宿訂房付款成功截圖
+> `photo-villa-booking-paid.webp` 已有 en、ja 版本
+> （`photo-villa-booking-paid-en.webp`／`photo-villa-booking-paid-jp.webp`，同放在
+> `webapp/public/assets/scenarios/scenario-02/images/chat/`），由
+> `src/pages/scenario02/guesthousePhotos.js` 依語系選檔，並以
+> `scenario02/guesthouse-booking-screenshot` 註冊進 `validate-localized-assets.mjs`。
+> 下表已移除該列。
+
 | Scenario | 檔案 | 內容 | 出現位置 |
 | --- | --- | --- | --- |
 | 01 | `src/assets/scenarios/scenario-01/images/fb-ad-creative.webp` | 「AI 智能投資／穩定獲利／財富自由／專業團隊・精準預測・穩定獲利／AI 精準選股／風險嚴格控管／穩定高報酬」 | 假 FB 廣告貼文 `Feed.jsx` |
 | 01 | `public/assets/shared/characters/scenario01_stock_rookie/avatar.webp` | 背景「股海小白」 | VIP 群組頭像 |
 | 01 | `public/assets/scenarios/scenario-01/videos/teacher-en-*.mp4`、`teacher-jp-*.mp4` | 背景股市牆整面繁中（指數資訊／上市類股漲跌排行／半導體／加權指數(TWSE) 日線…） | 影片背景，非可換素材 |
-| 02 | `public/assets/scenarios/scenario-02/images/chat/photo-villa-booking-paid.webp` | 整張中文訂房確認截圖（訂單已確認／付款成功！預訂已確認／宜蘭 隱沐山景玻璃Villa／雙人房／總金額 TWD 10,800／查看預訂資訊…） | LINE 聊天自動開啟的 lightbox |
 | 02 | `public/assets/scenarios/scenario-02/images/results/cib-bear-romance-stopped.webp` | 「我想和你共創未來／再加碼一筆，就能一起出金／不要再加碼／驗證對方身分／別讓感情影響判斷」 | 結局畫面 |
 | 03 | `public/assets/scenarios/scenario-03/images/results/cib-bear-authority-scammed.webp` | 「臺灣地方法院 檢察署／偵查中案件／偽造／監管帳戶／涉入司法案件／配合調查／資金監管」 | 結局畫面 |
 | 03 | `public/assets/scenarios/scenario-03/images/results/cib-bear-authority-verified.webp` | 「先查證・再行動！／檢警不會要求轉帳，也沒有安全帳戶／165 反詐騙專線／掛斷電話／自己查官方電話／165 / 110 查證」 | 結局畫面 |
@@ -356,9 +364,6 @@ Scenario 02 Day 2／Day 4／Day 5 三支影片的 en、ja 版本已放進
 
 其中**結局畫面（7 張）影響最大** —— 那是每個情境的收尾教學，等於把整份反詐重點
 用中文圖片交給一個英文玩家。
-
-`photo-villa-booking-paid.webp` 是典型的「截圖型素材」污染：它會被
-`useAutoMediaPreview` 自動放大 6 秒，玩家想不看都不行。
 
 ---
 
@@ -422,8 +427,7 @@ H.264/AAC 解碼器**（`canPlayType('video/mp4; codecs="avc1.42E01E"')` 回傳�
 1. ~~**Scenario 02 的 en / ja 影片**（3 支 × 2 語系 = **6 支**）~~ —— **已於 2026-09-30 補齊並接上。**
 2. **7 張結局圖的 en / ja 版本**（S02 stopped ×1、S03 ×2、S04 ×2、S05 ×2）。
    每個情境的收尾教學目前對英日玩家完全失效 —— 影響最大的一項。
-3. **`photo-villa-booking-paid.webp` 的 en / ja 版本。** 會被
-   `useAutoMediaPreview` 自動放大 6 秒的中文截圖，玩家想不看都不行。
+3. ~~**`photo-villa-booking-paid.webp` 的 en / ja 版本。**~~ —— **已於 2026-09-30 補齊並接上。**
 4. **`fb-ad-creative.webp` 的 en / ja 版本。** Scenario 01 的第一個畫面。
 5. **`scenario01_stock_rookie/avatar.webp`** 去掉或翻譯背景的「股海小白」。
 6. **Scenario 01 en/jp 影片背景的股市牆是中文** —— 燒在畫面裡，需重拍。
