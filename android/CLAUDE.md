@@ -72,6 +72,11 @@ git fetch origin main && git merge-base --is-ancestor <fix-sha> origin/main
 
 （已用 `concurrency` group + 發布前檢查 commit 是否仍是分支 tip 修掉，見 `.github/workflows/build-android.yml`。）
 
+反過來也發生過：那個檢查一開始是「tip 不是我就不發布」，而每次 merge 後 OTA 發布和網站部署都會
+各推一個 `[skip ci]` 紀錄 commit，比 APK 建置先完成 —— 結果 `main` 的 APK **一次都沒發布**，
+`debug-latest` 停在 1.7.6，1.7.7、1.7.8 都沒有 APK。現在只有在之後的 commit 改到
+`android/`、`webapp/`、`release/versions.json` 時才放棄發布。**不要改回「tip 不同就不發布」。**
+
 交付前先驗證內容：
 
 ```bash

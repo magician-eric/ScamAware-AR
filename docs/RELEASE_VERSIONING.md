@@ -326,8 +326,17 @@ image recognition web assets，而**不需要重新打 APK**：
 6. 寫 `release/ota/releases/<Release ID>.json` 與 `release/ota/latest.json`
 7. 在 `docs/RELEASE_HISTORY.md` 附加一列
 8. 把 6、7 推回 `main`（commit 訊息帶 `[skip ci]`，不會再觸發自己）
+9. 這個 workflow 跑完後，`deploy-pages.yml` 會被 `workflow_run` 觸發、**再部署一次網站**，
+   新的 `ota/latest.json` 這時才真正上線
+
+第 9 步不能省：merge 當下那一次網站部署是用 merge commit 打包的，新版指標要到第 8 步才寫進
+`main`，而那個 commit 是 `[skip ci]`。少了第 9 步，手機讀到的永遠是**上一版**（1.7.8 發布後
+眼鏡上只看得到 1.7.7，就是這樣發生的）。
 
 Android APK 由 `.github/workflows/build-android.yml` 另外建置；**只改網頁內容不會、也不需要產生新的 APK。**
+`main` 上的 APK 會發布到 `debug-latest`。發布前它會確認自己仍是 `main` 最新的 APK：
+之後的 commit 只要沒改到 `android/`、`webapp/`、`release/versions.json`（例如第 8 步和
+網站部署留下的 `[skip ci]` 紀錄 commit），這支就照常發布；有改到才讓給較新的那次建置。
 
 ---
 

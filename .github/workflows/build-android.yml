@@ -505,8 +505,30 @@ jobs:
           BRANCH="${GITHUB_REF#refs/heads/}"
           TIP="$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)"
           if [ -n "$TIP" ] && [ "$TIP" != "$GITHUB_SHA" ]; then
-            echo "::notice::${GITHUB_SHA:0:7} is no longer the tip of $BRANCH (${TIP:0:7}); not publishing a superseded APK"
-            exit 0
+            # A newer tip only makes this APK stale if something after this commit changes what
+            # goes INTO an APK: android/, webapp/ (the baseline bundle) and release/versions.json
+            # (both version numbers) - app/build.gradle reads nothing else outside android/.
+            #
+            # Every merge to main is followed by [skip ci] bookkeeping commits - ota-release.yml's
+            # release record and deploy-pages.yml's published site at the repo root - and both
+            # land before this build finishes. Refusing on any newer tip therefore meant main's
+            # APK was never published at all: debug-latest stayed on whatever build last happened
+            # to win that race, while every later release went out without one. Those commits
+            # touch none of the paths below, so this build is byte-for-byte the tip's APK.
+            git -C "$GITHUB_WORKSPACE" fetch --no-tags --quiet origin "refs/heads/$BRANCH"
+            TIP="$(git -C "$GITHUB_WORKSPACE" rev-parse FETCH_HEAD)"
+            if ! git -C "$GITHUB_WORKSPACE" merge-base --is-ancestor "$GITHUB_SHA" "$TIP"; then
+              echo "::notice::$BRANCH (${TIP:0:7}) no longer contains ${GITHUB_SHA:0:7}; not publishing a superseded APK"
+              exit 0
+            fi
+            CHANGED="$(git -C "$GITHUB_WORKSPACE" diff --name-only "$GITHUB_SHA" "$TIP" -- \
+              android webapp release/versions.json .github/workflows/build-android.yml)"
+            if [ -n "$CHANGED" ]; then
+              echo "::notice::${GITHUB_SHA:0:7} is no longer the tip of $BRANCH (${TIP:0:7}) and the APK content changed since; not publishing a superseded APK"
+              echo "$CHANGED" | head -20
+              exit 0
+            fi
+            echo "${TIP:0:7} only adds commits that change no APK input since ${GITHUB_SHA:0:7}; publishing this build as the tip's APK"
           fi
           if [ -z "${RELEASE_TAG:-}" ]; then
             echo "::error::RELEASE_TAG 沒有設定 —— 撰寫 Release 說明的步驟應該要設定它"
