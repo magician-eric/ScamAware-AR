@@ -101,6 +101,8 @@ final class JorjinHardwareManager {
     private final TofGestureRecognizer depthRecognizer;
     /** Raw frames around every gesture decision, for tuning; see {@link TofFrameRecorder}. */
     private final TofFrameRecorder frameRecorder;
+    /** The staff mode's site lighting check reads the sensor through this. */
+    private final TofEnvironmentMeter environmentMeter = new TofEnvironmentMeter();
     /**
      * The glasses' RGB frames, republished to the WebView. A WebView cannot reach this camera on
      * its own - it is a USB device JJSDK holds - so image recognition in the page has to be fed
@@ -231,6 +233,10 @@ final class JorjinHardwareManager {
 
     boolean isStarted() {
         return started;
+    }
+
+    TofEnvironmentMeter environmentMeter() {
+        return environmentMeter;
     }
 
     private boolean watchingGlasses;
@@ -544,6 +550,7 @@ final class JorjinHardwareManager {
             TofHandExtractor.Hand hand =
                     depthRecognizer.onFrame(frame.medianRange, frame.peakSignalRate, now);
             frameRecorder.frame(now, frame.medianRange, frame.peakSignalRate, hand.describe());
+            environmentMeter.frame(now, frame.medianRange, frame.peakSignalRate);
         }
     };
 

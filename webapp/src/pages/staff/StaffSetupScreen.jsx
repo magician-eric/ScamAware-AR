@@ -19,6 +19,7 @@ import { isDeviceClockSuspicious, DEVICE_CLOCK_WARNING, generateSessionTimestamp
 import { StaffLocationSummary } from './StaffLocationSummary';
 import { StaffHandoffConfirm } from './StaffHandoffConfirm';
 import { StaffVersionPanel } from './StaffVersionPanel';
+import { StaffEnvironmentPanel } from './StaffEnvironmentPanel';
 import './staff.css';
 
 const FAILURE_MESSAGES = {
@@ -259,6 +260,11 @@ export function StaffSetupScreen() {
           this is the one somebody opens when something looks wrong. It is a section of this
           mode rather than a page of its own, so a host reaches both without another door to
           be told about - and so nothing player-facing gains a link to it. */}
+      {/* 現場環境檢測: whether this venue's lighting will get in the way of gestures and
+          image recognition. Before the version panel: it is a setup step, run before a
+          session like 所在地設定, not a diagnosis. */}
+      <StaffEnvironmentPanel />
+
       <StaffVersionPanel />
 
       <div className="staff-bottom-spacer" aria-hidden="true" />

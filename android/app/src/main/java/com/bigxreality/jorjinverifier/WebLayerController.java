@@ -263,11 +263,14 @@ final class WebLayerController {
     /**
      * The update controls the staff management mode calls, or null in a build that has none.
      *
-     * <p>This is the only {@code addJavascriptInterface} in the app, and the only direction of
-     * travel that is page → native. See {@link OtaControlBridge} for why a WebView that never
-     * loads anything from the network can afford one.
+     * <p>One of the two {@code addJavascriptInterface}s in the app - both for the staff
+     * management mode, the only direction of travel that is page → native. See
+     * {@link OtaControlBridge} for why a WebView that never loads anything from the network can
+     * afford them.
      */
     private final OtaControlBridge otaControl;
+    /** The staff mode's site lighting check, or null in a build that has none. */
+    private final EnvironmentCheckBridge environmentCheck;
 
     WebLayerController(WebView webView, WebBundle bundle, PageListener listener) {
         this(webView, bundle, listener, null);
@@ -280,10 +283,17 @@ final class WebLayerController {
      */
     WebLayerController(WebView webView, WebBundle bundle, PageListener listener,
                        OtaControlBridge otaControl) {
+        this(webView, bundle, listener, otaControl, null);
+    }
+
+    /** @param environmentCheck bound into the page under {@link EnvironmentCheckBridge#NATIVE_OBJECT}. */
+    WebLayerController(WebView webView, WebBundle bundle, PageListener listener,
+                       OtaControlBridge otaControl, EnvironmentCheckBridge environmentCheck) {
         this.webView = webView;
         this.bundle = bundle;
         this.listener = listener;
         this.otaControl = otaControl;
+        this.environmentCheck = environmentCheck;
         configure();
     }
 
@@ -322,6 +332,9 @@ final class WebLayerController {
         installAssetLoader();
         if (otaControl != null) {
             webView.addJavascriptInterface(otaControl, OtaControlBridgeScript.NATIVE_OBJECT);
+        }
+        if (environmentCheck != null) {
+            webView.addJavascriptInterface(environmentCheck, EnvironmentCheckBridge.NATIVE_OBJECT);
         }
         webView.setBackgroundColor(0xFF080A0F);
         webView.setWebViewClient(client);
@@ -666,6 +679,7 @@ final class WebLayerController {
                 // Injected after the diagnostics so a page that reads both on cibarOtaControlReady
                 // already has the versions to go with them.
                 if (otaControl != null) evaluate(OtaControlBridgeScript.install());
+                if (environmentCheck != null) evaluate(EnvironmentCheckBridge.installScript());
                 evaluate(OtaControlBridgeScript.status(listener.otaStatusJson()));
                 // The document loaded. That is NOT the same as CIBAR having come up, and the
                 // difference is the one failure the rollback gate could not otherwise see - see

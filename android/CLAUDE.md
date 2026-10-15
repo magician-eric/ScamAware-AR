@@ -68,6 +68,13 @@ x = acc >= 290;      // 290 == 0x122 == "1.2.2"，十六進位打包
   `getUserMedia`（手機鏡頭）。插著眼鏡時一律拒絕——戴著眼鏡時手機鏡頭不能亮。
 - 眼鏡在 App 開著時才插上：通知網頁，並且如果硬體還沒啟動就立刻啟動。
 
+### 工作人員模式的現場燈光檢測（1.2.3 起）
+
+- `TofEnvironmentMeter` 持續保留最近 2.5 秒的 ToF 畫面，`EnvironmentCheckBridge`（第二個
+  `addJavascriptInterface`，只給工作人員模式用）讓網頁讀 `window.__cibarEnvironment.tofSnapshot()`：
+  雜訊比例、手的偵測率、距離抖動、訊號。SDK 不給環境光數值，所以量的是光線造成的效果。
+- 判斷門檻在網頁（`webapp/src/lib/environment/environmentCheck.js`），改門檻只要發線上更新。
+
 這些門檻是用模擬畫面（`TofScene`）與大量隨機情境調出來的，不是實機量出來的；實機紀錄檔回來後要再校一次。
 
 **這件事真的害過驗收。** 以前只看了 `TofGestureEvent`（死的）和 `libcalculate_gesture.so`（閉源），

@@ -98,7 +98,7 @@ public final class MainActivity extends Activity
         WebBundle bundle = ota.openForLaunch();
 
         web = new WebLayerController((WebView) findViewById(R.id.cibarWebView), bundle, this,
-                new OtaControlBridge(this));
+                new OtaControlBridge(this), new EnvironmentCheckBridge(hardware.environmentMeter()));
         ota.setStateListener(this);
         web.setCameraStream(hardware.cameraStream());
         // Before any permission dialog: which flow the page takes depends on whether the glasses
