@@ -85,6 +85,9 @@ final class JorjinHardwareManager {
         void onUsbInventory(String inventory);
         /** The SDK-boundary trace, re-rendered whenever it changes. */
         void onTofTrace(String trace);
+
+        /** The glasses were plugged in or out (or this is the first look). Main thread. */
+        default void onGlassesPresence(boolean camera, boolean tof) { }
     }
 
     private final Context context;
@@ -214,6 +217,56 @@ final class JorjinHardwareManager {
             if (device.getInterface(i).getInterfaceClass() == interfaceClass) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether the glasses' RGB camera and ToF module are plugged in right now. Enumeration needs
+     * no USB permission, so this answers before the camera permission dialog has even been
+     * shown - the page needs to know which flow to take as soon as a language is picked.
+     */
+    boolean[] detectGlasses() {
+        List<UsbEntry> entries = enumerate();
+        return new boolean[] {firstCamera(entries) != null, firstTof(entries) != null};
+    }
+
+    boolean isStarted() {
+        return started;
+    }
+
+    private boolean watchingGlasses;
+
+    private final BroadcastReceiver attachReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (!UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)
+                    && !UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                return;
+            }
+            boolean[] presence = detectGlasses();
+            Log.i(TAG, "USB 裝置" + (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action) ? "插入" : "拔除")
+                    + "：眼鏡鏡頭=" + presence[0] + " ToF=" + presence[1]);
+            listener.onGlassesPresence(presence[0], presence[1]);
+        }
+    };
+
+    /** Starts reporting glasses being plugged in or out; paired with {@link #unwatchGlasses}. */
+    void watchGlasses() {
+        if (watchingGlasses) return;
+        IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(attachReceiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            context.registerReceiver(attachReceiver, filter);
+        }
+        watchingGlasses = true;
+    }
+
+    void unwatchGlasses() {
+        if (!watchingGlasses) return;
+        watchingGlasses = false;
+        try { context.unregisterReceiver(attachReceiver); }
+        catch (Throwable error) { Log.w(TAG, "解除 USB 插拔接收器失敗", error); }
     }
 
     private List<UsbEntry> enumerate() {

@@ -101,6 +101,12 @@ public final class MainActivity extends Activity
                 new OtaControlBridge(this));
         ota.setStateListener(this);
         web.setCameraStream(hardware.cameraStream());
+        // Before any permission dialog: which flow the page takes depends on whether the glasses
+        // are here, and the page may be asked as soon as a language is picked.
+        boolean[] glasses = hardware.detectGlasses();
+        Log.i(TAG, "啟動時眼鏡：鏡頭=" + glasses[0] + " ToF=" + glasses[1]);
+        web.setGlassesPresence(glasses[0], glasses[1]);
+        hardware.watchGlasses();
         enableGlassesFrameDump();
 
         // CIBAR starts loading now rather than after the permission dialog is answered: the page
@@ -360,6 +366,7 @@ public final class MainActivity extends Activity
 
     @Override protected void onDestroy() {
         foreground = false;
+        hardware.unwatchGlasses();
         hardware.stop();
         ota.shutdown();
         web.destroy();
@@ -490,6 +497,15 @@ public final class MainActivity extends Activity
 
     @Override public void onError(String message) {
         Log.w(TAG, message);
+    }
+
+    /**
+     * Glasses plugged in or out while the app is open. The page is told either way; glasses that
+     * arrive after a start that found none are started now rather than at the next launch.
+     */
+    @Override public void onGlassesPresence(boolean camera, boolean tof) {
+        web.setGlassesPresence(camera, tof);
+        if (foreground && (camera || tof) && !hardware.isStarted()) requestPermissionOrStart();
     }
 
     @Override public void onUsbInventory(String inventory) {

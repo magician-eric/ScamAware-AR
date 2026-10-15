@@ -192,4 +192,39 @@ public class WebLayerControllerTest {
         // that must not take the descriptor assignment down with it.
         assertTrue(script.contains("try{"));
     }
+
+    private static final String VIDEO = android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE;
+    private static final String AUDIO = android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE;
+
+    /** No glasses: the phone's camera is the only camera, and scanning runs on it. */
+    @Test public void withoutGlassesThePageMayUseThePhoneCamera() {
+        assertTrue(WebLayerController.cameraRequestAllowed(new String[] {VIDEO}, false, true));
+    }
+
+    /** With the glasses on, the phone's lens must never light up - whatever the page asks. */
+    @Test public void withGlassesThePhoneCameraStaysShut() {
+        assertFalse(WebLayerController.cameraRequestAllowed(new String[] {VIDEO}, true, true));
+    }
+
+    @Test public void onlyVideoAndOnlyWithTheAppsOwnPermission() {
+        assertFalse(WebLayerController.cameraRequestAllowed(new String[] {VIDEO}, false, false));
+        assertFalse(WebLayerController.cameraRequestAllowed(new String[] {AUDIO}, false, true));
+        assertFalse(WebLayerController.cameraRequestAllowed(new String[] {VIDEO, AUDIO}, false, true));
+        assertFalse(WebLayerController.cameraRequestAllowed(new String[0], false, true));
+        assertFalse(WebLayerController.cameraRequestAllowed(null, false, true));
+    }
+
+    /** What the page reads to choose between the glasses flow and the phone-camera flow. */
+    @Test public void theGlassesDescriptorSaysWhetherTheyArePluggedIn() {
+        String none = WebLayerController.glassesDescriptorScript(false, false);
+        assertTrue(none.startsWith("window.__cibarGlasses={"));
+        assertTrue(none.contains("version:1"));
+        assertTrue(none.contains("connected:false"));
+        assertTrue(none.contains("cibarGlassesChange"));
+        assertTrue(WebLayerController.glassesDescriptorScript(true, false).contains("connected:true"));
+        assertTrue(WebLayerController.glassesDescriptorScript(false, true).contains("connected:true"));
+        String both = WebLayerController.glassesDescriptorScript(true, true);
+        assertTrue(both.contains("camera:true"));
+        assertTrue(both.contains("tof:true"));
+    }
 }

@@ -3,16 +3,15 @@ package com.bigxreality.jorjinverifier;
 import java.util.Locale;
 
 /**
- * Keeps the last few seconds of raw ToF frames and writes them out around every gesture
- * decision - the material the recogniser's thresholds are tuned from.
+ * Writes every raw ToF frame, with what the recogniser made of it, and every gesture decision -
+ * the material the recogniser's thresholds are tuned from.
  *
- * <h2>Why</h2>
- * "It missed my swipe" says nothing about why. The frames do: whether the hand was in range at
- * all, how strong its return was against the lamp, what the background was doing. The module's
- * own key presses are the best label there is - every one marks a moment the vendor's engine saw
- * a swipe - so a module key, a swipe this app reported and a stroke it rejected each write the
- * frames from {@link #BEFORE_MS} before to {@link #AFTER_MS} after, with the decision in between.
- * Nothing is written while nothing happens, so the file stays small.
+ * <h2>Why every frame</h2>
+ * The first version wrote frames only around a decision: a module key, a reported swipe, a
+ * rejected stroke. That cannot explain the failure that matters most - a swipe that got no
+ * response at all, where neither recogniser decided anything and so nothing was written. Every
+ * frame is now written, continuously. At 15 frames a second that is about 6 KB/s; the file
+ * rolls over ({@link TofFrameFile}) so the last twenty minutes or so are always on the phone.
  *
  * <h2>Format</h2>
  * One line per frame, readable by eye and trivially parsed:
@@ -21,30 +20,19 @@ import java.util.Locale;
  *   # &lt;ms&gt; &lt;what happened&gt;
  * </pre>
  * {@code ms} is {@code SystemClock.elapsedRealtime()}; each {@code #} line also carries wall-clock
- * time, so a tester's "I swiped at 14:03" can be found. {@code hand} is
+ * time, so a tester's "I swiped at 14:03 and nothing happened" can be found. {@code hand} is
  * {@link TofHandExtractor.Hand#describe()}.
  *
  * <p>Pure Java; where the text goes is the {@link Sink}'s business ({@link TofFrameFile} on the
  * phone). Called from JJSDK's reader thread and the main thread, hence synchronized.
  */
 final class TofFrameRecorder {
-    static final int CAPACITY = 48;
-    static final long BEFORE_MS = 2500L;
-    static final long AFTER_MS = 600L;
-
     interface Sink {
         void write(String text);
     }
 
     private final Sink sink;
-    private final long[] times = new long[CAPACITY];
-    private final float[][] ranges = new float[CAPACITY][TofHandExtractor.ZONES];
-    private final float[][] signals = new float[CAPACITY][TofHandExtractor.ZONES];
-    private final String[] hands = new String[CAPACITY];
-    private long added;
-    /** Frames up to (but not including) this sequence number have been written or skipped. */
-    private long writtenUpTo;
-    private long writeUntilMs = Long.MIN_VALUE;
+    private final StringBuilder line = new StringBuilder(512);
 
     TofFrameRecorder(Sink sink) {
         this.sink = sink;
@@ -52,52 +40,27 @@ final class TofFrameRecorder {
 
     synchronized void frame(long nowMs, float[] range, float[] signal, String hand) {
         if (range == null || range.length < TofHandExtractor.ZONES) return;
-        int slot = (int) (added % CAPACITY);
-        times[slot] = nowMs;
-        System.arraycopy(range, 0, ranges[slot], 0, TofHandExtractor.ZONES);
+        line.setLength(0);
+        line.append("F ").append(nowMs).append(' ').append(hand == null ? "-" : hand).append(" | r");
+        appendGrid(line, range, 10f);
+        line.append(" | s");
         if (signal != null && signal.length >= TofHandExtractor.ZONES) {
-            System.arraycopy(signal, 0, signals[slot], 0, TofHandExtractor.ZONES);
+            appendGrid(line, signal, 1f);
         } else {
-            java.util.Arrays.fill(signals[slot], 0f);
+            appendGrid(line, new float[TofHandExtractor.ZONES], 1f);
         }
-        hands[slot] = hand == null ? "-" : hand;
-        added++;
-        if (nowMs <= writeUntilMs) {
-            StringBuilder out = new StringBuilder();
-            appendFrame(out, added - 1);
-            writtenUpTo = added;
-            sink.write(out.toString());
-        }
+        line.append('\n');
+        sink.write(line.toString());
     }
 
-    /**
-     * Something happened: writes the buffered frames not yet written that fall within
-     * {@link #BEFORE_MS}, then the label, then keeps writing frames for {@link #AFTER_MS}.
-     */
+    /** Something happened: a module key, a reported swipe, a rejected stroke. */
     synchronized void mark(long nowMs, String label) {
-        StringBuilder out = new StringBuilder();
-        long from = Math.max(writtenUpTo, added - CAPACITY);
-        for (long seq = from; seq < added; seq++) {
-            if (times[(int) (seq % CAPACITY)] >= nowMs - BEFORE_MS) appendFrame(out, seq);
-        }
-        writtenUpTo = added;
-        out.append("# ").append(nowMs).append(' ').append(label).append('\n');
-        writeUntilMs = Math.max(writeUntilMs, nowMs + AFTER_MS);
-        sink.write(out.toString());
+        sink.write("# " + nowMs + " " + label + "\n");
     }
 
-    /** A line of its own, with no frames: a session header, say. */
+    /** A line of its own: a session header, say. */
     synchronized void line(String text) {
         sink.write("# " + text + "\n");
-    }
-
-    private void appendFrame(StringBuilder out, long seq) {
-        int slot = (int) (seq % CAPACITY);
-        out.append("F ").append(times[slot]).append(' ').append(hands[slot]).append(" | r");
-        appendGrid(out, ranges[slot], 10f);
-        out.append(" | s");
-        appendGrid(out, signals[slot], 1f);
-        out.append('\n');
     }
 
     private static void appendGrid(StringBuilder out, float[] values, float divisor) {
