@@ -52,8 +52,9 @@ const STRINGS = {
         cta: '看看買家說了什麼',
       },
     },
+    offerLabel: '發現線索！',
     cameraError: '無法使用相機，請手動選擇情境。',
-    manualSelection: '沒有辨識圖片？手動選擇情境',
+    manualSelection: '手動選擇情境',
   },
   en: {
     heroAlt: 'AR Scam Interactive Experience',
@@ -83,8 +84,9 @@ const STRINGS = {
         cta: 'See what the buyer says',
       },
     },
+    offerLabel: 'Clue found!',
     cameraError: 'Camera unavailable — please choose a scenario manually.',
-    manualSelection: 'No Image? Choose Manually',
+    manualSelection: 'Choose a Scenario Manually',
   },
   jp: {
     heroAlt: 'AR詐欺インタラクティブ体験',
@@ -114,8 +116,9 @@ const STRINGS = {
         cta: '購入希望者のメッセージを見る',
       },
     },
+    offerLabel: '手がかりを発見！',
     cameraError: 'カメラを利用できません。手動でシナリオを選択してください。',
-    manualSelection: '画像がない場合は手動選択',
+    manualSelection: '手動でシナリオを選択',
   },
 };
 

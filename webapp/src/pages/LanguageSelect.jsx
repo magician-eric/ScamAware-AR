@@ -4,6 +4,7 @@ import { useStageClassName } from '../shell/StageClassContext';
 import { setLanguage, getLanguage } from '../lib/lang';
 import { getLanguageSelectStrings } from './languageSelectI18n';
 import { useHiddenStaffEntry } from './staff/useHiddenStaffEntry';
+import { areGlassesAbsent } from '../lib/glasses/glassesPresence';
 import './entryScreens.css';
 
 const BACKGROUND_SRC = `${import.meta.env.BASE_URL}assets/shared/ui/scenario-menu-background.webp`;
@@ -15,7 +16,10 @@ const LANGUAGES = [
 ];
 
 // First page of the flow (see routes.jsx): here -> gesture tutorial -> AR
-// scan home -> scenario menu. Same background artwork + overlay-button
+// scan home -> scenario menu - with the 佐臻 glasses plugged in. Without them
+// there is no ToF sensor to wave at and no glasses camera, so a language
+// choice goes straight to the scan, which then uses the phone's own camera
+// (see lib/glasses/glassesPresence.js). Same background artwork + overlay-button
 // treatment as ScenarioMenu (see that file's comment for why the artwork
 // itself has no title/frames baked in) - three language buttons instead of
 // five scenario buttons. The gesture tutorial reuses this same artwork, so
@@ -42,11 +46,13 @@ export function LanguageSelect({ booting = false } = {}) {
 
   function confirm(code) {
     setLanguage(code);
-    // Into the gesture tutorial, not straight to the scan screen: every
-    // player waves LEFT and then RIGHT once, in the language they just
-    // picked, before the AR flow starts (see pages/gestureTutorial/). The
-    // tutorial hands them on to /ar-scan itself.
-    navigate('/gesture-tutorial');
+    // With the glasses: into the gesture tutorial, not straight to the scan
+    // screen - every player waves LEFT and then RIGHT once, in the language
+    // they just picked, before the AR flow starts (see pages/gestureTutorial/),
+    // and the tutorial hands them on to /ar-scan itself. Without the glasses
+    // there is nothing to wave at: straight to the scan, on the phone camera.
+    if (areGlassesAbsent()) navigate('/ar-scan');
+    else navigate('/gesture-tutorial');
   }
 
   return (

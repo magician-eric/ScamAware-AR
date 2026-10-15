@@ -317,17 +317,53 @@ test('2a. the three language options are unchanged', async () => {
   assert.equal(all.length, LANGUAGES.length + 1, 'the page carries three languages plus the gear entry, nothing else');
 });
 
-test('2b. choosing a language stores it and enters the gesture tutorial', async () => {
-  for (const { code, label } of LANGUAGES) {
-    const { tree, storage, visited } = await page();
-    const button = languageButtons(tree).find((n) => textOf(n) === label);
-    assert.ok(button, `missing language option: ${label}`);
+test('2b. with the glasses plugged in, choosing a language stores it and enters the gesture tutorial', async () => {
+  globalThis.__cibarShell = { version: 1, shellVersion: '1.2.3' };
+  globalThis.__cibarGlasses = { version: 1, connected: true, camera: true, tof: true };
+  try {
+    for (const { code, label } of LANGUAGES) {
+      const { tree, storage, visited } = await page();
+      const button = languageButtons(tree).find((n) => textOf(n) === label);
+      assert.ok(button, `missing language option: ${label}`);
 
-    button.props.onClick();
-    assert.equal(storage.getItem('language'), code, `${label} must store language=${code}`);
-    // The AR flow now starts with the gesture tutorial, which hands the
-    // player on to /ar-scan itself (see pages/gestureTutorial/).
-    assert.deepEqual(visited, ['/gesture-tutorial'], `${label} must enter the gesture tutorial and nowhere else`);
+      button.props.onClick();
+      assert.equal(storage.getItem('language'), code, `${label} must store language=${code}`);
+      // The AR flow starts with the gesture tutorial, which hands the
+      // player on to /ar-scan itself (see pages/gestureTutorial/).
+      assert.deepEqual(visited, ['/gesture-tutorial'], `${label} must enter the gesture tutorial and nowhere else`);
+    }
+  } finally {
+    delete globalThis.__cibarShell;
+    delete globalThis.__cibarGlasses;
+  }
+});
+
+test('2b. without the glasses, choosing a language goes straight to the scan (phone camera)', async () => {
+  for (const glasses of [{ version: 1, connected: false, camera: false, tof: false }, undefined]) {
+    if (glasses) {
+      globalThis.__cibarShell = { version: 1, shellVersion: '1.2.3' };
+      globalThis.__cibarGlasses = glasses;
+    }
+    try {
+      const { tree, storage, visited } = await page();
+      languageButtons(tree)[1].props.onClick();
+      assert.equal(storage.getItem('language'), 'en');
+      assert.deepEqual(visited, ['/ar-scan'], glasses ? 'the Shell said no glasses' : 'a plain browser has no glasses');
+    } finally {
+      delete globalThis.__cibarShell;
+      delete globalThis.__cibarGlasses;
+    }
+  }
+});
+
+test('2b. an older Shell that does not report the glasses keeps the tutorial flow', async () => {
+  globalThis.__cibarShell = { version: 1, shellVersion: '1.2.2' };
+  try {
+    const { tree, visited } = await page();
+    languageButtons(tree)[0].props.onClick();
+    assert.deepEqual(visited, ['/gesture-tutorial']);
+  } finally {
+    delete globalThis.__cibarShell;
   }
 });
 

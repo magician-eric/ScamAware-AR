@@ -174,10 +174,12 @@ function press(page, side) {
 // 1. the flow
 // =============================================================================
 
-test('language selection routes into the gesture tutorial, not straight to the scan', async () => {
+test('language selection routes into the gesture tutorial with the glasses, straight to the scan without', async () => {
   const source = stripComments(await read('src/pages/LanguageSelect.jsx'));
   assert.match(source, /navigate\('\/gesture-tutorial'\)/, 'the language screen must enter the tutorial');
-  assert.doesNotMatch(source, /navigate\('\/ar-scan'\)/, 'the language screen must no longer skip the tutorial');
+  // Without the glasses there is no ToF to wave at: the scan, on the phone
+  // camera - and only when the Shell has said the glasses are absent.
+  assert.match(source, /if \(areGlassesAbsent\(\)\) navigate\('\/ar-scan'\);\s*else navigate\('\/gesture-tutorial'\);/);
 
   const routes = stripComments(await read('src/routes.jsx'));
   assert.match(routes, /path: 'gesture-tutorial'/, 'the tutorial needs a route of its own');
