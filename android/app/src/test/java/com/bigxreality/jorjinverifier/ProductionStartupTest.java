@@ -322,4 +322,70 @@ public class ProductionStartupTest {
         }
         assertFalse("正式流程不得有任何按鈕", layout().contains("<Button"));
     }
+
+    // ------------------------------------------------------------ the app vanishing by itself
+
+    /**
+     * A WebView whose renderer dies takes an app that did not handle it down with it: Android's
+     * default is to kill the app's process too. CIBAR left running unattended long enough to be
+     * reclaimed for memory would simply disappear. The shell handles it, and starts CIBAR again.
+     */
+    @Test public void aDeadRendererRestartsCibarInsteadOfTakingTheAppDown() throws IOException {
+        String web = read("src/main/java/com/bigxreality/jorjinverifier/WebLayerController.java");
+        int gone = web.indexOf("public boolean onRenderProcessGone(");
+        assertTrue("WebLayerController 必須處理渲染程序結束", gone > 0);
+        String handler = web.substring(gone, web.indexOf("\n        }\n", gone));
+        assertTrue("已處理的渲染程序結束要回傳 true", handler.contains("return true;"));
+        assertTrue("失效的 WebView 要移出畫面並釋放", handler.contains("webView.destroy();"));
+        assertTrue("並通知 activity", handler.contains("listener.onRendererGone(crashed)"));
+
+        String activity = activity();
+        int restart = activity.indexOf("public void onRendererGone(boolean crashed)");
+        assertTrue("MainActivity 必須接手渲染程序結束", restart > 0);
+        String body = activity.substring(restart, activity.indexOf("\n    }\n", restart));
+        assertTrue("有重啟次數保護", body.contains("CrashRecovery.shouldRelaunch("));
+        assertTrue("重新啟動 CIBAR", body.contains("relaunch(why)"));
+        assertTrue("原因寫進 crash.txt", body.contains("persistCrash("));
+    }
+
+    /** Every launch says why the last process ended, so a vanished app is not a guess. */
+    @Test public void everyLaunchReportsWhyThePreviousProcessEnded() throws IOException {
+        String activity = activity();
+        int create = activity.indexOf("protected void onCreate(");
+        int report = activity.indexOf("reportPreviousExits();", create);
+        assertTrue("onCreate 要回報先前結束原因", report > create);
+        assertTrue(activity.contains("getHistoricalProcessExitReasons("));
+    }
+
+    /**
+     * The module's own gesture engine is told which keys to press every time the ToF comes up -
+     * so a module last configured by the vendor app no longer presses Back for a pull.
+     */
+    @Test public void theModuleKeyMapIsSentWheneverTheTofComesUp() throws IOException {
+        String hardware = read("src/main/java/com/bigxreality/jorjinverifier/JorjinHardwareManager.java");
+        assertTrue("ToF 就緒後要送出模組按鍵設定",
+                hardware.contains("configureModuleKeys(manager, tofInstanceId);"));
+        assertTrue("送出的是 ModuleGestureKeys 的整組設定",
+                hardware.contains("for (String command : ModuleGestureKeys.COMMANDS)"));
+        assertTrue("透過 JJSDK 的 execute 送出",
+                hardware.contains("manager.execute(ModuleGestureKeys.line(command))"));
+    }
+
+    /**
+     * The glasses are a USB keyboard as well as a camera and a ToF module. A keyboard appearing
+     * or going away must not recreate the activity - that releases the hardware and starts CIBAR
+     * over, which looks exactly like a crash.
+     */
+    @Test public void aKeyboardComingOrGoingDoesNotRecreateTheActivity() throws IOException {
+        String manifest = read("src/main/AndroidManifest.xml");
+        int start = manifest.indexOf("android:configChanges=\"");
+        assertTrue("MainActivity 必須宣告 configChanges", start > 0);
+        int end = manifest.indexOf('"', start + "android:configChanges=\"".length());
+        java.util.List<String> handled = java.util.Arrays.asList(
+                manifest.substring(start + "android:configChanges=\"".length(), end).split("\\|"));
+        for (String change : new String[] {"keyboard", "keyboardHidden", "navigation",
+                "orientation", "screenSize"}) {
+            assertTrue("configChanges 缺少 " + change, handled.contains(change));
+        }
+    }
 }

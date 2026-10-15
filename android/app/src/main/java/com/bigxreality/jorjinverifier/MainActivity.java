@@ -2,13 +2,18 @@ package com.bigxreality.jorjinverifier;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.webkit.WebView;
@@ -59,6 +64,10 @@ public final class MainActivity extends Activity
         OtaControlBridge.Host, OtaController.StateListener {
     private static final String TAG = "JorjinVerifier";
     private static final int CAMERA_PERMISSION_REQUEST = 1001;
+    /** What survives a process: the last renderer restart, the newest exit already reported. */
+    private static final String RECOVERY_PREFS = "cibar_recovery";
+    private static final String KEY_LAST_RENDERER_RELAUNCH = "lastRendererRelaunchAt";
+    private static final String KEY_LAST_EXIT_REPORTED = "lastExitReportedAt";
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private SurfaceView cameraSurface;
@@ -72,6 +81,9 @@ public final class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         cameraSurface = findViewById(R.id.cameraSurface);
         installCrashReporter();
+        reportPreviousExits();
+        Intent launch = getIntent();
+        Log.i(TAG, "啟動來源：" + (launch == null ? "—" : launch.getAction()));
 
         // The hardware first, so the camera stream object exists before the page can ask for a
         // frame: the WebView reads the glasses camera from a URL this controller intercepts, and
@@ -179,20 +191,86 @@ public final class MainActivity extends Activity
      * onStop} would have released them. So they are released here, first, by hand.
      */
     @Override public void restartToApplyUpdate() {
-        post(() -> {
-            Intent relaunch = getPackageManager().getLaunchIntentForPackage(getPackageName());
-            if (relaunch == null) {
-                Log.w(TAG, "找不到本 App 的啟動 Intent，無法重新啟動");
-                return;
-            }
-            Log.i(TAG, "工作人員模式要求重新啟動，套用已下載完成的新版");
-            relaunch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            web.onStop();
-            hardware.stop();
-            ota.shutdown();
-            startActivity(relaunch);
+        post(() -> relaunch("工作人員模式要求重新啟動，套用已下載完成的新版"));
+    }
+
+    /**
+     * A cold start of this app, from the launcher intent: the one way it starts over, shared by
+     * the staff mode's update restart and by {@link #onRendererGone}.
+     *
+     * <p>The glasses' USB devices are released before the new activity is started - its
+     * {@code onStart} claims them, and that runs before this instance's {@code onStop} would.
+     */
+    private void relaunch(String why) {
+        Intent relaunch = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (relaunch == null) {
+            Log.w(TAG, "找不到本 App 的啟動 Intent，無法重新啟動");
+            return;
+        }
+        Log.i(TAG, why + "：重新啟動 App");
+        relaunch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        web.onStop();
+        hardware.stop();
+        ota.shutdown();
+        startActivity(relaunch);
+        finish();
+    }
+
+    // ---------------------------------------------------------------- crash recovery
+
+    /**
+     * CIBAR's renderer died and the WebView is already gone. Starts CIBAR again rather than
+     * leaving the wearer a window with nothing in it - once; see {@link CrashRecovery} for why a
+     * second death a minute later closes the app instead.
+     */
+    @Override public void onRendererGone(boolean crashed) {
+        String why = crashed ? "WebView 渲染程序崩潰" : "WebView 渲染程序被系統結束（多半是記憶體不足）";
+        persistCrash("頁面渲染程序結束：" + why + "，時間 " + new java.util.Date());
+        SharedPreferences prefs = getSharedPreferences(RECOVERY_PREFS, MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        long last = prefs.getLong(KEY_LAST_RENDERER_RELAUNCH, 0L);
+        if (!CrashRecovery.shouldRelaunch(last, now)) {
+            Log.e(TAG, why + "，且一分鐘內已重新啟動過一次；不再自動重啟");
+            persistCrash("一分鐘內第二次渲染程序結束，App 不再自動重啟");
             finish();
-        });
+            return;
+        }
+        prefs.edit().putLong(KEY_LAST_RENDERER_RELAUNCH, now).apply();
+        post(() -> relaunch(why));
+    }
+
+    /**
+     * Writes why this app's previous processes ended to Logcat, and the ones not reported before
+     * to {@code crash.txt} - so "it closed by itself" can be read back instead of guessed at.
+     * Android keeps these from API 30; older phones have nothing to read.
+     */
+    private void reportPreviousExits() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return;
+        try {
+            ActivityManager activities = getSystemService(ActivityManager.class);
+            if (activities == null) return;
+            java.util.List<ApplicationExitInfo> exits =
+                    activities.getHistoricalProcessExitReasons(getPackageName(), 0, 5);
+            SharedPreferences prefs = getSharedPreferences(RECOVERY_PREFS, MODE_PRIVATE);
+            long reported = prefs.getLong(KEY_LAST_EXIT_REPORTED, 0L);
+            long newest = reported;
+            for (ApplicationExitInfo exit : exits) {
+                String line = new java.util.Date(exit.getTimestamp()) + " "
+                        + CrashRecovery.exitReason(exit.getReason())
+                        + " 狀態=" + exit.getStatus()
+                        + " 重要度=" + exit.getImportance()
+                        + " PSS=" + exit.getPss() + "KB RSS=" + exit.getRss() + "KB"
+                        + (exit.getDescription() == null ? "" : " 說明=" + exit.getDescription());
+                Log.i(TAG, "先前 App 結束原因：" + line);
+                if (exit.getTimestamp() > reported) {
+                    persistCrash("先前 App 結束原因：" + line);
+                    newest = Math.max(newest, exit.getTimestamp());
+                }
+            }
+            if (newest > reported) prefs.edit().putLong(KEY_LAST_EXIT_REPORTED, newest).apply();
+        } catch (Throwable error) {
+            Log.w(TAG, "讀取先前 App 結束原因失敗", error);
+        }
     }
 
     /**
@@ -297,6 +375,29 @@ public final class MainActivity extends Activity
     @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK && web.onBackPressed()) return true;
         return super.onKeyDown(keyCode, event);
+    }
+
+    /**
+     * Logs every key press and the device it came from, then dispatches it exactly as before.
+     *
+     * <p>The glasses' ToF module reports its gestures as key presses (see
+     * {@link ModuleGestureKeys}), and a module configured by the vendor's app presses Back for a
+     * pull - which leaves this app. A line per press is what tells "the wearer pressed the
+     * glasses' back button" from "the ToF module pressed Back", and an arrow that arrived from
+     * one that never did.
+     */
+    @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+            Log.i(TAG, "按鍵 " + KeyEvent.keyCodeToString(event.getKeyCode())
+                    + " 來自 " + describeInputDevice(event.getDevice()));
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private static String describeInputDevice(InputDevice device) {
+        if (device == null) return "（虛擬裝置）";
+        return device.getName() + " " + JorjinUsbDevices.formatIds(
+                device.getVendorId(), device.getProductId());
     }
 
     private void requestPermissionOrStart() {
