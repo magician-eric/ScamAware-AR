@@ -27,6 +27,20 @@ public class GestureControllerTest {
         controller.onRawEvent(TofGestureEvents.create(nowMs * 1_000_000L, action, gesture), nowMs);
     }
 
+    /**
+     * The firmware's gesture bits and the depth recogniser read the same hand: one swipe both of
+     * them caught reaches the page once, whichever reported first.
+     */
+    @Test public void theSameSwipeFromTheOtherSourceIsDeliveredOnce() {
+        controller.onRawEvent(TofGestureEvent.ACTION_RECEIVED, TofGestureEvent.GESTURE_RIGHT, 0L,
+                1000L, GestureController.Source.DEPTH_FRAME);
+        send(TofGestureEvent.ACTION_RECEIVED, TofGestureEvent.GESTURE_RIGHT, 1400L);
+        assertEquals(1, delivered.size());
+        controller.onRawEvent(TofGestureEvent.ACTION_RECEIVED, TofGestureEvent.GESTURE_LEFT, 0L,
+                1000L + GestureController.CROSS_SOURCE_MS, GestureController.Source.FIRMWARE);
+        assertEquals("超過視窗後另一來源的手勢照常送出", 2, delivered.size());
+    }
+
     @Test public void deliversReceivedGestures() {
         send(TofGestureEvent.ACTION_RECEIVED, TofGestureEvent.GESTURE_LEFT, 0);
         assertEquals(1, delivered.size());

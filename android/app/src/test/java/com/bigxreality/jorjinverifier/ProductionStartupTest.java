@@ -372,6 +372,23 @@ public class ProductionStartupTest {
     }
 
     /**
+     * The depth recogniser reads both halves of every frame - distance and signal strength - and
+     * every frame and decision reaches the frame log; a module key press locks it, so one swipe
+     * is never reported by both recognisers.
+     */
+    @Test public void theDepthRecogniserSeesSignalStrengthAndYieldsToTheModule() throws IOException {
+        String hardware = read("src/main/java/com/bigxreality/jorjinverifier/JorjinHardwareManager.java");
+        assertTrue("深度辨識要拿到距離與訊號強度",
+                hardware.contains("depthRecognizer.onFrame(frame.medianRange, frame.peakSignalRate, now)"));
+        assertTrue("每張畫面進紀錄檔的環形緩衝",
+                hardware.contains("frameRecorder.frame(now, frame.medianRange, frame.peakSignalRate"));
+        assertTrue("模組按鍵要鎖住深度辨識",
+                hardware.contains("depthRecognizer.onExternalGesture("));
+        assertTrue("方向鍵要從 Activity 轉給硬體層",
+                activity().contains("hardware.onModuleGestureKey(code == KeyEvent.KEYCODE_DPAD_RIGHT)"));
+    }
+
+    /**
      * The glasses are a USB keyboard as well as a camera and a ToF module. A keyboard appearing
      * or going away must not recreate the activity - that releases the hardware and starts CIBAR
      * over, which looks exactly like a crash.

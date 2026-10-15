@@ -42,6 +42,16 @@ public class GestureBridgeScriptTest {
         assertTrue(script.contains(".deliver({"));
     }
 
+    /**
+     * The page takes this Shell's depth gestures alongside the module's keys only when they say
+     * which recogniser made them; an older Shell's say nothing and stay ignored once keys arrive.
+     */
+    @Test public void deliverNamesTheRecogniserGeneration() {
+        String script = GestureBridgeScript.deliver("RIGHT", "向右 RIGHT", 1, 2);
+        assertEquals(2, GestureBridgeScript.RECOGNIZER_GENERATION);
+        assertTrue(script.contains("recognizer:2"));
+    }
+
     /** A restart resets the counters; the page must not be told a gesture happened. */
     @Test public void syncNeverDispatchesAnEvent() {
         String script = GestureBridgeScript.sync("—", 0);
