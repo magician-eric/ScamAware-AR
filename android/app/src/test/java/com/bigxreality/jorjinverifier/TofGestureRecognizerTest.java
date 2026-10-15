@@ -1,537 +1,579 @@
 package com.bigxreality.jorjinverifier;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.jorjin.jjsdk.tof.TofGestureEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * The recogniser answers one question: was that a horizontal swipe, and which way?
+ * The depth recogniser, driven by {@link TofScene}: a hand of real size at a real distance in
+ * front of a real background, rendered into the frames the sensor would send at 15 per second.
  *
- * <p>These tests are as much about what it must <em>not</em> report. It used to produce UP/DOWN,
- * PUSH/PULL, HALT and SELECT, and each was a way for a swipe to come out as something else - on
- * a 64-zone sensor a hand rarely travels along one axis cleanly, so a left swipe with a little
- * drift could land as DOWN and the gesture the user made was lost. Anything that is not clearly
- * horizontal must now produce nothing at all.
+ * <p>Grouped by the five problems from the acceptance test - recognition rate, swipe speed, hand
+ * distance, lighting, background - then by what one swipe must and must not produce, and by how
+ * it works alongside the module's own engine.
  */
 public class TofGestureRecognizerTest {
+    private static final int RIGHT = TofGestureEvent.GESTURE_RIGHT;
+    private static final int LEFT = TofGestureEvent.GESTURE_LEFT;
+    private static final float MID = 3.5f;
+
     private final List<Integer> received = new ArrayList<>();
+    private final List<String> notes = new ArrayList<>();
     private TofGestureRecognizer recognizer;
+    private TofScene scene;
     private long clock;
+    /** Extra zones lit by ambient infrared on each frame, or null. */
+    private Random noise;
 
     @Before public void setUp() {
         received.clear();
-        clock = 1000L;
-        recognizer = new TofGestureRecognizer(
-                (gesture, action, eventTimeNanos) -> received.add(gesture));
+        notes.clear();
+        clock = 10_000L;
+        scene = new TofScene();
+        noise = null;
+        recognizer = new TofGestureRecognizer(new TofGestureRecognizer.Callback() {
+            @Override public void onRecognised(int gesture, int action, long eventTimeNanos) {
+                assertEquals(TofGestureEvent.ACTION_RECEIVED, action);
+                received.add(gesture);
+            }
+
+            @Override public void onNote(String note) {
+                notes.add(note);
+            }
+        });
     }
 
-    /** One frame with a hand centred on (row, col), as a block of lit zones. */
-    private static float[] hand(float row, float col, float rangeMm) {
-        float[] frame = new float[TofGestureRecognizer.ZONES];
-        int r = Math.round(row);
-        int c = Math.round(col);
-        for (int dr = -1; dr <= 1; dr++) {
-            for (int dc = -1; dc <= 1; dc++) {
-                int rr = r + dr;
-                int cc = c + dc;
-                if (rr < 0 || rr >= TofGestureRecognizer.GRID) continue;
-                if (cc < 0 || cc >= TofGestureRecognizer.GRID) continue;
-                frame[rr * TofGestureRecognizer.GRID + cc] = rangeMm;
+    // ------------------------------------------------------------------ driving the scene
+
+    private void frame() {
+        clock += TofScene.FRAME_MS;
+        float[] range = scene.range();
+        float[] signal = scene.signal();
+        if (noise != null) {
+            for (int k = 0; k < 4; k++) {
+                int zone = noise.nextInt(TofScene.ZONES);
+                if (range[zone] > 0f && signal[zone] > 1f) continue;
+                range[zone] = 30f + noise.nextInt(570);
+                signal[zone] = 0.5f;
             }
         }
-        return frame;
+        recognizer.onFrame(range, signal, clock);
+    }
+
+    private void frames(long ms) {
+        for (long t = 0; t < ms; t += TofScene.FRAME_MS) frame();
     }
 
     /**
-     * One frame with a hand whose centroid sits <em>between</em> zones.
-     *
-     * <p>{@link #hand} rounds to a whole zone, so the smallest travel it can express is one
-     * zone - and the thresholds this file now pins are a fifth of a zone apart. Five lit zones
-     * in one row give a centroid of {@code sum/5}, so any fifth of a zone is exactly
-     * representable: start from five consecutive columns and push the rightmost ones one column
-     * further right until the sum matches. The columns stay distinct and inside the grid, the
-     * row centroid is untouched, and five zones is comfortably over
-     * {@link TofGestureRecognizer#MIN_ACTIVE_ZONES}.
+     * The scene with no hand, long enough for its background to be learned - including anything
+     * within gesture range, which is learned as slowly as a hand held still would be.
      */
-    private static float[] fineHand(int row, float col, float rangeMm) {
-        int sum = Math.round(col * 5f);
-        int start = Math.floorDiv(sum - 10, 5);
-        int carry = sum - (5 * start + 10);
-        float[] frame = new float[TofGestureRecognizer.ZONES];
-        for (int i = 0; i < 5; i++) {
-            int c = start + i + (i >= 5 - carry ? 1 : 0);
-            assertTrue("欄位 " + c + " 超出感測器網格（col=" + col + "）",
-                    c >= 0 && c < TofGestureRecognizer.GRID);
-            frame[row * TofGestureRecognizer.GRID + c] = rangeMm;
-        }
-        return frame;
+    private void settle() {
+        scene.noHand();
+        frames(TofHandExtractor.ABSORB_MS + 500);
     }
 
-    private static float[] empty() {
-        return new float[TofGestureRecognizer.ZONES];
+    private void move(float fromCol, float fromRow, float toCol, float toRow, float rangeMm,
+                      long durationMs) {
+        move(fromCol, fromRow, rangeMm, toCol, toRow, rangeMm, durationMs);
     }
 
-    private void frame(float[] f, long advanceMs) {
-        clock += advanceMs;
-        recognizer.onFrame(f, clock);
-    }
-
-    /** Sweeps the hand from one centre to another, then lets it leave. */
-    private void sweep(float fromRow, float fromCol, float toRow, float toCol, long totalMs) {
-        int steps = 4;
+    private void move(float fromCol, float fromRow, float fromRange,
+                      float toCol, float toRow, float toRange, long durationMs) {
+        int steps = Math.max(1, Math.round(durationMs / (float) TofScene.FRAME_MS));
         for (int i = 0; i <= steps; i++) {
-            float t = (float) i / steps;
-            frame(hand(fromRow + (toRow - fromRow) * t, fromCol + (toCol - fromCol) * t, 200f),
-                    totalMs / steps);
+            float t = i / (float) steps;
+            scene.handAt(fromCol + (toCol - fromCol) * t, fromRow + (toRow - fromRow) * t,
+                    fromRange + (toRange - fromRange) * t);
+            frame();
         }
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
     }
 
-    /**
-     * The sensor left clear long enough for the recogniser to re-arm - what a hand dropping to
-     * the player's side looks like. Fed as ordinary frames at a plausible rate rather than one
-     * long jump, because it is the run of clear frames, not the gap between two of them, that
-     * the re-arm gate measures.
-     */
+    private void hold(float col, float row, float rangeMm, long ms) {
+        scene.handAt(col, row, rangeMm);
+        frames(ms);
+    }
+
+    /** The hand dropped out of view, long enough to count as gone. */
+    private void away() {
+        scene.noHand();
+        frames(TofGestureRecognizer.RELEASE_MS + 2 * TofScene.FRAME_MS);
+    }
+
+    /** Clear long enough to re-arm after a swipe. */
     private void neutral() {
-        for (long elapsed = 0; elapsed <= TofGestureRecognizer.NEUTRAL_REARM_MS; elapsed += 60) {
-            frame(empty(), 60);
-        }
-        assertTrue("感測區淨空 " + TofGestureRecognizer.NEUTRAL_REARM_MS + "ms 後應重新武裝",
-                recognizer.isArmed());
+        scene.noHand();
+        frames(TofGestureRecognizer.NEUTRAL_REARM_MS + 3 * TofScene.FRAME_MS);
+        assertTrue("感測區淨空後應重新武裝", recognizer.isArmed());
     }
 
-    /** {@link #sweep} in sub-zone steps, for travel the whole-zone helper cannot express. */
-    private void fineSweep(int row, float fromCol, float toCol, long totalMs) {
-        int steps = 4;
-        for (int i = 0; i <= steps; i++) {
-            float t = (float) i / steps;
-            frame(fineHand(row, fromCol + (toCol - fromCol) * t, 200f), totalMs / steps);
-        }
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
+    /** Across the sensor at mid height, from outside one edge to outside the other. */
+    private void swipe(float fromCol, float toCol, float rangeMm, long durationMs) {
+        move(fromCol, MID, toCol, MID, rangeMm, durationMs);
+        away();
     }
 
-    @Test public void aRightwardSweepIsRIGHT() {
-        sweep(3, 1, 3, 6, 400);
-        assertEquals(1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
+    private void swipeRight(float rangeMm) {
+        swipe(-1.5f, 8.5f, rangeMm, 450);
     }
 
-    @Test public void aLeftwardSweepIsLEFT() {
-        sweep(3, 6, 3, 1, 400);
-        assertEquals(1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
+    private void swipeLeft(float rangeMm) {
+        swipe(8.5f, -1.5f, rangeMm, 450);
     }
 
-    /** The axis toggle exists because how the module is mounted is only knowable on a unit. */
+    private void assertOnly(int gesture) {
+        assertEquals("應剛好辨識出一次：" + received + " " + notes, 1, received.size());
+        assertEquals("方向錯誤：" + notes, gesture, (int) received.get(0));
+    }
+
+    private void assertNothing() {
+        assertEquals("不應辨識出任何手勢：" + notes, 0, received.size());
+    }
+
+    // ------------------------------------------------------------------ 1. recognition
+
+    @Test public void aRightwardSwipeIsRIGHT() {
+        swipeRight(250);
+        assertOnly(RIGHT);
+    }
+
+    @Test public void aLeftwardSwipeIsLEFT() {
+        swipeLeft(250);
+        assertOnly(LEFT);
+    }
+
     @Test public void theAxisToggleFlipsBothDirections() {
         recognizer.setColumnIncreasesRight(false);
-        sweep(3, 1, 3, 6, 400);
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
+        swipeRight(250);
+        assertOnly(LEFT);
         received.clear();
         neutral();
-        sweep(3, 6, 3, 1, 400);
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
+        frames(TofGestureRecognizer.RETURN_SUPPRESS_MS);
+        swipeLeft(250);
+        assertOnly(RIGHT);
     }
 
-    /** A vertical wave is rejected outright - there is no UP or DOWN to fall back to. */
-    @Test public void aVerticalSweepProducesNothing() {
-        sweep(1, 3, 6, 3, 400);
-        assertTrue("垂直揮動不應產生任何手勢：" + received, received.isEmpty());
-    }
-
-    /** A hand coming straight in barely moves sideways, so it is simply not a swipe. */
-    @Test public void movingTowardsTheSensorProducesNothing() {
-        for (int i = 0; i <= 4; i++) frame(hand(3, 3, 320f - i * 60f), 80);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertTrue("推進不應產生任何手勢：" + received, received.isEmpty());
-    }
-
-    /** Holding still used to fire HALT, then SELECT. It must now fire nothing. */
-    @Test public void holdingStillProducesNothing() {
-        for (int i = 0; i < 30; i++) frame(hand(3, 3, 200f), 60);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertTrue("停留不應產生任何手勢：" + received, received.isEmpty());
-    }
-
-    /** A hand merely appearing used to emit PRESENCE. Presence is not a gesture. */
-    @Test public void aHandAppearingProducesNothing() {
-        frame(hand(3, 3, 200f), 50);
-        frame(hand(3, 3, 200f), 50);
-        assertTrue("出現在感測器前不應產生手勢：" + received, received.isEmpty());
-    }
-
-    /** A diagonal that is mostly vertical is ambiguous, and guessing is what lost gestures. */
-    @Test public void aMostlyVerticalDiagonalIsRejected() {
-        sweep(1, 2, 6, 4, 400);
-        assertTrue("偏垂直的斜向不應產生手勢：" + received, received.isEmpty());
-    }
-
-    /** A diagonal that is clearly sideways still reads as the swipe it was. */
-    @Test public void aMostlyHorizontalDiagonalStillSwipes() {
-        sweep(3, 1, 4, 6, 400);
-        assertEquals(1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-    }
-
-    @Test public void aSweepTooSlowToBeASwipeIsRejected() {
-        sweep(3, 1, 3, 6, TofGestureRecognizer.MAX_SWIPE_MS + 400);
-        assertTrue("過慢的移動不應產生手勢：" + received, received.isEmpty());
-    }
-
-    @Test public void aTinyShiftIsNotASwipe() {
-        sweep(3, 3, 3, 3.5f, 300);
-        assertTrue("位移不足不應產生手勢：" + received, received.isEmpty());
-    }
-
-    /** One swipe, one event - a hand crossing the sensor must not report twice. */
-    @Test public void oneSweepReportsExactlyOnce() {
-        sweep(3, 1, 3, 6, 400);
-        assertEquals(1, received.size());
-    }
-
-    @Test public void twoSweepsReportTwice() {
-        sweep(3, 1, 3, 6, 400);
+    @Test public void twoSwipesWithTheHandLoweredBetweenReportTwice() {
+        swipeRight(250);
         neutral();
-        sweep(3, 6, 3, 1, 400);
+        frames(TofGestureRecognizer.RETURN_SUPPRESS_MS);
+        swipeRight(250);
         assertEquals(2, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(1));
     }
 
-    /** A single dropped frame mid-swipe must not chop one swipe into two. */
-    @Test public void aBriefDropoutDoesNotSplitASwipe() {
-        frame(hand(3, 1, 200f), 80);
-        frame(hand(3, 3, 200f), 80);
-        frame(empty(), 20);
-        frame(hand(3, 5, 200f), 20);
-        frame(hand(3, 6, 200f), 80);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertEquals(1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
+    /** A swipe that starts and ends inside the view, not just one thrown across all of it. */
+    @Test public void aShortSwipeInsideTheViewStillCounts() {
+        move(2f, MID, 5f, MID, 350, 300);
+        away();
+        assertOnly(RIGHT);
+    }
+
+    @Test public void theFrameCarryingNoSignalStillWorks() {
+        // Every zone then weighs the same; nothing else changes.
+        TofGestureRecognizer plain = new TofGestureRecognizer(
+                (gesture, action, eventTimeNanos) -> received.add(gesture));
+        for (int i = 0; i <= 7; i++) {
+            scene.handAt(-1.5f + i * 10f / 7f, MID, 250);
+            clock += TofScene.FRAME_MS;
+            plain.onFrame(scene.range(), null, clock);
+        }
+        scene.noHand();
+        for (int i = 0; i < 5; i++) {
+            clock += TofScene.FRAME_MS;
+            plain.onFrame(scene.range(), null, clock);
+        }
+        assertOnly(RIGHT);
+    }
+
+    // ------------------------------------------------------------------ 2. speed
+
+    /** Three frames - a flick that crosses the whole view in about a seventh of a second. */
+    @Test public void aFastFlickSeenInThreeFramesIsRecognised() {
+        swipe(-1f, 8.5f, 300, 2 * TofScene.FRAME_MS);
+        assertOnly(RIGHT);
+    }
+
+    /** Two frames is a flicker as easily as a hand; it is not enough to act on. */
+    @Test public void somethingSeenInTwoFramesIsNot() {
+        swipe(0f, 7f, 300, TofScene.FRAME_MS);
+        assertNothing();
+    }
+
+    @Test public void aSlowDeliberateSwipeIsRecognised() {
+        swipe(-1.5f, 8.5f, 300, 1800);
+        assertOnly(RIGHT);
+    }
+
+    @Test public void slowerThanTheCeilingIsAHandBeingPlacedNotASwipe() {
+        swipe(-1.5f, 8.5f, 300, 2700);
+        assertNothing();
+    }
+
+    /** Two dropped frames in the middle of a swipe do not cut it in two. */
+    @Test public void droppedFramesMidSwipeDoNotSplitIt() {
+        move(-1.5f, MID, 3f, MID, 250, 200);
+        scene.noHand();
+        frame();
+        frame();
+        move(3.5f, MID, 8.5f, MID, 250, 200);
+        away();
+        assertOnly(RIGHT);
+    }
+
+    // ------------------------------------------------------------------ 3. distance
+
+    /** 48 cm: past the old 45 cm limit, a relaxed arm's length. */
+    @Test public void aSwipeAtArmsLengthIsRecognised() {
+        swipeRight(480);
+        assertOnly(RIGHT);
+    }
+
+    @Test public void aSwipeAtFifteenCentimetresIsRecognised() {
+        swipeLeft(150);
+        assertOnly(LEFT);
+    }
+
+    /** 4 cm: the hand covers the whole grid; only its leading and trailing edges move. */
+    @Test public void aSwipeRightAgainstTheGlassesIsRecognised() {
+        swipe(-11f, 18.5f, 40, 500);
+        assertOnly(RIGHT);
+    }
+
+    /** Past 50 cm it is the people around the wearer, not the wearer's hand. */
+    @Test public void beyondFiftyCentimetresIsOutOfReach() {
+        swipeRight(600);
+        assertNothing();
+    }
+
+    // ------------------------------------------------------------------ 4. lighting
+
+    /** Ambient infrared lights random zones at random depths with a weak return. */
+    @Test public void aSwipeIsRecognisedThroughInfraredNoise() {
+        noise = new Random(7);
+        settle();
+        swipeRight(300);
+        assertOnly(RIGHT);
+    }
+
+    @Test public void infraredNoiseOnItsOwnIsNeverASwipe() {
+        noise = new Random(11);
+        scene.noHand();
+        frames(8000);
+        assertNothing();
+    }
+
+    // ------------------------------------------------------------------ 5. background
+
+    /**
+     * A table edge or a display stand within reach. The old recogniser took it for a hand that
+     * never left: after one swipe it waited for a clear sensor that never came.
+     */
+    @Test public void aStaticObjectInRangeIsLearnedAndSwipesKeepWorking() {
+        scene.block(5, 7, 0, 7, 400);
+        settle();
+        swipeRight(200);
+        neutral();
+        frames(TofGestureRecognizer.RETURN_SUPPRESS_MS);
+        swipeRight(200);
+        assertEquals("背景有靜止物體時兩次揮手都要辨識：" + notes, 2, received.size());
+    }
+
+    @Test public void somethingThatArrivesAndStaysBecomesBackground() {
+        settle();
+        scene.block(0, 7, 5, 7, 450);
+        frames(TofHandExtractor.ABSORB_MS + 500);
+        assertNothing();
+        swipeLeft(200);
+        assertOnly(LEFT);
+    }
+
+    /** The hand is the nearest thing; whatever stands behind it is not averaged into it. */
+    @Test public void aSwipeInFrontOfAPersonFollowsTheHand() {
+        scene.wall(2000).block(0, 7, 3, 7, 500);
+        settle();
+        swipeLeft(200);
+        assertOnly(LEFT);
+    }
+
+    /** Someone walking away behind the hand while it swipes neither cancels nor redirects it. */
+    @Test public void aPersonMovingBehindTheHandDoesNotDisturbIt() {
+        scene.wall(2000).block(0, 7, 3, 7, 500);
+        settle();
+        for (int i = 0; i <= 7; i++) {
+            if (i >= 2) {
+                scene.clearBackground().wall(2000);
+                int from = Math.min(7, 3 + (i - 1));
+                scene.block(0, 7, from, 7, 500);
+            }
+            scene.handAt(-1.5f + i * 10f / 7f, MID, 200);
+            frame();
+        }
+        away();
+        assertOnly(RIGHT);
+    }
+
+    /** A body filling the view at 45 cm is not a hand, however it moves. */
+    @Test public void aBodyCrossingTheViewIsNotASwipe() {
+        scene.wall(2500);
+        settle();
+        // A body: 60 cm wide, filling the height, crossing at walking pace.
+        float width = 600f / TofScene.zoneWidthMm(450);
+        for (int i = 0; i <= 9; i++) {
+            scene.handAt(-6f + i * 2f, MID, 450, width, 12f);
+            frame();
+        }
+        away();
+        assertNothing();
+    }
+
+    /**
+     * The wearer turns their head past a shelf at 40 cm. The shelf slides across the grid
+     * exactly like a hand - but it also leaves the zones it was learned in, which a hand never
+     * does.
+     */
+    @Test public void turningTheHeadPastANearObjectIsNotASwipe() {
+        scene.wall(1200).block(0, 7, 0, 2, 400);
+        settle();
+        for (int shift = 1; shift <= 5; shift++) {
+            scene.clearBackground().wall(1200).block(0, 7, shift, 2 + shift, 400);
+            frame();
+            // Either recognised as the scene moving, or not found at all - never a hand.
+            assertFalse("第 " + shift + " 格位移不應被當成手：" + recognizer.lastHand().describe(),
+                    recognizer.lastHand().present);
+            if (shift >= 2) assertTrue(recognizer.lastHand().describe(), recognizer.lastHand().sceneMoving);
+        }
+        frames(2000);
+        assertNothing();
+    }
+
+    // ------------------------------------------------------------------ what is not a swipe
+
+    @Test public void aVerticalSweepProducesNothing() {
+        move(MID, -6f, MID, 13f, 300, 500);
+        away();
+        assertNothing();
+    }
+
+    @Test public void aMostlyVerticalDiagonalIsRejected() {
+        move(2f, -4f, 5f, 11f, 400, 500);
+        away();
+        assertNothing();
+    }
+
+    @Test public void aSwipeThatArcsALittleIsStillASwipe() {
+        move(-1.5f, 2.5f, 8.5f, 5f, 400, 450);
+        away();
+        assertOnly(RIGHT);
+    }
+
+    @Test public void comingStraightTowardsTheGlassesIsNothing() {
+        move(MID, MID, 480, MID, MID, 100, 500);
+        away();
+        assertNothing();
+    }
+
+    @Test public void holdingStillIsNothing() {
+        hold(MID, MID, 300, 2000);
+        away();
+        assertNothing();
+    }
+
+    @Test public void aSmallShiftIsNotASwipe() {
+        move(3f, MID, 3.8f, MID, 350, 300);
+        away();
+        assertNothing();
+    }
+
+    @Test public void aHandShakingInPlaceIsNothing() {
+        for (int i = 0; i < 20; i++) {
+            scene.handAt(MID + (i % 2 == 0 ? 0.3f : -0.3f), MID, 300);
+            frame();
+        }
+        away();
+        assertNothing();
+    }
+
+    /**
+     * Brought in from the side and stopped in the middle, then lowered: the hand was placed, not
+     * swiped. Its stroke ends in the middle of the view, which a swipe's does not.
+     */
+    @Test public void aHandPlacedFromTheSideIsNotASwipe() {
+        move(9f, MID, MID, MID, 300, 400);
+        hold(MID, MID, 300, 600);
+        move(MID, MID, MID, 14f, 300, 400);
+        away();
+        assertNothing();
+    }
+
+    /** ...and the swipe it then makes is read on its own. */
+    @Test public void aSwipeAfterPlacingTheHandIsRead() {
+        move(9f, MID, MID, MID, 300, 400);
+        hold(MID, MID, 300, 600);
+        move(MID, MID, 9.5f, MID, 300, 350);
+        away();
+        assertOnly(RIGHT);
+    }
+
+    // ------------------------------------------------------------------ one swipe, one gesture
+
+    /** A wave back and forth is one gesture - its first stroke - not a page per stroke. */
+    @Test public void aWaveBackAndForthIsOneGesture() {
+        move(1.5f, MID, 6f, MID, 300, 300);
+        move(6f, MID, 1.5f, MID, 300, 300);
+        move(1.5f, MID, 6f, MID, 300, 300);
+        move(6f, MID, 1.5f, MID, 300, 300);
+        away();
+        assertOnly(RIGHT);
+    }
+
+    /** A swipe whose hand stays up at the end is reported without waiting for it to drop. */
+    @Test public void aSwipeThatStopsAtTheEdgeIsReportedWhileTheHandIsStillUp() {
+        move(-1.5f, MID, 6f, MID, 300, 350);
+        hold(6f, MID, 300, 400);
+        assertOnly(RIGHT);
+        assertTrue(recognizer.isWaitingForNeutral());
+    }
+
+    /**
+     * The hand rests where its swipe ended while the next page is read, for longer than it
+     * takes to learn something new as background, then drifts back as the arm relaxes. That
+     * drift used to arrive on the next page as a LEFT nobody made.
+     */
+    @Test public void aHandRestingAfterItsSwipeAndDriftingBackIsNothing() {
+        move(-1.5f, MID, 6f, MID, 300, 350);
+        hold(6f, MID, 300, TofHandExtractor.ABSORB_MS + 1000);
+        move(6f, MID, 1.5f, MID, 300, 500);
+        hold(1.5f, MID, 300, 500);
+        assertOnly(RIGHT);
+    }
+
+    @Test public void anObjectThatNeverLeavesNeverReArms() {
+        move(-1.5f, MID, 6f, MID, 300, 350);
+        for (int i = 0; i < 45; i++) {
+            scene.handAt(6f - (i % 3) * 0.5f, MID, 300);
+            frame();
+        }
+        assertTrue(recognizer.isWaitingForNeutral());
+        assertOnly(RIGHT);
+    }
+
+    @Test public void aBriefGapIsNotEnoughToReArm() {
+        swipeRight(250);
+        assertTrue(recognizer.isWaitingForNeutral());
+        scene.handAt(MID, MID, 250);
+        frame();
+        assertTrue(recognizer.isWaitingForNeutral());
+    }
+
+    /**
+     * The arm coming back after a swipe to the right crosses the view to the left. Inside
+     * {@link TofGestureRecognizer#RETURN_SUPPRESS_MS} that is the return stroke; after it, a
+     * real swipe back.
+     */
+    @Test public void theReturnStrokeIsNotASwipeTheOtherWay() {
+        swipeRight(250);
+        neutral();
+        swipeLeft(250);
+        assertOnly(RIGHT);
+        assertTrue(notes.stream().anyMatch(n -> n.contains("回程")));
+
+        received.clear();
+        frames(TofGestureRecognizer.RETURN_SUPPRESS_MS);
+        swipeLeft(250);
+        assertOnly(LEFT);
+    }
+
+    @Test public void theSameDirectionAgainIsNotSuppressed() {
+        swipeRight(250);
+        neutral();
+        swipeRight(250);
+        assertEquals(2, received.size());
+    }
+
+    // ------------------------------------------------------------------ alongside the module
+
+    /** The module reported the swipe first: this recogniser stays quiet about the same one. */
+    @Test public void aModuleSwipeLocksThisRecogniser() {
+        move(-1.5f, MID, 4f, MID, 250, 250);
+        recognizer.onExternalGesture(RIGHT, clock);
+        move(4f, MID, 8.5f, MID, 250, 200);
+        away();
+        assertNothing();
+        neutral();
+    }
+
+    @Test public void theModulesSwipeGetsTheSameReturnStrokeProtection() {
+        settle();
+        recognizer.onExternalGesture(RIGHT, clock);
+        neutral();
+        swipeLeft(250);
+        assertNothing();
+    }
+
+    @Test public void agreeingWithTheModuleNeverFlipsTheAxis() {
+        for (int i = 0; i < 4; i++) {
+            move(-1.5f, MID, 4f, MID, 250, 250);
+            recognizer.onExternalGesture(i == 0 ? RIGHT : LEFT, clock);
+            away();
+            neutral();
+            frames(TofGestureRecognizer.RETURN_SUPPRESS_MS);
+        }
+        assertTrue(recognizer.isColumnIncreasesRight());
+    }
+
+    /** Mounted the other way round: three swipes in a row read backwards, and it corrects itself. */
+    @Test public void consistentlyDisagreeingWithTheModuleFlipsTheAxis() {
+        for (int i = 0; i < TofGestureRecognizer.ORIENTATION_FLIP_DISAGREEMENTS; i++) {
+            assertTrue(recognizer.isColumnIncreasesRight());
+            move(-1.5f, MID, 4f, MID, 250, 250);
+            recognizer.onExternalGesture(LEFT, clock);
+            away();
+            neutral();
+            frames(TofGestureRecognizer.RETURN_SUPPRESS_MS);
+        }
+        assertFalse(recognizer.isColumnIncreasesRight());
+        swipeRight(250);
+        assertOnly(LEFT);
+    }
+
+    @Test public void onlyLeftAndRightFromOutsideLockAnything() {
+        recognizer.onExternalGesture(TofGestureEvent.GESTURE_PUSH, clock);
+        assertTrue(recognizer.isArmed());
+    }
+
+    // ------------------------------------------------------------------ housekeeping
+
+    @Test public void resetReturnsToArmedAndForgetsTheBackground() {
+        scene.block(5, 7, 0, 7, 400);
+        settle();
+        move(-1.5f, MID, 6f, MID, 300, 350);
+        hold(6f, MID, 300, 400);
+        assertTrue(recognizer.isWaitingForNeutral());
+        recognizer.reset();
+        assertTrue(recognizer.isArmed());
+        assertFalse(recognizer.lastHand().present);
     }
 
     /** Whatever it reports, it can only ever be one of two things. */
-    @Test public void nothingButLeftOrRightCanEverBeReported() {
-        sweep(3, 1, 3, 6, 400);
-        neutral();
-        sweep(3, 6, 3, 1, 400);
-        neutral();
-        sweep(1, 3, 6, 3, 400);
-        for (int i = 0; i < 20; i++) frame(hand(3, 3, 200f), 60);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
+    @Test public void nothingButLeftOrRightIsEverReported() {
+        Random random = new Random(3);
+        for (int i = 0; i < 400; i++) {
+            scene.handAt(random.nextFloat() * 12f - 2f, random.nextFloat() * 12f - 2f,
+                    50f + random.nextInt(600));
+            if (random.nextInt(4) == 0) scene.noHand();
+            frame();
+        }
         for (int gesture : received) {
-            assertTrue("只允許 LEFT / RIGHT，但收到 " + GestureLabels.code(gesture),
-                    gesture == TofGestureEvent.GESTURE_LEFT
-                            || gesture == TofGestureEvent.GESTURE_RIGHT);
+            assertTrue(gesture == LEFT || gesture == RIGHT);
         }
-    }
-
-    // ---------------------------------------------------------------------------------------
-    // Sensitivity.
-    //
-    // On the glasses LEFT and RIGHT were recognised, but only for a swipe that was wide and
-    // brisk; an ordinary flick produced nothing, and a player had to learn to exaggerate.
-    // MIN_ZONE_TRAVEL went 1.5 -> 1.2, MAX_SWIPE_MS 1600 -> 1900 and HORIZONTAL_DOMINANCE
-    // 1.0 -> 0.85 to meet the hand where it actually is. Everything below pins both halves of
-    // that: the movements that must now carry, and the ones that must still produce nothing -
-    // because each of these three constants was, before the change, part of what kept a shaking
-    // hand, a nod, or a hand simply arriving from being read as a swipe.
-    // ---------------------------------------------------------------------------------------
-
-    /** 1.2 and 1.4 zones of travel: under the old 1.5 both were silently dropped. */
-    @Test public void aModestRightwardSwipeIsNowRecognised() {
-        fineSweep(3, 2.0f, 3.2f, 500);
-        assertEquals("1.2 zone 的右揮應該要能辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-
-        received.clear();
-        neutral();
-        fineSweep(3, 2.2f, 3.6f, 500);
-        assertEquals("1.4 zone 的右揮應該要能辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-    }
-
-    /** The same two distances the other way. LEFT is not RIGHT's afterthought. */
-    @Test public void aModestLeftwardSwipeIsNowRecognised() {
-        fineSweep(3, 3.2f, 2.0f, 500);
-        assertEquals("1.2 zone 的左揮應該要能辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
-
-        received.clear();
-        neutral();
-        fineSweep(3, 3.6f, 2.2f, 500);
-        assertEquals("1.4 zone 的左揮應該要能辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
-    }
-
-    /**
-     * Still a floor, not an open door. A whole zone of travel is more than a hand held in front
-     * of the sensor ever wanders, and it is below the threshold, so it is still nothing.
-     */
-    @Test public void aSwipeShorterThanTheThresholdIsStillRejected() {
-        fineSweep(3, 2.0f, 3.0f, 500);
-        assertTrue("1.0 zone 仍在門檻之下，不應辨識：" + received, received.isEmpty());
-    }
-
-    /**
-     * A hand that wobbles where it stands. It never leaves the sensor, so this is one movement,
-     * and what the classifier measures is where it ended up against where it started - which is
-     * where it started.
-     */
-    @Test public void aHandShakingInPlaceProducesNothing() {
-        frame(fineHand(3, 3.0f, 200f), 60);
-        frame(fineHand(3, 3.4f, 200f), 60);
-        frame(fineHand(3, 2.6f, 200f), 60);
-        frame(fineHand(3, 3.4f, 200f), 60);
-        frame(fineHand(3, 3.0f, 200f), 60);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertTrue("手在感測區小幅晃動不應觸發：" + received, received.isEmpty());
-    }
-
-    /**
-     * The lowered travel floor is what makes this worth re-pinning: 1.2 zones of sideways drift
-     * now clears MIN_ZONE_TRAVEL on its own, so the only thing left standing between a nod and a
-     * spurious LEFT is HORIZONTAL_DOMINANCE - and that constant was relaxed in the same change.
-     */
-    @Test public void aVerticalMoveWithSidewaysDriftIsStillNotASwipe() {
-        for (int i = 0; i <= 4; i++) {
-            frame(fineHand(1 + i, 3.0f + 0.3f * i, 200f), 100);
-        }
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertTrue("上下移動不應被判成 LEFT / RIGHT：" + received, received.isEmpty());
-    }
-
-    /**
-     * An arm that pivots at the elbow sweeps an arc, so a swipe that felt unmistakably sideways
-     * can carry marginally more vertical travel than horizontal. At the old dominance of 1.0
-     * that was thrown away; at 0.85 it is the swipe the player made.
-     */
-    @Test public void aSwipeThatArcsSlightlyIsStillASwipe() {
-        for (int i = 0; i <= 4; i++) {
-            frame(fineHand(2 + (i + 1) / 2, 2.0f + 0.45f * i, 200f), 100);
-        }
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertEquals("略帶弧線的揮動仍應是揮動：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-    }
-
-    /** Unhurried but deliberate. 1600ms used to be the ceiling and this fell just outside it. */
-    @Test public void anUnhurriedSwipeIsStillASwipe() {
-        sweep(3, 2, 3, 5, 1700);
-        assertEquals("1700ms 的揮動應該要能辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-
-        received.clear();
-        neutral();
-        sweep(3, 5, 3, 2, 1800);
-        assertEquals("1800ms 的揮動應該要能辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
-    }
-
-    /** The ceiling moved; it did not go away. Past it is a hand loitering, not a swipe. */
-    @Test public void aSwipeJustPastTheNewCeilingIsRejected() {
-        sweep(3, 1, 3, 6, TofGestureRecognizer.MAX_SWIPE_MS + 100);
-        assertTrue("超過 " + TofGestureRecognizer.MAX_SWIPE_MS + "ms 仍不應辨識：" + received,
-                received.isEmpty());
-    }
-
-    /**
-     * One swipe, one event - re-asserted at the new limits, because a swipe that only just
-     * clears the thresholds is the one whose frames sit closest to being cut in two.
-     */
-    @Test public void aModestSwipeStillReportsExactlyOnce() {
-        fineSweep(3, 2.0f, 3.2f, 1700);
-        assertEquals("一次揮動只能產生一次事件：" + received, 1, received.size());
-    }
-
-    // ---------------------------------------------------------------------------------------
-    // Re-arming.
-    //
-    // The module reports distances, not hands. On the glasses that meant one swipe could be
-    // read as two: a player swiped RIGHT, the page turned under their still-raised hand, and
-    // the hand leaving - or the arm relaxing where it was - crossed the same sensor again and
-    // advanced the page they had not yet read. A recognised swipe now locks the recogniser
-    // until the sensor has been clear for NEUTRAL_REARM_MS. Both halves are load-bearing and
-    // both are pinned below: a bare cooldown would expire into the middle of the movement it
-    // was meant to sit out, and a bare emptiness check would re-arm on the first frame a hand
-    // happened to be edge-on to the sensor.
-    // ---------------------------------------------------------------------------------------
-
-    /**
-     * The movement that turned one swipe into two. The hand does not vanish when the swipe is
-     * over: it sits where it landed while the player reads the page that just appeared, and
-     * then the arm relaxes and it drifts back the way it came - two zones of travel, well
-     * inside the time limit, and in the opposite direction. That drift is what used to arrive
-     * on the next page as a LEFT nobody made.
-     */
-    @Test public void aHandLeftSittingWhereTheSwipeEndedCannotSwipeAgain() {
-        sweep(3, 1, 3, 6, 400);
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-        received.clear();
-
-        for (int i = 0; i < 10; i++) frame(hand(3, 6, 200f), 60);   // held where it landed
-        for (int i = 0; i <= 3; i++) frame(hand(3, 6 - i, 200f), 80);  // the arm relaxing
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-
-        assertTrue("手勢後手還在感測區的移動不應再產生手勢：" + received, received.isEmpty());
-        assertTrue("感測區未淨空滿窗口前不得重新武裝", recognizer.isWaitingForNeutral());
-    }
-
-    /** The hand carries straight on into a second sweep without ever leaving the sensor. */
-    @Test public void aSecondMovementWithoutLeavingTheSensorIsIgnored() {
-        sweep(3, 1, 3, 6, 400);
-        received.clear();
-
-        // Back across the sensor, far enough and fast enough to be a LEFT on its own merits.
-        for (int i = 0; i <= 4; i++) frame(hand(3, 6 - i, 200f), 80);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertTrue("未回到 neutral 前的第二段移動不應觸發：" + received, received.isEmpty());
-    }
-
-    /**
-     * The release window is not the re-arm window. 80ms of emptiness is enough to call the
-     * first swipe finished - that is what {@link TofGestureRecognizer#RELEASE_MS} is for - and
-     * nowhere near enough to accept another one.
-     */
-    @Test public void aBriefGapIsNotEnoughToReArm() {
-        sweep(3, 1, 3, 6, 400);
-        received.clear();
-
-        frame(empty(), 40);
-        frame(empty(), 40);
-        sweep(3, 6, 3, 1, 400);
-
-        assertTrue("只淨空 80ms 就揮動不應觸發：" + received, received.isEmpty());
-        assertTrue("只淨空 80ms 不應重新武裝", recognizer.isWaitingForNeutral());
-    }
-
-    /** Clear for the full window, and the recogniser is listening again. */
-    @Test public void theSensorGoingQuietForTheFullWindowReArms() {
-        sweep(3, 1, 3, 6, 400);
-        received.clear();
-        assertTrue(recognizer.isWaitingForNeutral());
-
-        for (long elapsed = 0; elapsed < TofGestureRecognizer.NEUTRAL_REARM_MS; elapsed += 60) {
-            frame(empty(), 60);
-        }
-        frame(empty(), 60);
-        assertTrue("淨空滿 " + TofGestureRecognizer.NEUTRAL_REARM_MS + "ms 後應重新武裝",
-                recognizer.isArmed());
-    }
-
-    /** Re-armed means genuinely armed: the next swipe is read normally, in either direction. */
-    @Test public void aSwipeAfterReArmingIsRecognisedNormally() {
-        sweep(3, 1, 3, 6, 400);
-        received.clear();
-        neutral();
-
-        sweep(3, 6, 3, 1, 400);
-        assertEquals("重新武裝後的左揮應正常辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
-    }
-
-    /** Two deliberate swipes with the hand lowered in between: one event each, in order. */
-    @Test public void leftThenNeutralThenRightReportsEachExactlyOnce() {
-        sweep(3, 6, 3, 1, 400);
-        neutral();
-        sweep(3, 1, 3, 6, 400);
-        neutral();
-
-        assertEquals("兩次揮動應各產生一次事件：" + received, 2, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(1));
-    }
-
-    /**
-     * Why this is a gate and not a cooldown. Three seconds is ten times the window, so any
-     * timer started at the swipe expired long ago - but the sensor was never clear for one of
-     * those frames, so nothing re-arms and the movement that follows produces nothing.
-     */
-    @Test public void anObjectThatNeverLeavesDoesNotReArmHoweverLongItStays() {
-        sweep(3, 1, 3, 6, 400);
-        received.clear();
-
-        for (int i = 0; i < 50; i++) frame(hand(3, 6, 200f), 60);   // 3s, continuously lit
-
-        // It blinks out for a moment - a dropped frame, or a hand turned edge-on to the
-        // sensor - and comes straight back across it. 100ms is over RELEASE_MS, so a cooldown
-        // that expired two and a half seconds ago would treat what follows as a new swipe. It
-        // is under NEUTRAL_REARM_MS, so the sensor was never actually quiet.
-        frame(empty(), 100);
-        sweep(3, 6, 3, 1, 400);
-
-        assertTrue("物體未真正離開過，之後的揮動仍不應觸發：" + received, received.isEmpty());
-        assertTrue("物體持續存在 3 秒仍不得重新武裝", recognizer.isWaitingForNeutral());
-    }
-
-    /** A rejected movement locks nothing - there was no event to protect the next page from. */
-    @Test public void aMovementThatWasNotASwipeLeavesTheRecogniserArmed() {
-        sweep(1, 3, 6, 3, 400);
-        assertTrue("垂直揮動不應產生手勢：" + received, received.isEmpty());
-        assertTrue("未辨識出手勢時不應進入等待 neutral", recognizer.isArmed());
-
-        sweep(3, 1, 3, 6, 400);
-        assertEquals("被拒絕的移動不應擋住下一次揮動：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_RIGHT, (int) received.get(0));
-    }
-
-    /**
-     * reset() is for the hardware coming up, not for page changes - but when it is called it
-     * has to leave nothing behind, the lock included.
-     */
-    @Test public void resetClearsTheLockAsWellAsTheTracking() {
-        sweep(3, 1, 3, 6, 400);
-        received.clear();
-        frame(hand(3, 6, 200f), 60);
-        assertTrue("前置條件：此時應在等待 neutral", recognizer.isWaitingForNeutral());
-
-        recognizer.reset();
-        assertTrue("reset() 後應回到已武裝狀態", recognizer.isArmed());
-        float[] out = new float[TofGestureRecognizer.ZONES];
-        assertEquals("reset() 後快照應清空", 0, recognizer.copySnapshot(out));
-
-        sweep(3, 6, 3, 1, 400);
-        assertEquals("reset() 後應可立即辨識：" + received, 1, received.size());
-        assertEquals(TofGestureEvent.GESTURE_LEFT, (int) received.get(0));
-    }
-
-    /** reset() mid-swipe drops the half-finished movement instead of completing it. */
-    @Test public void resetDuringASwipeAbandonsIt() {
-        frame(hand(3, 1, 200f), 60);
-        frame(hand(3, 4, 200f), 60);
-        recognizer.reset();
-        frame(hand(3, 6, 200f), 60);
-        frame(empty(), TofGestureRecognizer.RELEASE_MS + 10);
-        assertTrue("reset() 中斷的揮動不應被送出：" + received, received.isEmpty());
-    }
-
-    /** The panel keeps drawing what the sensor sees while the recogniser is locked. */
-    @Test public void theSnapshotKeepsUpdatingWhileLocked() {
-        sweep(3, 1, 3, 6, 400);
-        assertTrue(recognizer.isWaitingForNeutral());
-
-        frame(hand(2, 5, 180f), 60);
-        float[] out = new float[TofGestureRecognizer.ZONES];
-        assertTrue("鎖定期間仍應更新熱區圖",
-                recognizer.copySnapshot(out) >= TofGestureRecognizer.MIN_ACTIVE_ZONES);
-        assertEquals(2f, recognizer.snapshotRow(), 0.6f);
-        assertEquals(5f, recognizer.snapshotColumn(), 0.6f);
-    }
-
-    @Test public void theSnapshotFollowsTheHandForTheOnScreenGrid() {
-        frame(hand(2, 5, 180f), 50);
-        float[] out = new float[TofGestureRecognizer.ZONES];
-        assertTrue("應有亮區", recognizer.copySnapshot(out) >= TofGestureRecognizer.MIN_ACTIVE_ZONES);
-        assertEquals(2f, recognizer.snapshotRow(), 0.6f);
-        assertEquals(5f, recognizer.snapshotColumn(), 0.6f);
-        assertEquals(180f, recognizer.snapshotRangeMm(), 1f);
     }
 }

@@ -18,6 +18,12 @@ import com.jorjin.jjsdk.tof.TofGestureEvent;
  */
 final class GestureController {
     static final long DEBOUNCE_MS = 300L;
+    /**
+     * A gesture from one source this soon after one accepted from the other is the same swipe:
+     * the firmware's gesture bits and the depth recogniser read the same hand on the same
+     * sensor. Without this, one swipe both of them caught would reach the page twice.
+     */
+    static final long CROSS_SOURCE_MS = 1000L;
     private static final String LOG_TAG = "JorjinGesture";
 
     /** Where a gesture came from; both sources share this controller's debounce and log. */
@@ -47,6 +53,7 @@ final class GestureController {
     private int lastAction = Integer.MIN_VALUE;
     private Source lastSource;
     private long lastAcceptedAt;
+    private Source acceptedSource;
 
     GestureController(Callback callback) {
         this.callback = callback;
@@ -94,6 +101,12 @@ final class GestureController {
                     + "（本版本只輸出 LEFT / RIGHT）");
             return;
         }
+        if (acceptedSource != null && source != acceptedSource
+                && nowMs - lastAcceptedAt < CROSS_SOURCE_MS) {
+            Log.i(LOG_TAG, "JorjinGesture: " + acceptedSource.label + " 在 " + CROSS_SOURCE_MS
+                    + " ms 內已送出手勢，略過" + source.label + "的 " + label + "（同一次揮手）");
+            return;
+        }
         if (gesture == lastGesture && action == lastAction && source == lastSource
                 && nowMs - lastAcceptedAt < DEBOUNCE_MS) {
             Log.i(LOG_TAG, "JorjinGesture: 因 " + DEBOUNCE_MS + " ms 防重複而略過 " + label);
@@ -103,6 +116,7 @@ final class GestureController {
         lastAction = action;
         lastSource = source;
         lastAcceptedAt = nowMs;
+        acceptedSource = source;
         acceptedEvents++;
         callback.onGesture(label, gesture, source, acceptedEvents);
     }
@@ -135,5 +149,6 @@ final class GestureController {
         lastAction = Integer.MIN_VALUE;
         lastSource = null;
         lastAcceptedAt = 0;
+        acceptedSource = null;
     }
 }

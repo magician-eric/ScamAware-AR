@@ -390,6 +390,13 @@ public final class MainActivity extends Activity
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
             Log.i(TAG, "按鍵 " + KeyEvent.keyCodeToString(event.getKeyCode())
                     + " 來自 " + describeInputDevice(event.getDevice()));
+            // The module's own engine recognised a swipe. The page reads the key itself (below);
+            // the depth recogniser is told so it does not report the same swipe again.
+            int code = event.getKeyCode();
+            if (hardware != null
+                    && (code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                hardware.onModuleGestureKey(code == KeyEvent.KEYCODE_DPAD_RIGHT);
+            }
         }
         return super.dispatchKeyEvent(event);
     }

@@ -96,6 +96,8 @@ final class JorjinHardwareManager {
     private final TofTrace trace = new TofTrace();
     private final AtomicLong tofFrameCount = new AtomicLong();
     private final TofGestureRecognizer depthRecognizer;
+    /** Raw frames around every gesture decision, for tuning; see {@link TofFrameRecorder}. */
+    private final TofFrameRecorder frameRecorder;
     /**
      * The glasses' RGB frames, republished to the WebView. A WebView cannot reach this camera on
      * its own - it is a USB device JJSDK holds - so image recognition in the page has to be fed
@@ -137,17 +139,44 @@ final class JorjinHardwareManager {
         this.gestureController = new GestureController((label, gesture, source, count) ->
                 handler.post(() -> listener.onGesture(
                         label, GestureLabels.code(gesture), source.label, count)));
-        // A fallback gesture source. JJSDK's TofGestureEvent path reads a bitfield the module's
-        // *firmware* fills in, and firmware older than v1.2.2 never sets it - no amount of a
-        // healthy USB link produces an event. The source that does work is the module's own
-        // gesture engine, which presses arrow keys the page reads directly (ModuleGestureKeys,
-        // configureModuleKeys); this recogniser computes gestures host-side from the same 8x8
-        // depth grid for whenever those keys are not arriving, and the page stops listening to
-        // it once they are.
-        this.depthRecognizer = new TofGestureRecognizer((gesture, action, eventTimeNanos) ->
+        // The second gesture source, running alongside the module's own engine (which presses
+        // arrow keys the page reads directly - ModuleGestureKeys, configureModuleKeys). This one
+        // reads the same sensor's raw 8x8 depth and signal frames and catches what the module
+        // misses; a module swipe locks it (onModuleGestureKey) so one movement counts once.
+        java.io.File logDirectory = this.context.getExternalFilesDir(null);
+        if (logDirectory == null) logDirectory = this.context.getFilesDir();
+        this.frameRecorder = new TofFrameRecorder(new TofFrameFile(logDirectory));
+        this.depthRecognizer = new TofGestureRecognizer(new TofGestureRecognizer.Callback() {
+            @Override public void onRecognised(int gesture, int action, long eventTimeNanos) {
                 gestureController.onRawEvent(action, gesture, eventTimeNanos,
                         android.os.SystemClock.elapsedRealtime(),
-                        GestureController.Source.DEPTH_FRAME));
+                        GestureController.Source.DEPTH_FRAME);
+            }
+
+            @Override public void onNote(String note) {
+                Log.i(GESTURE_TAG, note);
+                frameRecorder.mark(android.os.SystemClock.elapsedRealtime(), wallClock() + " " + note);
+            }
+        });
+    }
+
+    private static final String GESTURE_TAG = "JorjinGesture";
+
+    private static String wallClock() {
+        return TofFrameRecorder.clock(System.currentTimeMillis());
+    }
+
+    /**
+     * The glasses pressed Left or Right Arrow: the ToF module's own engine recognised a swipe
+     * (see {@link ModuleGestureKeys}). The page reads the key itself; here it only locks the
+     * depth recogniser, so the same swipe - or the arm coming back after it - is not reported a
+     * second time, and marks the frame log with what the module saw. Main thread.
+     */
+    void onModuleGestureKey(boolean right) {
+        long now = android.os.SystemClock.elapsedRealtime();
+        frameRecorder.mark(now, wallClock() + " 眼鏡模組按鍵 " + (right ? "RIGHT" : "LEFT"));
+        depthRecognizer.onExternalGesture(
+                right ? TofGestureEvent.GESTURE_RIGHT : TofGestureEvent.GESTURE_LEFT, now);
     }
 
     void setSurfaceHolder(SurfaceHolder holder) {
@@ -269,6 +298,8 @@ final class JorjinHardwareManager {
         tofFrameCount.set(0);
         gestureController.reset();
         depthRecognizer.reset();
+        frameRecorder.line(wallClock() + " 開始：外殼 " + BuildConfig.SHELL_VERSION
+                + "（" + BuildConfig.VERSION_NAME + "）");
         // Camera + ToF, always. This is the one start-up path the app has: the production
         // experience needs the RGB stream for recognition and the ToF module for gestures, so
         // there is nothing to choose between and nothing on screen that could choose it.
@@ -455,10 +486,11 @@ final class JorjinHardwareManager {
 
         @Override public void onTofIncomingFrame(TofFrameData frame) {
             tofFrameCount.incrementAndGet();
-            if (frame != null) {
-                depthRecognizer.onFrame(frame.medianRange,
-                        android.os.SystemClock.elapsedRealtime());
-            }
+            if (frame == null) return;
+            long now = android.os.SystemClock.elapsedRealtime();
+            TofHandExtractor.Hand hand =
+                    depthRecognizer.onFrame(frame.medianRange, frame.peakSignalRate, now);
+            frameRecorder.frame(now, frame.medianRange, frame.peakSignalRate, hand.describe());
         }
     };
 
@@ -468,7 +500,14 @@ final class JorjinHardwareManager {
                 trace.add(tofInstanceId, "<- onTofGestureEvent 第一次送達（pipe 已通）");
                 handler.post(() -> listener.onTofTrace(trace.render()));
             }
-            gestureController.onRawEvent(event, android.os.SystemClock.elapsedRealtime());
+            long now = android.os.SystemClock.elapsedRealtime();
+            gestureController.onRawEvent(event, now);
+            if (event != null && event.getAction() == TofGestureEvent.ACTION_RECEIVED
+                    && GestureController.isSupported(event.getGesture())) {
+                frameRecorder.mark(now, wallClock() + " 韌體手勢 "
+                        + GestureLabels.code(event.getGesture()));
+                depthRecognizer.onExternalGesture(event.getGesture(), now);
+            }
         }
     };
 

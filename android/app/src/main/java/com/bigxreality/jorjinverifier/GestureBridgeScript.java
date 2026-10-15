@@ -16,12 +16,18 @@ import java.util.Locale;
  * <h2>Contract seen by the page</h2>
  * <pre>
  * window.addEventListener('jorjinGesture', function (event) {
- *   event.detail // { gesture: 'PUSH', label: '推進 PUSH', count: 12, at: 8123456 }
+ *   event.detail // { gesture: 'LEFT', label: '向左 LEFT', count: 12, at: 8123456, recognizer: 2 }
  * })
  * </pre>
  * {@code detail.gesture} is the bare uppercase code from {@link GestureLabels#code(int)} - the
  * same vocabulary CIBAR's own AR gesture bridge speaks - so an adapter on the web side has
  * nothing to translate beyond picking the codes it cares about.
+ *
+ * <p>{@code detail.recognizer} is {@link #RECOGNIZER_GENERATION}: which generation of this
+ * Shell's own recogniser is speaking. The page needs it because what it may do with a delivery
+ * depends on it. Generation 2 ({@link TofGestureRecognizer} with {@link TofHandExtractor}) is
+ * locked by the module's own key presses, so its reports can be taken alongside them; an older
+ * Shell's reports carry no generation, and the page keeps ignoring those once keys arrive.
  *
  * <p>{@code window.__jorjinGestureBridge} is also published for a page that loads after a gesture
  * has already happened: it exposes the last gesture and the running count. A
@@ -34,6 +40,8 @@ final class GestureBridgeScript {
     /** Fired once per page load, right after the bridge object is published. */
     static final String READY_EVENT_NAME = "jorjinGestureBridgeReady";
     static final String BRIDGE_PROPERTY = "__jorjinGestureBridge";
+    /** See the class comment. Raise it whenever the native recogniser changes how it behaves. */
+    static final int RECOGNIZER_GENERATION = 2;
 
     private GestureBridgeScript() { }
 
@@ -89,7 +97,8 @@ final class GestureBridgeScript {
                 + "gesture:" + quote(gesture) + ","
                 + "label:" + quote(label) + ","
                 + "count:" + count + ","
-                + "at:" + atMs
+                + "at:" + atMs + ","
+                + "recognizer:" + RECOGNIZER_GENERATION
                 + "});";
     }
 

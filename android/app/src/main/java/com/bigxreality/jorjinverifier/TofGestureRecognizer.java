@@ -2,326 +2,527 @@ package com.bigxreality.jorjinverifier;
 
 import com.jorjin.jjsdk.tof.TofGestureEvent;
 
+import java.util.Locale;
+
 /**
- * Recognises horizontal swipes from the ToF module's raw depth frames, the way the vendor
- * Gesture app does, so gestures work on firmware that predates the module's built-in gesture
- * engine.
+ * Recognises horizontal swipes from the ToF module's 8x8 depth frames - the second of the two
+ * recognisers on the glasses, running alongside the module's own engine.
  *
- * <h2>Why this exists</h2>
- * JJSDK's {@code TofGestureEvent} path reads a gesture bitfield the <em>firmware</em> fills in.
- * A module running firmware older than v1.2.2 never sets those bits, so that path can never
- * produce an event no matter how healthy the USB link is. The vendor's own app sidesteps this
- * entirely: it ships {@code libcalculate_gesture.so} and computes gestures host-side from the
- * same 8x8 depth grid, which JJSDK hands us through {@code TofIncomingFrameListener}.
+ * <h2>Two recognisers, one swipe</h2>
+ * The ToF module recognises swipes itself and presses arrow keys the page reads
+ * ({@link ModuleGestureKeys}). That engine is good, and it is a black box: what it does with a
+ * busy background, an infrared-rich lamp, a hand at arm's length or a fast flick cannot be
+ * changed from here. This recogniser reads the same sensor's raw frames and catches what the
+ * module misses. When the module reports a swipe ({@link #onExternalGesture}) this one locks
+ * exactly as if it had reported it, so one movement is never counted twice and the module's
+ * swipe gets the same protection against its return stroke as this one's own. The page drops a
+ * report that arrives from the other channel moments after the first
+ * ({@code webapp/src/lib/arInteraction/native/jorjinGestureAdapter.js}).
  *
  * <h2>LEFT and RIGHT only</h2>
- * This deliberately recognises nothing else. It previously also produced UP/DOWN from vertical
- * travel, PUSH/PULL from distance, HALT from a slow hand and SELECT from a hold - and every one
- * of those was a way for a swipe to come out as something other than a swipe. On a 64-zone
- * sensor a hand rarely travels along one axis cleanly, so a left swipe with a little downward
- * drift or a little approach could be classified as DOWN or PUSH instead, and the gesture the
- * user actually made was lost.
+ * It recognises nothing else, deliberately. It once also produced UP/DOWN, PUSH/PULL, HALT and
+ * SELECT, and each was a way for a swipe to come out as something other than a swipe. Vertical
+ * travel is still measured, but only to reject: a movement that is mostly vertical produces
+ * nothing at all.
  *
- * <p>Removing them is not a filter bolted on afterwards; the classifier itself now has one
- * question to answer. Vertical and depth travel are still measured, but only to <em>reject</em>:
- * a movement that is mostly vertical is not a horizontal swipe and produces nothing at all. That
- * is what keeps a nod from registering as LEFT, and it is the opposite of classifying it as UP.
+ * <h2>Where the hand is</h2>
+ * {@link TofHandExtractor} decides that, frame by frame: background learning, signal strength,
+ * the nearest object, one connected blob of hand size, and a guard for the wearer turning their
+ * head. This class only sees its answer - a position in fractions of a zone, or nothing.
  *
- * <h2>How it works</h2>
- * Each frame carries 64 zones laid out as an 8x8 grid ({@code index = row * 8 + col}); JJSDK has
- * already zeroed the zones whose VL53L5CX target status was not valid. Zones with a plausible
- * range form the hand; its centroid is tracked from the moment the hand appears until it leaves,
- * and the horizontal component of that travel decides LEFT or RIGHT.
+ * <h2>The whole path, not two points</h2>
+ * The first version compared where the hand appeared with where it vanished. A hand that waved
+ * back and forth, paused before swiping, or stayed in view after its swipe defeated that. Now the
+ * path is cut into <em>strokes</em>: a stroke runs while the hand keeps moving one way, ends when
+ * it turns back ({@link #REVERSAL_HYSTERESIS}) or holds still ({@link #STOP_MS}), and is judged on
+ * its own - far enough sideways ({@link #MIN_ZONE_TRAVEL}), sideways more than up or down
+ * ({@link #HORIZONTAL_DOMINANCE}), not slower than {@link #MAX_SWIPE_MS}.
+ *
+ * <ul>
+ *   <li>When the hand leaves, the biggest qualifying stroke since it last held still is
+ *       reported. That is the ordinary swipe across the sensor, and it is the only way a short
+ *       stroke is reported.</li>
+ *   <li>A stroke that turns back or stops is reported straight away only when it is
+ *       unmistakable: {@link #EARLY_ZONE_TRAVEL} or more, ending beyond the middle of the grid
+ *       in the direction it travelled. That is a wave's first stroke, or a swipe whose hand
+ *       stays up. A hand brought in from the side that stops in the middle does not qualify -
+ *       it was placed, not swiped.</li>
+ *   <li>A stroke that ends by holding still and did not qualify is forgotten. Whatever the hand
+ *       does next is a new movement.</li>
+ * </ul>
  *
  * <h2>One gesture per approach</h2>
- * The sensor does not recognise a <em>hand</em>. It recognises 64 distances, so anything that
- * moves in front of the glasses can travel far enough sideways to read as a swipe. That made
- * the first swipe of a page double as the second: a player swiped RIGHT, the page advanced
- * under their still-raised hand, and the hand drifting back out of frame - or simply staying
- * there while the arm relaxed - was another movement across the same sensor, recognised on the
- * next page before they had read it.
+ * A reported swipe locks the recogniser until the sensor has been clear - no hand - for
+ * {@link #NEUTRAL_REARM_MS} without a break. A timer would not do: a hand still in front of the
+ * glasses when it expired would re-arm into the middle of the movement it was meant to sit out.
+ * After re-arming, a stroke the opposite way that began within {@link #RETURN_SUPPRESS_MS} of the
+ * swipe is the arm coming back for the next one, and is not reported.
  *
- * <p>So a recognised swipe locks the recogniser. It reports once and then refuses to see
- * anything at all until the sensor has gone quiet: fewer than {@link #MIN_ACTIVE_ZONES} lit
- * zones, held continuously for {@link #NEUTRAL_REARM_MS}. A plain cooldown would not do this.
- * A timer that expires while the hand is still in front of the sensor re-arms into the middle
- * of the movement it was supposed to sit out, and the second gesture arrives anyway, just
- * later. Both conditions have to hold together - clear <em>and</em> clear for long enough -
- * which is why the object leaving is what starts the clock and the object returning is what
- * resets it.
- *
- * <p>Nothing outside has to drive this. Navigating to the next page does not need to call
- * {@link #reset()} to stay honest; the recogniser knows on its own that it has already spoken.
+ * <h2>Direction</h2>
+ * Increasing column is RIGHT unless {@link #setColumnIncreasesRight} says otherwise. Every time
+ * the module and this recogniser both read the same swipe their directions are compared; if they
+ * disagree {@link #ORIENTATION_FLIP_DISAGREEMENTS} times and have never once agreed, the module
+ * is taken as the reference and the axis is flipped.
  */
 final class TofGestureRecognizer {
-    /** Zones per side of the sensor's square grid. */
-    static final int GRID = 8;
-    static final int ZONES = GRID * GRID;
+    static final int GRID = TofHandExtractor.GRID;
+    static final int ZONES = TofHandExtractor.ZONES;
 
-    /** Ignore anything closer than the cover glass or beyond comfortable gesture reach. */
-    static final float MIN_RANGE_MM = 20f;
-    static final float MAX_RANGE_MM = 450f;
-    /** Fewer lit zones than this is noise, not a hand. */
-    static final int MIN_ACTIVE_ZONES = 3;
-    /**
-     * Horizontal centroid travel, in zones, before a swipe counts as directional.
-     *
-     * <p>Lowered from 1.5 after on-device testing: LEFT and RIGHT were recognised reliably, but
-     * only when the hand was thrown right across the sensor. 1.5 zones of centroid travel is
-     * most of the 8-zone grid's usable width once the hand's own width is taken off both ends,
-     * so an ordinary flick in front of the glasses fell just short and produced nothing. At 1.2
-     * a normal-sized swipe carries, and the movements that must still be rejected are well
-     * below it - a hand shaking in place moves the centroid by a fraction of a zone, not by
-     * more than a whole one.
-     */
+    /** Sideways travel, in zones, for a stroke to count as a swipe. */
     static final float MIN_ZONE_TRAVEL = 1.2f;
-    /**
-     * Slower than this is not a swipe - a hand being moved into place, or hesitating.
-     *
-     * <p>Raised from 1600ms for the same reason: the old ceiling asked for a swipe that was
-     * both wide and brisk, and a deliberate, unhurried one that took a little under two seconds
-     * was thrown away after travelling far enough to be unambiguous. It is still a ceiling, not
-     * an absence of one - a hand that lingers in front of the sensor and then drifts away is
-     * over it and stays rejected.
-     */
-    static final long MAX_SWIPE_MS = 1900L;
-    /** A hand must be gone this long before the next swipe can start. */
-    static final long RELEASE_MS = 80L;
-    /**
-     * How long the sensor has to stay clear after a reported swipe before another one can be
-     * recognised. Measured from the frame the swipe was reported on, and restarted in full
-     * every time something comes back into view.
-     *
-     * <p>{@link #RELEASE_MS} is not this and cannot be raised into it. That one asks how long a
-     * gap has to be before a swipe is <em>over</em>, and it is deliberately short so a single
-     * dropped frame does not cut one swipe in two. This one asks how long the sensor has to be
-     * empty before the recogniser will listen again, and it is the whole gesture that has to
-     * end, not a frame.
-     *
-     * <p>300ms is long enough for an arm to fall out of the sensor's cone after the swipe it
-     * just made, and short enough to be invisible to somebody swiping deliberately through a
-     * few pages - by the time the next page has drawn and been read, the window is long since
-     * over. It is a floor on the sensor being clear, not on the clock: an object that stays in
-     * front of the glasses for three seconds re-arms nothing, because none of those three
-     * seconds were quiet.
-     */
-    static final long NEUTRAL_REARM_MS = 300L;
-
-    /**
-     * How much of the movement has to be horizontal. A swipe whose vertical travel rivals its
-     * horizontal travel is ambiguous, and guessing at it is what used to turn a nod into a LEFT.
-     * Measured in the same zone units, so the two are directly comparable.
-     *
-     * <p>Relaxed from 1.0 to 0.85. At 1.0 the horizontal component had to be the larger of the
-     * two outright, and a hand swept across the sensor by an arm that pivots at the elbow
-     * traces an arc - so a swipe that read as unmistakably sideways to the person making it
-     * could carry slightly more vertical travel than horizontal and be dropped. 0.85 allows the
-     * horizontal component to be a little the smaller of the two and still count. It is not a
-     * licence for vertical movement: a hand that travels twice as far up or down as sideways is
-     * an order of magnitude clear of this and still produces nothing, which is what keeps a nod
-     * from arriving as LEFT.
-     */
+    /** Sideways travel for a stroke to be reported before the hand has left. */
+    static final float EARLY_ZONE_TRAVEL = 2.0f;
+    /** How far past the middle of the grid an early-reported stroke must end. */
+    static final float OUTER_FROM_CENTRE = 1.0f;
+    /** Horizontal travel must be at least this fraction of the vertical (an elbow sweeps arcs). */
     static final float HORIZONTAL_DOMINANCE = 0.85f;
-
+    /** A stroke slower than this is a hand being moved into place, not a swipe. */
+    static final long MAX_SWIPE_MS = 2000L;
+    /** Frames the hand must have been seen in; fewer is a flicker, not a hand. */
+    static final int MIN_HAND_FRAMES = 3;
     /**
-     * Sensor orientation: increasing column index is taken as RIGHT. Which way the module is
-     * actually mounted cannot be known without a unit in hand, so this is a runtime toggle
-     * rather than a constant - a tester who sees a left swipe reported as RIGHT flips it on the
-     * spot instead of waiting for another build.
+     * Positions a stroke must be made of. Two are a jump between frames - a blob that changed
+     * shape, two objects swapping - and say nothing about a hand moving.
      */
-    private volatile boolean columnIncreasesRight = true;
-
-    void setColumnIncreasesRight(boolean value) { columnIncreasesRight = value; }
-
-    boolean isColumnIncreasesRight() { return columnIncreasesRight; }
+    static final int MIN_STROKE_SAMPLES = 3;
+    /**
+     * Beyond this, a hand is narrow enough to be seen whole, clear of both sides of the view, at
+     * some point of any swipe across it. Something that only ever shows an edge - a person
+     * walking past, of whom only a shoulder fits - never is.
+     */
+    static final float SEEN_WHOLE_BEYOND_MM = 250f;
+    /**
+     * A stroke whose distance changed by more than this fraction is a hand coming towards the
+     * glasses or going away: the blob grows or shrinks around its centre, and the centroid drifts
+     * sideways without the hand moving sideways at all.
+     */
+    static final float MAX_DEPTH_CHANGE = 0.35f;
+    /** The hand must be gone this long before it has left; two dropped frames do not end a swipe. */
+    static final long RELEASE_MS = 150L;
+    /** Clear for this long after a swipe before another can be recognised. */
+    static final long NEUTRAL_REARM_MS = 300L;
+    /** An opposite stroke beginning this soon after a swipe is its return stroke. */
+    static final long RETURN_SUPPRESS_MS = 1200L;
+    /** Movement before a stroke has a direction (zones). Below it the hand is only jittering. */
+    static final float DIRECTION_HYSTERESIS = 0.3f;
+    /** How far back a hand must come before a stroke is over (zones). */
+    static final float REVERSAL_HYSTERESIS = 0.6f;
+    /** A hand that stays within this radius (zones) for {@link #STOP_MS} has stopped. */
+    static final float STILL_RADIUS = 0.4f;
+    static final long STOP_MS = 250L;
+    /** After the scene moved, this long passes before a new movement is tracked. */
+    static final long SCENE_SETTLE_MS = 300L;
+    /** A module swipe and one of ours this close together are the same swipe. */
+    static final long AGREEMENT_WINDOW_MS = 700L;
+    static final int ORIENTATION_FLIP_DISAGREEMENTS = 3;
 
     interface Callback {
         /** @param action one of {@link TofGestureEvent}'s ACTION_* constants. */
         void onRecognised(int gesture, int action, long eventTimeNanos);
+
+        /** One decision worth a log line: a swipe, a rejected stroke, a direction check. */
+        default void onNote(String note) { }
     }
 
-    private final Callback callback;
+    private enum State { IDLE, TRACKING, LOCKED }
 
-    /**
-     * Latest frame, kept so the panel can draw what the sensor actually sees. Without it a
-     * tester has no way to tell a gesture they made badly from one the thresholds rejected.
-     */
-    private final float[] snapshot = new float[ZONES];
-    private volatile int snapshotActive;
-    private volatile float snapshotRow, snapshotCol, snapshotRange;
+    private enum End { EXIT, REVERSAL, STOP }
 
-    /**
-     * ARMED -> TRACKING when something enters the sensor, TRACKING -> WAIT_FOR_NEUTRAL when a
-     * swipe is reported, WAIT_FOR_NEUTRAL -> ARMED when the sensor has been clear long enough.
-     * A movement that is not a swipe goes TRACKING -> ARMED without passing through the lock:
-     * nothing was reported, so there is nothing to protect the next page from.
-     */
-    private enum State { ARMED, TRACKING, WAIT_FOR_NEUTRAL }
+    /** One stroke: where it began and where it got furthest. */
+    private static final class Stroke {
+        final float dx, dy, endCol;
+        final long startMs, endMs;
+        final int dir;
+        final int samples;
+        final float startRangeMm, endRangeMm;
+        final boolean seenWhole;
 
-    /** {@link #neutralSinceMs} when the sensor is not currently clear. */
+        Stroke(float dx, float dy, float endCol, long startMs, long endMs, int dir, int samples,
+               float startRangeMm, float endRangeMm, boolean seenWhole) {
+            this.dx = dx;
+            this.dy = dy;
+            this.endCol = endCol;
+            this.startMs = startMs;
+            this.endMs = endMs;
+            this.dir = dir;
+            this.samples = samples;
+            this.startRangeMm = startRangeMm;
+            this.endRangeMm = endRangeMm;
+            this.seenWhole = seenWhole;
+        }
+    }
+
     private static final long NOT_NEUTRAL = Long.MIN_VALUE;
+    private static final long NEVER = Long.MIN_VALUE / 4;
 
-    private State state = State.ARMED;
-    /** When the current run of clear frames began, or {@link #NOT_NEUTRAL} if there is none. */
-    private long neutralSinceMs = NOT_NEUTRAL;
-    private float startRow, startCol;
-    private float lastRow, lastCol;
-    private long startMs;
+    private final Callback callback;
+    private final TofHandExtractor extractor = new TofHandExtractor();
+
+    private volatile boolean columnIncreasesRight = true;
+
+    private State state = State.IDLE;
+    private TofHandExtractor.Hand lastHand = TofHandExtractor.Hand.NONE;
+    private boolean handInView;
+
+    private int handFrames;
     private long lastSeenMs;
+    private float trackRangeMm;
+    private float anchorCol, anchorRow;
+    private long anchorMs;
+    private float extremeCol, extremeRow;
+    private long extremeMs;
+    /** +1 while the current stroke is moving towards higher columns, -1 lower, 0 not yet. */
+    private int strokeDir;
+    private float stillCol, stillRow;
+    private long stillSinceMs;
+    /** The biggest qualifying stroke that ended by turning back, waiting for the hand to leave. */
+    private Stroke pending;
+    /** Frames the current stroke spans, its starting point included. */
+    private int strokeSamples;
+    private float anchorRangeMm, extremeRangeMm;
+    /** Whether the hand has been seen clear of both sides since the stroke began. */
+    private boolean strokeSeenWhole;
+
+    private long neutralSinceMs = NOT_NEUTRAL;
+    private int lastDir;
+    private long lastGestureAtMs = NEVER;
+    private boolean lastWasOwn;
+    private long quietUntilMs = NEVER;
+
+    private int agreements;
+    private int disagreements;
 
     TofGestureRecognizer(Callback callback) {
         this.callback = callback;
     }
 
+    void setColumnIncreasesRight(boolean value) { columnIncreasesRight = value; }
+
+    boolean isColumnIncreasesRight() { return columnIncreasesRight; }
+
     /**
-     * @param medianRange the frame's 64 zone distances in mm, zero where the zone had no valid
-     *                    target; JJSDK reuses its buffer, so this is only read, never retained.
-     * @param nowMs       monotonic clock reading, injected so the state machine can be tested.
+     * @param range  the frame's 64 zone distances in mm, zero where the zone had no valid
+     *               target. Only read, never retained.
+     * @param signal the 64 peak signal rates, or null.
+     * @param nowMs  monotonic clock, injected so the state machine can be tested.
+     * @return what the frame contained, for the frame log.
      */
-    synchronized void onFrame(float[] medianRange, long nowMs) {
-        if (medianRange == null || medianRange.length < ZONES) return;
+    synchronized TofHandExtractor.Hand onFrame(float[] range, float[] signal, long nowMs) {
+        if (range == null || range.length < ZONES) return TofHandExtractor.Hand.NONE;
+        TofHandExtractor.Hand hand = extractor.process(range, signal, nowMs, state == State.LOCKED);
+        lastHand = hand;
 
-        int active = 0;
-        float rowSum = 0f, colSum = 0f, rangeSum = 0f;
-        for (int i = 0; i < ZONES; i++) {
-            float range = medianRange[i];
-            if (range < MIN_RANGE_MM || range > MAX_RANGE_MM) continue;
-            active++;
-            rowSum += i / GRID;
-            colSum += i % GRID;
-            rangeSum += range;
+        if (hand.sceneMoving) {
+            quietUntilMs = nowMs + SCENE_SETTLE_MS;
+            if (state == State.TRACKING) {
+                note("整個畫面在移動（" + hand.recededZones + " 格退後，多半是頭在轉），放棄這次追蹤");
+                state = State.IDLE;
+            } else if (state == State.LOCKED) {
+                neutralSinceMs = NOT_NEUTRAL;
+            }
+            handInView = false;
+            return hand;
         }
 
-        synchronized (snapshot) {
-            System.arraycopy(medianRange, 0, snapshot, 0, ZONES);
+        boolean present = hand.present;
+        handInView = present;
+        switch (state) {
+            case LOCKED:
+                if (present) {
+                    neutralSinceMs = NOT_NEUTRAL;
+                } else if (neutralSinceMs == NOT_NEUTRAL) {
+                    neutralSinceMs = nowMs;
+                } else if (nowMs - neutralSinceMs >= NEUTRAL_REARM_MS) {
+                    state = State.IDLE;
+                    neutralSinceMs = NOT_NEUTRAL;
+                }
+                break;
+            case IDLE:
+                if (present && nowMs >= quietUntilMs) startTracking(hand, nowMs);
+                break;
+            case TRACKING:
+                if (present && Math.abs(hand.rangeMm - trackRangeMm)
+                        > TofHandExtractor.band(Math.min(hand.rangeMm, trackRangeMm))) {
+                    // A different object at a different depth - the hand dropped out and what
+                    // was behind it became the nearest thing, or a hand came in front of an
+                    // object not yet learned. What was being followed has gone; the jump between
+                    // the two is not a movement of either.
+                    handLeft(nowMs);
+                    if (state == State.IDLE) startTracking(hand, nowMs);
+                } else if (present) {
+                    trackRangeMm = hand.rangeMm;
+                    handFrames++;
+                    lastSeenMs = nowMs;
+                    step(hand, nowMs);
+                } else if (nowMs - lastSeenMs >= RELEASE_MS) {
+                    handLeft(nowMs);
+                }
+                break;
         }
-        snapshotActive = active;
-        snapshotRow = active > 0 ? rowSum / active : -1f;
-        snapshotCol = active > 0 ? colSum / active : -1f;
-        snapshotRange = active > 0 ? rangeSum / active : 0f;
+        return hand;
+    }
 
-        boolean clear = active < MIN_ACTIVE_ZONES;
+    /**
+     * The module's own engine (a key press) or the firmware's gesture bits reported a swipe.
+     * Locks this recogniser as though it had reported it - see the class comment - and, when
+     * both read the same movement, compares directions.
+     */
+    synchronized void onExternalGesture(int gesture, long nowMs) {
+        if (gesture != TofGestureEvent.GESTURE_LEFT && gesture != TofGestureEvent.GESTURE_RIGHT) {
+            return;
+        }
+        int ownDir = 0;
+        if (state == State.TRACKING && strokeDir != 0
+                && Math.abs(extremeCol - anchorCol) >= MIN_ZONE_TRAVEL) {
+            ownDir = strokeDir;
+        } else if (state == State.LOCKED && lastWasOwn
+                && nowMs - lastGestureAtMs <= AGREEMENT_WINDOW_MS) {
+            ownDir = lastDir;
+        }
+        if (ownDir != 0) compareWithModule(ownDir == columnDirOf(gesture));
 
-        if (state == State.WAIT_FOR_NEUTRAL) {
-            // Locked. The frame was still copied into the snapshot above - the on-screen grid
-            // keeps showing what the sensor sees, because a tester watching the panel during
-            // the lock should see the same picture as at any other moment. But nothing here
-            // starts a swipe, extends one, or is measured for direction: whatever is in front
-            // of the glasses is the tail of the gesture already reported, and the whole point
-            // is that it cannot become a second one.
-            if (!clear) {
-                // Something is back in view, so the sensor is not quiet and has not been.
-                // Restarting rather than pausing is what makes this more than a cooldown.
-                neutralSinceMs = NOT_NEUTRAL;
-            } else if (neutralSinceMs == NOT_NEUTRAL) {
-                neutralSinceMs = nowMs;
-            } else if (nowMs - neutralSinceMs >= NEUTRAL_REARM_MS) {
-                state = State.ARMED;
-                neutralSinceMs = NOT_NEUTRAL;
+        state = State.LOCKED;
+        neutralSinceMs = handInView ? NOT_NEUTRAL : nowMs;
+        lastDir = columnDirOf(gesture);
+        lastGestureAtMs = nowMs;
+        lastWasOwn = false;
+        pending = null;
+    }
+
+    private void compareWithModule(boolean agree) {
+        if (agree) agreements++;
+        else disagreements++;
+        note("與眼鏡模組判斷的方向" + (agree ? "一致" : "相反")
+                + "（一致 " + agreements + " 次，相反 " + disagreements + " 次）");
+        if (!agree && agreements == 0 && disagreements >= ORIENTATION_FLIP_DISAGREEMENTS) {
+            columnIncreasesRight = !columnIncreasesRight;
+            disagreements = 0;
+            note("連續 " + ORIENTATION_FLIP_DISAGREEMENTS + " 次與眼鏡模組方向相反，左右方向已自動翻轉");
+        }
+    }
+
+    private int columnDirOf(int gesture) {
+        return (gesture == TofGestureEvent.GESTURE_RIGHT) == columnIncreasesRight ? 1 : -1;
+    }
+
+    private void startTracking(TofHandExtractor.Hand hand, long nowMs) {
+        state = State.TRACKING;
+        trackRangeMm = hand.rangeMm;
+        handFrames = 1;
+        lastSeenMs = nowMs;
+        pending = null;
+        strokeDir = 0;
+        strokeSamples = 1;
+        anchorAt(hand.col, hand.row, nowMs);
+        extremeAt(hand.col, hand.row, nowMs);
+        stillCol = hand.col;
+        stillRow = hand.row;
+        stillSinceMs = nowMs;
+    }
+
+    private void step(TofHandExtractor.Hand hand, long nowMs) {
+        float col = hand.col, row = hand.row;
+        strokeSamples++;
+        if (!hand.touchesSide) strokeSeenWhole = true;
+        if (Math.hypot(col - stillCol, row - stillRow) > STILL_RADIUS) {
+            stillCol = col;
+            stillRow = row;
+            stillSinceMs = nowMs;
+        }
+        boolean stopped = nowMs - stillSinceMs >= STOP_MS;
+
+        if (strokeDir == 0) {
+            float dx = col - anchorCol;
+            if (Math.abs(dx) >= DIRECTION_HYSTERESIS) {
+                strokeDir = dx > 0 ? 1 : -1;
+                extremeAt(col, row, nowMs);
+            } else if (stopped || nowMs - anchorMs > MAX_SWIPE_MS) {
+                // Still, or barely drifting: the stroke has not begun, so it begins from here.
+                anchorAt(col, row, nowMs);
+                strokeSamples = 1;
             }
             return;
         }
 
-        if (clear) {
-            // The hand has to be absent for a moment before a swipe is called complete;
-            // a single dropped frame mid-swipe must not chop the swipe in two.
-            if (state == State.TRACKING && nowMs - lastSeenMs >= RELEASE_MS) finish(nowMs);
+        float progress = (col - extremeCol) * strokeDir;
+        if (progress > 0f) {
+            extremeAt(col, row, nowMs);
+        } else if (-progress >= REVERSAL_HYSTERESIS) {
+            if (endStroke(End.REVERSAL, nowMs)) return;
+            // The turning point starts the next stroke, the other way: it spans that point and
+            // this frame so far.
+            float turnRange = extremeRangeMm;
+            anchorAt(extremeCol, extremeRow, extremeMs);
+            anchorRangeMm = turnRange;
+            strokeDir = -strokeDir;
+            extremeAt(col, row, nowMs);
+            strokeSamples = 2;
             return;
         }
-
-        float row = rowSum / active;
-        float col = colSum / active;
-        lastSeenMs = nowMs;
-
-        if (state == State.ARMED) {
-            state = State.TRACKING;
-            startRow = lastRow = row;
-            startCol = lastCol = col;
-            startMs = nowMs;
-            // Nothing is emitted when the hand appears. PRESENCE used to fire here, and it is
-            // not a swipe - the panel and the page only ever hear about LEFT and RIGHT.
-            return;
+        if (stopped) {
+            if (endStroke(End.STOP, nowMs)) return;
+            anchorAt(col, row, nowMs);
+            extremeAt(col, row, nowMs);
+            strokeDir = 0;
+            strokeSamples = 1;
         }
-        lastRow = row;
-        lastCol = col;
     }
 
-    /**
-     * Classifies the completed movement. A swipe is reported once and locks the recogniser
-     * until the sensor is clear again; anything else simply returns it to idle.
-     */
-    private void finish(long nowMs) {
-        long duration = lastSeenMs - startMs;
-        int gesture = classify(duration);
-        if (gesture == -1) {
-            state = State.ARMED;
-            return;
+    private void handLeft(long nowMs) {
+        boolean reported;
+        if (strokeDir != 0) {
+            reported = endStroke(End.EXIT, nowMs);
+        } else if (pending != null) {
+            report(pending, nowMs, false, "手離開");
+            reported = true;
+        } else {
+            reported = false;
         }
-        // This only ever runs on a frame that was already clear - finish() is reached from the
-        // clear branch of onFrame - so that frame is the first of the neutral run, and the
-        // window is measured from the swipe itself rather than from some later frame.
-        state = State.WAIT_FOR_NEUTRAL;
-        neutralSinceMs = nowMs;
+        if (!reported) state = State.IDLE;
+    }
+
+    /** @return whether a swipe was reported (the recogniser is then locked). */
+    private boolean endStroke(End end, long nowMs) {
+        Stroke stroke = new Stroke(extremeCol - anchorCol, extremeRow - anchorRow, extremeCol,
+                anchorMs, extremeMs, strokeDir, strokeSamples, anchorRangeMm, extremeRangeMm,
+                strokeSeenWhole);
+        String rejection = judge(stroke);
+        if (end == End.EXIT) {
+            Stroke chosen = rejection == null ? stroke : null;
+            if (pending != null && (chosen == null || Math.abs(pending.dx) > Math.abs(chosen.dx))) {
+                chosen = pending;
+            }
+            if (chosen != null) {
+                report(chosen, nowMs, false, "手離開");
+                return true;
+            }
+            if (Math.abs(stroke.dx) >= MIN_ZONE_TRAVEL * 0.6f) note("手離開，未判定為揮手：" + rejection);
+            return false;
+        }
+        if (rejection == null && Math.abs(stroke.dx) >= EARLY_ZONE_TRAVEL && endsOutward(stroke)) {
+            report(stroke, nowMs, true, end == End.REVERSAL ? "折返" : "停住");
+            return true;
+        }
+        if (end == End.REVERSAL) {
+            if (rejection == null && (pending == null || Math.abs(stroke.dx) > Math.abs(pending.dx))) {
+                pending = stroke;
+            }
+        } else {
+            if (Math.abs(stroke.dx) >= MIN_ZONE_TRAVEL) {
+                note("手停在畫面中間，當作把手放進來而不是揮手（" + describe(stroke) + "）");
+            }
+            pending = null;
+        }
+        return false;
+    }
+
+    /** Null when the stroke is a swipe; otherwise why not, for the log. */
+    private String judge(Stroke stroke) {
+        float h = Math.abs(stroke.dx), v = Math.abs(stroke.dy);
+        long duration = stroke.endMs - stroke.startMs;
+        if (handFrames < MIN_HAND_FRAMES) return "只出現 " + handFrames + " 張畫面";
+        if (stroke.samples < MIN_STROKE_SAMPLES) return "只是兩張畫面之間的跳動";
+        float near = Math.min(stroke.startRangeMm, stroke.endRangeMm);
+        float far = Math.max(stroke.startRangeMm, stroke.endRangeMm);
+        if (far - near > MAX_DEPTH_CHANGE * far) {
+            return "距離從 " + Math.round(stroke.startRangeMm / 10f) + " 變到 "
+                    + Math.round(stroke.endRangeMm / 10f) + " 公分，是往前推或往後拉";
+        }
+        if (!stroke.seenWhole && near >= SEEN_WHOLE_BEYOND_MM) {
+            return "一直貼著畫面邊緣，像是旁邊經過的人而不是手";
+        }
+        if (h < MIN_ZONE_TRAVEL) return "水平只移動 " + fmt(h) + " 格";
+        if (h < v * HORIZONTAL_DOMINANCE) return "偏垂直（水平 " + fmt(h) + "／垂直 " + fmt(v) + " 格）";
+        if (duration > MAX_SWIPE_MS) return "太慢（" + duration + "ms）";
+        if (lastDir != 0 && stroke.dir == -lastDir
+                && stroke.startMs < lastGestureAtMs + RETURN_SUPPRESS_MS) {
+            return "上一個手勢的回程（" + (stroke.startMs - lastGestureAtMs) + "ms 後開始）";
+        }
+        return null;
+    }
+
+    private static boolean endsOutward(Stroke stroke) {
+        float centre = (GRID - 1) / 2f;
+        return stroke.dir > 0
+                ? stroke.endCol >= centre + OUTER_FROM_CENTRE
+                : stroke.endCol <= centre - OUTER_FROM_CENTRE;
+    }
+
+    private void report(Stroke stroke, long nowMs, boolean handStillInView, String how) {
+        int gesture = (stroke.dir > 0) == columnIncreasesRight
+                ? TofGestureEvent.GESTURE_RIGHT : TofGestureEvent.GESTURE_LEFT;
+        state = State.LOCKED;
+        neutralSinceMs = handStillInView ? NOT_NEUTRAL : nowMs;
+        lastDir = stroke.dir;
+        lastGestureAtMs = nowMs;
+        lastWasOwn = true;
+        pending = null;
+        note("深度辨識：" + (gesture == TofGestureEvent.GESTURE_RIGHT ? "RIGHT" : "LEFT")
+                + "（" + how + "，" + describe(stroke) + "，距離約 "
+                + Math.round(trackRangeMm / 10f) + " 公分）");
         callback.onRecognised(gesture, TofGestureEvent.ACTION_RECEIVED, nowMs * 1_000_000L);
     }
 
-    /**
-     * @return {@link TofGestureEvent#GESTURE_LEFT}, {@link TofGestureEvent#GESTURE_RIGHT}, or -1.
-     *         Those are the only three answers this can give.
-     */
-    private int classify(long duration) {
-        if (duration > MAX_SWIPE_MS) return -1;
+    private String describe(Stroke stroke) {
+        return "水平 " + fmt(stroke.dx) + " 格、垂直 " + fmt(stroke.dy) + " 格、"
+                + (stroke.endMs - stroke.startMs) + "ms、" + handFrames + " 張畫面";
+    }
 
-        float horizontal = Math.abs(lastCol - startCol);
-        float vertical = Math.abs(lastRow - startRow);
+    /** Starts a stroke here. The hand's distance is the one being tracked right now. */
+    private void anchorAt(float col, float row, long ms) {
+        anchorCol = col;
+        anchorRow = row;
+        anchorMs = ms;
+        anchorRangeMm = trackRangeMm;
+        strokeSeenWhole = !lastHand.touchesSide;
+    }
 
-        // Far enough sideways to be deliberate...
-        if (horizontal < MIN_ZONE_TRAVEL) return -1;
-        // ...and more sideways than up or down, or it was not a horizontal swipe. Rejected
-        // rather than reclassified: this recogniser has no UP or DOWN to fall back to.
-        if (horizontal < vertical * HORIZONTAL_DOMINANCE) return -1;
+    private void extremeAt(float col, float row, long ms) {
+        extremeCol = col;
+        extremeRow = row;
+        extremeMs = ms;
+        extremeRangeMm = trackRangeMm;
+    }
 
-        boolean right = (lastCol - startCol) > 0 == columnIncreasesRight;
-        return right ? TofGestureEvent.GESTURE_RIGHT : TofGestureEvent.GESTURE_LEFT;
+    private void note(String text) {
+        callback.onNote(text);
+    }
+
+    private static String fmt(float value) {
+        return String.format(Locale.ROOT, "%.1f", value);
     }
 
     /**
-     * Back to the state a freshly constructed recogniser is in: no swipe in progress, and no
-     * lock left over from one. Starting or restarting the hardware is what this is for - a
-     * recogniser that came up mid-swipe, or one still holding a lock from before the ToF was
-     * torn down, would otherwise carry that into the first frames of the new session.
-     *
-     * <p>It is not how the lock is meant to be cleared during normal use. Re-arming is the
-     * recogniser's own job and happens when the sensor goes quiet; a caller that reset here on
-     * every page change would hand back exactly the double-gesture this class exists to stop.
+     * Back to a freshly constructed recogniser: no swipe in progress, no lock, no background.
+     * For starting or restarting the hardware, where the glasses may have moved and anything
+     * learned or half-seen belongs to the session before. Not how the lock is cleared in normal
+     * use - re-arming is the recogniser's own job. The axis, and what the direction checks have
+     * learned about it, survive.
      */
     synchronized void reset() {
-        state = State.ARMED;
+        state = State.IDLE;
         neutralSinceMs = NOT_NEUTRAL;
-        startMs = 0;
-        lastSeenMs = 0;
-        snapshotActive = 0;
-        java.util.Arrays.fill(snapshot, 0f);
+        lastDir = 0;
+        lastGestureAtMs = NEVER;
+        lastWasOwn = false;
+        quietUntilMs = NEVER;
+        pending = null;
+        strokeDir = 0;
+        handFrames = 0;
+        handInView = false;
+        lastHand = TofHandExtractor.Hand.NONE;
+        extractor.reset();
     }
 
-    /** Whether the next object to enter the sensor can begin a swipe. */
-    synchronized boolean isArmed() { return state == State.ARMED; }
+    /** Whether the next hand to enter the sensor can begin a swipe. */
+    synchronized boolean isArmed() { return state == State.IDLE; }
 
-    /** Whether a swipe has been reported and the sensor has not gone quiet since. */
-    synchronized boolean isWaitingForNeutral() { return state == State.WAIT_FOR_NEUTRAL; }
+    /** Whether a hand is being followed right now. */
+    synchronized boolean isTracking() { return state == State.TRACKING; }
 
-    /** Copies the latest frame for the on-screen grid; returns the number of lit zones. */
-    int copySnapshot(float[] out) {
-        if (out == null || out.length < ZONES) return 0;
-        synchronized (snapshot) {
-            System.arraycopy(snapshot, 0, out, 0, ZONES);
-        }
-        return snapshotActive;
-    }
+    /** Whether a swipe has been reported and the sensor has not been clear long enough since. */
+    synchronized boolean isWaitingForNeutral() { return state == State.LOCKED; }
 
-    float snapshotRow() { return snapshotRow; }
-
-    float snapshotColumn() { return snapshotCol; }
-
-    float snapshotRangeMm() { return snapshotRange; }
+    /** What the latest frame contained. */
+    synchronized TofHandExtractor.Hand lastHand() { return lastHand; }
 }
