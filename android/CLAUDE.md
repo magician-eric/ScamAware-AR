@@ -33,7 +33,7 @@ x = acc >= 290;      // 290 == 0x122 == "1.2.2"，十六進位打包
 - **`TofGestureRecognizer`**：從 `setTofFrameListener` 拿到的原始 8×8 深度網格自己算
   （舊韌體時原廠 App 用 `libcalculate_gesture.so` 做同一件事，整段軌跡＋訊號強度）。
 
-兩條在 `webapp` 的 `subscribeNativeGestures` 合流：同一次揮手只算一次，模組方向鍵一出現就以它為準。
+兩條在 `webapp` 的 `subscribeNativeGestures` 合流：兩個管道 1 秒內只算一次（不論方向，回程也擋掉）。外殼 1.2.2 起深度辨識的手勢帶 `recognizer: 2`，網頁 1.8.1 起與方向鍵**同時採用**；舊外殼沒有這個欄位，模組方向鍵一出現就只聽方向鍵（同 1.8.0）。深度辨識在現場出問題時，把 webapp 的 `DEPTH_ALONGSIDE_KEYS_FROM_RECOGNIZER` 改成 `Infinity` 發 OTA，就退回只聽方向鍵，不用重裝 APK。
 
 ### 深度辨識第二代（shell 1.2.2 起）
 

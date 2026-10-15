@@ -53,12 +53,19 @@
 // Both read the same hand on the same sensor, so one swipe can arrive twice.
 // `subscribeNativeGestures` merges them and keeps it at one:
 //
-//   - once the glasses have pressed a gesture key, the module's engine is in
-//     charge for the rest of the page's life and 'jorjinGesture' deliveries
-//     are no longer passed on;
-//   - before that - the very first swipe - a delivery on one channel within
-//     CROSS_CHANNEL_WINDOW_MS of one on the other is the same swipe, and is
-//     dropped.
+//   - a delivery on one channel within CROSS_CHANNEL_WINDOW_MS of one on the
+//     other is the same swipe - or the arm coming back after it - and is
+//     dropped, whichever way it points;
+//   - the two run side by side only with a depth recogniser that knows about
+//     the keys. From Shell 1.2.2 (`detail.recognizer` >= 2,
+//     GestureBridgeScript.RECOGNIZER_GENERATION) the module's key presses lock
+//     the depth recogniser natively, so it catches what the module misses
+//     without echoing what it caught. An older Shell's recogniser does not, so
+//     once the glasses have pressed a key its 'jorjinGesture' deliveries are no
+//     longer passed on, as before.
+//
+// Setting DEPTH_ALONGSIDE_KEYS_FROM_RECOGNIZER to Infinity in an OTA bundle
+// returns every Shell to keys-only, without a new APK.
 //
 // The decision is made once per event and shared by every subscriber on the
 // same window, so the tutorial and the Bridge can never disagree about
@@ -74,7 +81,14 @@ import {
 // How close together a delivery on each channel has to be to count as one
 // swipe. Both channels report at the end of the same movement; a second,
 // genuine swipe cannot be made, finished and recognised inside this window.
-export const CROSS_CHANNEL_WINDOW_MS = 800;
+// Raised from 800 when the depth recogniser began running alongside the keys:
+// it reports when the hand has left, a few hundred milliseconds after the
+// module's key for the same swipe.
+export const CROSS_CHANNEL_WINDOW_MS = 1000;
+
+// The lowest depth-recogniser generation whose deliveries are taken alongside
+// the module's keys. See the comment at the top of the file.
+export const DEPTH_ALONGSIDE_KEYS_FROM_RECOGNIZER = 2;
 
 // The single global event the Android WebView dispatches. One name, spelled
 // once, so a consumer never has to know it.
@@ -164,9 +178,9 @@ function streamFor(target, now) {
     keySeq: 0,
   };
 
-  const offer = (reading, fromKey) => {
+  const offer = (reading, fromKey, recognizer = null) => {
     const at = stream.now();
-    if (!fromKey && stream.keysSeen) return;
+    if (!fromKey && stream.keysSeen && !(recognizer >= DEPTH_ALONGSIDE_KEYS_FROM_RECOGNIZER)) return;
     if (stream.last && stream.last.fromKey !== fromKey && at - stream.last.at < CROSS_CHANNEL_WINDOW_MS) return;
     stream.last = { fromKey, at };
     // A copy, so a subscriber that stops itself (or another) mid-delivery
@@ -184,7 +198,7 @@ function streamFor(target, now) {
 
   stream.onNative = (event) => {
     const reading = readNativeGestureEvent(event);
-    if (reading !== null) offer(reading, false);
+    if (reading !== null) offer(reading, false, number(event.detail.recognizer));
   };
 
   stream.onKey = (event) => {

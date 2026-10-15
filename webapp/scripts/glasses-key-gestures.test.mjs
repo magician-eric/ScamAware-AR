@@ -54,6 +54,7 @@ const {
 } = await import('../src/lib/arInteraction/index.js');
 const {
   CROSS_CHANNEL_WINDOW_MS,
+  DEPTH_ALONGSIDE_KEYS_FROM_RECOGNIZER,
   JORJIN_GESTURE_EVENT,
   NATIVE_GESTURE_SOURCE,
   resetNativeGestureStream,
@@ -96,12 +97,13 @@ function press(target, key, extra = {}) {
 }
 
 // Android's depth-frame recogniser delivering a gesture (GestureBridgeScript).
+// Shell 1.2.1 and older send no `recognizer`; 1.2.2 sends 2.
 let deliveries = 0;
-function wave(target, code) {
+function wave(target, code, recognizer) {
   deliveries += 1;
-  target.dispatchEvent(new CustomEvent(JORJIN_GESTURE_EVENT, {
-    detail: { gesture: code, label: code, count: deliveries, at: deliveries * 1000 },
-  }));
+  const detail = { gesture: code, label: code, count: deliveries, at: deliveries * 1000 };
+  if (recognizer !== undefined) detail.recognizer = recognizer;
+  target.dispatchEvent(new CustomEvent(JORJIN_GESTURE_EVENT, { detail }));
 }
 
 function listen(options) {
@@ -263,7 +265,7 @@ test('2. the module\'s key first, then the depth recogniser: one delivery', () =
   stop();
 });
 
-test('2. once the module has pressed a key, jorjinGesture is no longer delivered', () => {
+test('2. an older Shell: once the module has pressed a key, jorjinGesture is no longer delivered', () => {
   const { target, now, advance } = fakeWindow();
   const { heard, stop } = listen({ target, now });
 
@@ -278,6 +280,55 @@ test('2. once the module has pressed a key, jorjinGesture is no longer delivered
     [RIGHT, GLASSES_KEY_SOURCE],
     [LEFT, GLASSES_KEY_SOURCE],
   ], 'the module\'s engine is in charge; the depth recogniser\'s guesses are not passed on');
+  stop();
+});
+
+test('2. Shell 1.2.2: the depth recogniser keeps running alongside the keys', () => {
+  const { target, now, advance } = fakeWindow();
+  const { heard, stop } = listen({ target, now });
+
+  press(target, 'ArrowRight');
+  advance(5_000);
+  wave(target, 'LEFT', DEPTH_ALONGSIDE_KEYS_FROM_RECOGNIZER);
+  advance(5_000);
+  press(target, 'ArrowLeft');
+
+  assert.deepEqual(heard.map((r) => [r.gesture, r.source]), [
+    [RIGHT, GLASSES_KEY_SOURCE],
+    [LEFT, NATIVE_GESTURE_SOURCE],
+    [LEFT, GLASSES_KEY_SOURCE],
+  ], 'a swipe only the depth recogniser caught still turns the page');
+  stop();
+});
+
+test('2. Shell 1.2.2: the same swipe on both channels is still one delivery', () => {
+  const { target, now, advance } = fakeWindow();
+  const { heard, stop } = listen({ target, now });
+
+  press(target, 'ArrowRight');
+  advance(300);
+  wave(target, 'RIGHT', 2);
+  advance(5_000);
+  wave(target, 'LEFT', 2);
+  advance(CROSS_CHANNEL_WINDOW_MS - 1);
+  press(target, 'ArrowLeft');
+
+  assert.deepEqual(heard.map((r) => [r.gesture, r.source]), [
+    [RIGHT, GLASSES_KEY_SOURCE],
+    [LEFT, NATIVE_GESTURE_SOURCE],
+  ]);
+  stop();
+});
+
+test('2. Shell 1.2.2: the arm coming back after a key swipe is not a swipe the other way', () => {
+  const { target, now, advance } = fakeWindow();
+  const { heard, stop } = listen({ target, now });
+
+  press(target, 'ArrowRight');
+  advance(CROSS_CHANNEL_WINDOW_MS - 1);
+  wave(target, 'LEFT', 2);
+
+  assert.deepEqual(heard.map((r) => r.gesture), [RIGHT], 'the other channel inside the window is dropped whichever way it points');
   stop();
 });
 
