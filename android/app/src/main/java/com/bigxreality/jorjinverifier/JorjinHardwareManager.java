@@ -122,6 +122,13 @@ final class JorjinHardwareManager {
     /** Identifies the live TofManager in the trace; 0 while none exists. */
     private int tofInstanceId;
     private boolean tofReadyReported;
+    /** The TofManager the module's key map was last sent through; see {@link ModuleGestureKeys}. */
+    private int keymapInstanceId;
+    /**
+     * {@link #tofInstanceId} as the key-map thread sees it: that thread runs off the main one and
+     * stops the moment the manager it is talking through has been released or replaced.
+     */
+    private volatile int liveTofInstanceId;
 
     JorjinHardwareManager(Context context, Listener listener) {
         this.context = context.getApplicationContext();
@@ -130,12 +137,13 @@ final class JorjinHardwareManager {
         this.gestureController = new GestureController((label, gesture, source, count) ->
                 handler.post(() -> listener.onGesture(
                         label, GestureLabels.code(gesture), source.label, count)));
-        // The second, independent gesture source. JJSDK's TofGestureEvent path reads a bitfield
-        // the module's *firmware* fills in, and firmware older than v1.2.2 never sets it - no
-        // amount of a healthy USB link produces an event. The vendor's own app does not rely on
-        // it either; it computes gestures host-side from the same 8x8 depth grid, which JJSDK
-        // hands us through TofIncomingFrameListener. Still the glasses' native ToF sensor, still
-        // through JJSDK - just not through the part of it that is dead on this module.
+        // A fallback gesture source. JJSDK's TofGestureEvent path reads a bitfield the module's
+        // *firmware* fills in, and firmware older than v1.2.2 never sets it - no amount of a
+        // healthy USB link produces an event. The source that does work is the module's own
+        // gesture engine, which presses arrow keys the page reads directly (ModuleGestureKeys,
+        // configureModuleKeys); this recogniser computes gestures host-side from the same 8x8
+        // depth grid for whenever those keys are not arriving, and the page stops listening to
+        // it once they are.
         this.depthRecognizer = new TofGestureRecognizer((gesture, action, eventTimeNanos) ->
                 gestureController.onRawEvent(action, gesture, eventTimeNanos,
                         android.os.SystemClock.elapsedRealtime(),
@@ -498,6 +506,7 @@ final class JorjinHardwareManager {
             trace.add(id, "new TofManager()");
             TofManager manager = new TofManager(context);
             tofManager = manager;
+            liveTofInstanceId = id;
             manager.setTofDevicesAttachListener(attachListener);
             trace.add(id, "setTofDevicesAttachListener(ours)  [static E]");
             manager.setTofGestureListener(gestureListener);
@@ -526,6 +535,7 @@ final class JorjinHardwareManager {
     private void releaseTof() {
         TofManager manager = tofManager;
         tofManager = null;
+        liveTofInstanceId = 0;
         tofAttachedReported = false;
         gestureListenerRegistered = false;
         if (manager == null) return;
@@ -545,6 +555,47 @@ final class JorjinHardwareManager {
         try { manager.release(); trace.add(id, "release()  [static C/D/E := null]"); }
         catch (Throwable error) { Log.w(TAG, "釋放 ToF 失敗", error); }
         listener.onTofTrace(trace.render());
+    }
+
+    /**
+     * Tells the module which key its own gesture engine presses for each gesture - Left / Right
+     * Arrow for LEFT / RIGHT and nothing for the rest - so a module last configured by the
+     * vendor's app no longer presses Back when something moves away from it. See
+     * {@link ModuleGestureKeys} for why that matters.
+     *
+     * <p>Off the main thread: {@code TofManager.execute} writes the command and then blocks
+     * reading the reply, up to a second per read. JJSDK's own frame reader is pulling from the
+     * same serial port at the same time, so a reply can be taken by it and a slice of a depth
+     * frame can come back here instead; each command is therefore resent until acknowledged, a
+     * bounded number of times. A frame or two lost to that is a frame or two the depth recogniser
+     * does not see, at start-up, once.
+     */
+    private void configureModuleKeys(TofManager manager, int id) {
+        trace.add(id, "設定模組手勢按鍵：L→keyleft R→keyright，其餘 keynone");
+        Thread worker = new Thread(() -> {
+            for (String command : ModuleGestureKeys.COMMANDS) {
+                String reply = null;
+                for (int attempt = 1; attempt <= ModuleGestureKeys.ATTEMPTS; attempt++) {
+                    if (liveTofInstanceId != id) {
+                        Log.i(TAG, "ToF 已重建或釋放，停止設定模組手勢按鍵");
+                        return;
+                    }
+                    try {
+                        reply = manager.execute(ModuleGestureKeys.line(command));
+                    } catch (Throwable error) {
+                        reply = null;
+                        Log.w(TAG, "送出模組指令失敗：" + command, error);
+                    }
+                    if (ModuleGestureKeys.acknowledged(reply)) break;
+                }
+                Log.i(TAG, "模組手勢按鍵 " + command + " → "
+                        + (ModuleGestureKeys.acknowledged(reply)
+                                ? "OK" : "未確認（" + ModuleGestureKeys.describeReply(reply) + "）"));
+            }
+            trace.add(id, "模組手勢按鍵設定完成");
+        }, "JorjinToF-keymap");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     // ---------------------------------------------------------------- watchdog
@@ -582,6 +633,12 @@ final class JorjinHardwareManager {
                     + " packed=0x" + Integer.toHexString(TofFirmware.pack(firmware))
                     + " gate=" + (TofFirmware.deliversGestures(firmware) ? "OPEN" : "CLOSED"));
             listener.onTofTrace(trace.render());
+        }
+        // Once per TofManager, as soon as its handshake is done: the handshake is what switched
+        // the module's own gesture engine on, and a rebuilt manager is a new handshake.
+        if (ready && keymapInstanceId != tofInstanceId) {
+            keymapInstanceId = tofInstanceId;
+            configureModuleKeys(manager, tofInstanceId);
         }
         if (ready) return;
         long waited = android.os.SystemClock.elapsedRealtime() - tofManagerBuiltAt;

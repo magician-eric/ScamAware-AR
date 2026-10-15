@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.webkit.ConsoleMessage;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebChromeClient;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceError;
@@ -181,9 +182,25 @@ final class WebLayerController {
          * attempt runs and the diagnostics only change when it ends.
          */
         String otaStatusJson();
+
+        /**
+         * The page's renderer process is gone - it crashed, or the system took it back for
+         * memory - and the WebView has already been removed and destroyed. Nothing can be shown
+         * until a new one exists, which in this app means a new activity.
+         *
+         * <p>Without this, Android's default for a renderer that dies under an app that did not
+         * handle it is to kill the app's own process too: the wearer sees CIBAR vanish with
+         * nobody having touched anything.
+         */
+        default void onRendererGone(boolean crashed) { }
     }
 
     private final WebView webView;
+    /**
+     * Set once the WebView's renderer has died. From then on the WebView has been destroyed and
+     * any call on it would take the app down - every entry point below checks this first.
+     */
+    private boolean rendererGone;
     private final PageListener listener;
 
     /** The bundle being served. Replaced in place when a failed load is rolled back. */
@@ -318,6 +335,7 @@ final class WebLayerController {
      * could ask for one, so this is the whole of the app's navigation.
      */
     void show() {
+        if (rendererGone) return;
         visible = true;
         load(CIBAR_URL);
         webView.requestFocus();
@@ -364,6 +382,7 @@ final class WebLayerController {
     }
 
     private void load(String url) {
+        if (rendererGone) return;
         requestedUrl = url;
         currentUrl = url;
         loadOutcomePending = true;
@@ -377,7 +396,7 @@ final class WebLayerController {
      *         finishes. There is nothing behind CIBAR to go back to any more.
      */
     boolean onBackPressed() {
-        if (!visible) return false;
+        if (!visible || rendererGone) return false;
         if (webView.canGoBack()) {
             webView.goBack();
             return true;
@@ -453,7 +472,7 @@ final class WebLayerController {
             @Override public void run() {
                 // `this` is this Runnable. A newer page load replaces the field, and the stale
                 // probe it displaced stops here rather than confirming the wrong document.
-                if (pendingMountProbe != this || listener == null) return;
+                if (pendingMountProbe != this || listener == null || rendererGone) return;
                 try {
                     webView.evaluateJavascript(AppMountedProbeScript.probe(), value -> {
                         if (pendingMountProbe != this || listener == null) return;
@@ -496,7 +515,7 @@ final class WebLayerController {
     private void evaluate(String script) {
         // Delivering into a page that was never loaded is a no-op, not an error, but skipping it
         // keeps the WebView from being spun up before the user ever asks for a page.
-        if (requestedUrl == null) return;
+        if (requestedUrl == null || rendererGone) return;
         try {
             webView.evaluateJavascript(script, null);
         } catch (Throwable error) {
@@ -512,11 +531,13 @@ final class WebLayerController {
      * freeze the diagnostic readout at exactly the moment the tester is watching it.
      */
     void onStart() {
+        if (rendererGone) return;
         webView.onResume();
         webView.resumeTimers();
     }
 
     void onStop() {
+        if (rendererGone) return;
         webView.onPause();
         webView.pauseTimers();
     }
@@ -525,6 +546,8 @@ final class WebLayerController {
         // Before the WebView goes: the probe posts itself back to the main thread indefinitely,
         // and a Runnable holding a destroyed WebView is a leak that outlives the activity.
         cancelMountProbe();
+        // Already removed and destroyed by onRenderProcessGone; touching it again would crash.
+        if (rendererGone) return;
         try {
             webView.stopLoading();
             webView.setWebChromeClient(null);
@@ -636,6 +659,33 @@ final class WebLayerController {
                 // error page rendered by showFailure() has no base URL and does not match.
                 if (pageOf(url) != null) awaitAppMounted();
             }
+        }
+
+        /**
+         * The renderer process behind the WebView died - crashed, or was taken back by the
+         * system for memory, which is what a page left running unattended for long enough can
+         * end in. Returning true is what stops Android from killing this app's process along
+         * with it (its default for an app that does not handle this).
+         *
+         * <p>Handling it means the dead WebView leaves the window and is destroyed here, now:
+         * nothing else may be called on it, which is why every method above checks
+         * {@link #rendererGone}. The activity then starts CIBAR again.
+         */
+        @Override public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+            boolean crashed = detail != null && detail.didCrash();
+            Log.e(TAG, crashed ? "WebView 渲染程序崩潰" : "WebView 渲染程序被系統結束（多半是記憶體不足）");
+            rendererGone = true;
+            cancelMountProbe();
+            try {
+                if (webView.getParent() instanceof android.view.ViewGroup) {
+                    ((android.view.ViewGroup) webView.getParent()).removeView(webView);
+                }
+                webView.destroy();
+            } catch (Throwable error) {
+                Log.w(TAG, "釋放已失效的 WebView 失敗", error);
+            }
+            if (listener != null) listener.onRendererGone(crashed);
+            return true;
         }
 
         @Override public void onReceivedError(WebView view, WebResourceRequest request,
@@ -759,6 +809,7 @@ final class WebLayerController {
      */
     private void showFailure(String title, String detail, String hint) {
         Log.w(TAG, "WebView 載入失敗：" + title + " / " + detail);
+        if (rendererGone) return;
         String html = "<!doctype html><meta charset=\"utf-8\">"
                 + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
                 + "<body style=\"margin:0;background:#080A0F;color:#fff;"

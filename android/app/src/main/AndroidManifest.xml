@@ -56,9 +56,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- configChanges: the glasses enumerate as a USB keyboard too (the ToF module presses
+             arrow keys for its gestures), so a hardware keyboard appearing or going away is a
+             normal event here, not a reason to tear the activity down. Without keyboard and
+             navigation listed, Android destroys and recreates the activity when that happens:
+             the hardware is released, CIBAR starts over from its opening, and to the person
+             holding the phone the app has crashed. -->
         <activity
             android:name=".MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>

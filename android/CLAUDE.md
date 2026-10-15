@@ -7,7 +7,7 @@
 > `versionName`／`versionCode` 都是從 `release/versions.json` 推導出來的，不要在 `build.gradle`
 > 裡寫死版本號。
 
-## 1. 手勢是從深度幀算出來的，不是 JJSDK 的 gesture event
+## 1. 手勢來自 ToF 模組自己的引擎（方向鍵）與深度幀，不是 JJSDK 的 gesture event
 
 `TofGestureEvent` / `setTofGestureListener` 那條路徑**在這副眼鏡上是死的**，而且不可能修好。
 
@@ -39,10 +39,15 @@ x = acc >= 290;      // 290 == 0x122 == "1.2.2"，十六進位打包
 就自己寫了一個只比頭尾位置的深度辨識，沒發現原廠 App 靠的是模組送方向鍵；網頁正式版又刻意不聽鍵盤，
 於是模組認出來的手勢全被丟掉。現場原廠 App 揮動正常、我們時好時壞，差別就在這裡。
 
-我們的 App **目前不送 `settofkey`**。現場方向鍵沒進來時：先 `adb shell getevent -l` 看揮手時有沒有
-`KEY_LEFT`／`KEY_RIGHT`；沒有就是模組的按鍵對應沒設（原廠 App 的按鍵設定頁可以設），下一步才是在 Android
-端用 `TofManager.execute("settofkey L keyleft\r\n")` 補送——那要出新 APK。進來了卻沒反應，在 WebView
-inspector 設 `__CIBAR_AR_GESTURE_DIAGNOSTICS__ = true`，看 `[JorjinGesture] ... eventId=jorjin-tof-key:...` 那一行。
+從 shell 1.2.1 起，ToF 每次就緒（含 watchdog 重建後）都會用 `TofManager.execute` 送一次完整的按鍵對應
+（`ModuleGestureKeys`：`L→keyleft`、`R→keyright`，`U／D／PUSH／PULL／HALT→keynone`）。**不可以省略**：
+原廠 App 的預設對應是 `PULL→keyback`、`PUSH→keyenter`，模組會一直記得最後一次被設定的對應——有人走開、
+把眼鏡拿下，模組就按「返回」，App 退到背景，看起來就是「放著不動就閃退」（見第 12 條）。
+
+現場方向鍵沒進來時：先 `adb shell getevent -l` 看揮手時有沒有 `KEY_LEFT`／`KEY_RIGHT`，再看 Logcat 的
+`模組手勢按鍵 settofkey … → OK／未確認`。進來了卻沒反應，在 WebView inspector 設
+`__CIBAR_AR_GESTURE_DIAGNOSTICS__ = true`，看 `[JorjinGesture] ... eventId=jorjin-tof-key:...` 那一行。
+`MainActivity.dispatchKeyEvent` 會把每一個按鍵和它來自哪個裝置寫進 Logcat（`按鍵 KEYCODE_… 來自 …`）。
 
 **症狀長這樣就是這個原因**：`ToF State: Ready` + `Gesture Listener: Registered` + `原始事件 0`。三個都是真的，同時成立。看到就直接想深度幀，不要再查 USB 授權。
 
@@ -202,6 +207,34 @@ WebView 上方工具列、右上角 `Jorjin Gesture` overlay、模式切換都�
   `GONE` 或刪掉，surface 就被銷毀，MJPEG 也跟著沒畫面。正確做法是用不透明的 WebView **蓋住**它。
 - `MainActivity` 的初始化：相機權限、`setSurfaceHolder`、`web.setCameraStream(...)`、
   `hardware.start()`、`web.onGesture(...)`。這些以前是診斷頁順手做的，現在是 App 啟動流程做的。
+
+## 12. 「放著不動就閃退」有三個不同的原因
+
+三個看起來都一樣（App 自己不見），修法完全不同。shell 1.2.1 三個都處理了，並且每次啟動都把上一次
+結束的原因（`ActivityManager.getHistoricalProcessExitReasons`）寫進 Logcat 與 `crash.txt`——
+**先看那一行，不要猜**。也可以直接 `adb shell dumpsys activity exit-info com.bigxreality.jorjinverifier`。
+
+- **模組按了返回鍵。** 原廠 App 設過的對應是 `PULL→keyback`；有東西離開感測器（人走開、眼鏡拿下）
+  就送 Back，`MainActivity.onKeyDown` 讓 WebView 退一頁，在第一頁就把 App 退到背景。這種情況
+  exit-info **不會**有紀錄（程序沒死），要看 Logcat 的 `按鍵 KEYCODE_BACK 來自 …`。修法是第 1 條的
+  `ModuleGestureKeys`。
+- **WebView 渲染程序死掉。** 它是獨立程序，頁面跑久了可能被系統回收或自己崩潰；App 沒處理
+  `onRenderProcessGone` 的話，Android 會把**整個 App 一起殺掉**。現在 `WebLayerController` 會移除並
+  釋放失效的 WebView、回傳 true，由 `MainActivity.onRendererGone` 冷啟動 CIBAR；一分鐘內第二次就不再
+  重啟（`CrashRecovery`），避免無限重啟。失效後 WebView 只能 `destroy()`，所有用到它的方法都先檢查
+  `rendererGone`——新增方法時也要。
+- **眼鏡的鍵盤介面重新連線。** 眼鏡同時是 USB 鍵盤；鍵盤出現或消失是 `keyboard|navigation` 設定變更，
+  沒宣告在 `configChanges` 的話 activity 會被銷毀重建：硬體釋放、CIBAR 從開場重來。
+  `ProductionStartupTest` 釘住這幾個 configChanges。
+
+## 13. OTA 發布後要確認 Pages 上的 `latest.json` 真的換了
+
+merge 進 `main` 時 `deploy-pages.yml` 和 `ota-release.yml` 同時跑。Pages 部署用的是 **merge 當下**的
+`release/ota/latest.json`（還是舊版），而 `ota-release.yml` 幾秒後才寫入新版，且那個 commit 是
+`[skip ci]`，不會觸發重新部署——手機就一直看到舊版。1.7.8 與 1.7.9 都發生過。
+
+發布後在 Actions 手動跑一次 `Deploy to GitHub Pages`（workflow_dispatch，ref=main），讓它從帶有新
+`latest.json` 的 commit 重新部署。
 
 ## 建置
 
