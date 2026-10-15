@@ -21,7 +21,28 @@ x = acc >= 290;      // 290 == 0x122 == "1.2.2"，十六進位打包
 
 韌體低於 1.2.2 就永遠不會設那些 bit。**沒有任何 USB 授權時機、listener 順序或 lifecycle 修改能產生事件。**
 
-實際會動的是 `TofGestureRecognizer`：從 `setTofFrameListener` 拿到的原始 8×8 深度網格自己算。原廠 App 也是這樣做的（它帶 `libcalculate_gesture.so`）。
+實際會動的有兩條，**都不是** `TofGestureEvent`：
+
+- **模組內建手勢引擎 → 眼鏡送鍵盤方向鍵。** 韌體 1.2.0 以上的 ToF 模組自己會認手勢，認到就從眼鏡的
+  USB 鍵盤介面按下 Left／Right Arrow。JJSDK 連線時其實已經送了 `settofmode 1` 把引擎打開
+  （SDK 的指令表是加密字串，解開後的握手是 `settofpwr 0` → `getfirmver` → `settofpwr 1` →
+  `settofmode 1` → `settofconf 0`）。原廠手勢 App（`J-Reality-Gesture_v0.9.5.apk`）在這個模式下
+  **手機端完全不跑演算法**（`DummyParseRunnable`），只送 `settofkey L keyleft`、`settofkey R keyright`
+  這類按鍵對應，然後靠方向鍵。方向鍵經 Android 送進 WebView，由
+  `webapp/src/lib/arInteraction/native/glassesKeyGestures.js` 接住（只在眼鏡 App 內生效）。
+- **`TofGestureRecognizer`**：從 `setTofFrameListener` 拿到的原始 8×8 深度網格自己算
+  （舊韌體時原廠 App 用 `libcalculate_gesture.so` 做同一件事，整段軌跡＋訊號強度）。
+
+兩條在 `webapp` 的 `subscribeNativeGestures` 合流：同一次揮手只算一次，模組方向鍵一出現就以它為準。
+
+**這件事真的害過驗收。** 以前只看了 `TofGestureEvent`（死的）和 `libcalculate_gesture.so`（閉源），
+就自己寫了一個只比頭尾位置的深度辨識，沒發現原廠 App 靠的是模組送方向鍵；網頁正式版又刻意不聽鍵盤，
+於是模組認出來的手勢全被丟掉。現場原廠 App 揮動正常、我們時好時壞，差別就在這裡。
+
+我們的 App **目前不送 `settofkey`**。現場方向鍵沒進來時：先 `adb shell getevent -l` 看揮手時有沒有
+`KEY_LEFT`／`KEY_RIGHT`；沒有就是模組的按鍵對應沒設（原廠 App 的按鍵設定頁可以設），下一步才是在 Android
+端用 `TofManager.execute("settofkey L keyleft\r\n")` 補送——那要出新 APK。進來了卻沒反應，在 WebView
+inspector 設 `__CIBAR_AR_GESTURE_DIAGNOSTICS__ = true`，看 `[JorjinGesture] ... eventId=jorjin-tof-key:...` 那一行。
 
 **症狀長這樣就是這個原因**：`ToF State: Ready` + `Gesture Listener: Registered` + `原始事件 0`。三個都是真的，同時成立。看到就直接想深度幀，不要再查 USB 授權。
 

@@ -24,6 +24,7 @@
 import { dispatchARGesture, getARGestureSnapshot } from '../gestureBridge';
 import { AR_GESTURES } from '../interactionContract';
 import { isARGestureDebugEnabled } from './gestureDebugFlag';
+import { isInsideGlassesShell } from '../native/glassesKeyGestures';
 
 // The whole mapping. Two keys, two gestures, no third binding, no modifier
 // combination and no key that means "tap".
@@ -68,6 +69,10 @@ export function startARGestureKeyboardAdapter(options = {}) {
     // real recogniser will need for hold duration and frame rate.
     if (event.repeat) return;
     if (isTyping(event)) return;
+    // Inside the glasses app an arrow key is the ToF module reporting a real
+    // gesture, and ../native/glassesKeyGestures.js already delivers it. A
+    // debug build running there must not deliver the same press twice.
+    if (isInsideGlassesShell(target)) return;
 
     // The revision the gesture was recognised against, read at the moment of
     // recognition. For a keypress that is the same instant as the dispatch,

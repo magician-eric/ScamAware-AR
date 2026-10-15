@@ -51,6 +51,7 @@
     "test:gesture-tutorial": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/gesture-tutorial.test.mjs",
     "test:interaction-hint": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/interaction-hint.test.mjs",
     "test:native-gesture-bridge": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/native-gesture-bridge.test.mjs",
+    "test:glasses-key-gestures": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/glasses-key-gestures.test.mjs",
     "test:ar-interaction-migration": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/ar-interaction-migration.test.mjs",
     "test:ar-dual-visual-order": "node --test ./scripts/ar-dual-visual-order.test.mjs",
     "test:ar-gesture-action-rules": "node --import=./scripts/register-gesture-contract-loaders.mjs --test ./scripts/ar-gesture-action-rules.test.mjs",
