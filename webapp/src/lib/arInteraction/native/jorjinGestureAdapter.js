@@ -28,17 +28,53 @@
 // - a second vocabulary. `AR_GESTURES` is imported, never redefined. The
 //   uppercase codes below are the *vendor's* words, translated once, at the
 //   edge, so that nothing downstream ever has to know they existed.
-// - a simulator. There is no keyboard binding, no pointer/touch/click
-//   handler, no timer that produces a gesture on its own. The only thing
-//   that can make this module report a gesture is a real `jorjinGesture`
-//   event.
+// - a simulator. There is no pointer/touch/click handler and no timer that
+//   produces a gesture on its own. The only things that can make this module
+//   report a gesture are a real `jorjinGesture` event and a real key press
+//   from the glasses' ToF module, read by ./glassesKeyGestures.js - which
+//   answers nothing outside the glasses app, so a keyboard on a desktop
+//   browser still drives nothing.
 //
 // Deliberately narrow vocabulary: the ToF module also emits UP, DOWN, PULL,
 // PUSH, HALT, PRESENCE and SELECT (see android/README.md). Every one of them
 // is dropped here without a listener ever hearing about it - CIBAR's whole
 // interaction vocabulary is two words, and a third one entering the app
 // through the adapter would be a third one to design against.
+//
+// TWO CHANNELS, ONE STREAM. A real gesture reaches the page one of two ways:
+//
+//   1. 'jorjinGesture' - android/.../TofGestureRecognizer.java read the
+//      swipe off the ToF depth frames and GestureBridgeScript delivered it.
+//   2. a key - the ToF module's own gesture engine recognised the swipe and
+//      pressed Left / Right Arrow (see ./glassesKeyGestures.js). This is the
+//      channel the vendor's own app runs on, and the one that recognises
+//      reliably on these glasses.
+//
+// Both read the same hand on the same sensor, so one swipe can arrive twice.
+// `subscribeNativeGestures` merges them and keeps it at one:
+//
+//   - once the glasses have pressed a gesture key, the module's engine is in
+//     charge for the rest of the page's life and 'jorjinGesture' deliveries
+//     are no longer passed on;
+//   - before that - the very first swipe - a delivery on one channel within
+//     CROSS_CHANNEL_WINDOW_MS of one on the other is the same swipe, and is
+//     dropped.
+//
+// The decision is made once per event and shared by every subscriber on the
+// same window, so the tutorial and the Bridge can never disagree about
+// whether a swipe happened.
 import { AR_GESTURES } from '../interactionContract';
+import {
+  GLASSES_KEY_EVENT,
+  GLASSES_KEY_SOURCE,
+  readGlassesKeyEvent,
+  swallowGlassesKey,
+} from './glassesKeyGestures';
+
+// How close together a delivery on each channel has to be to count as one
+// swipe. Both channels report at the end of the same movement; a second,
+// genuine swipe cannot be made, finished and recognised inside this window.
+export const CROSS_CHANNEL_WINDOW_MS = 800;
 
 // The single global event the Android WebView dispatches. One name, spelled
 // once, so a consumer never has to know it.
@@ -104,25 +140,118 @@ function defaultTarget() {
   return typeof globalThis === 'undefined' ? null : globalThis.window ?? null;
 }
 
+function defaultNow() {
+  const clock = globalThis.performance;
+  return clock && typeof clock.now === 'function' ? clock.now() : Date.now();
+}
+
+// One merged stream per window: its listeners, its subscribers, and the
+// little it has to remember to keep one swipe at one delivery.
+const streams = new WeakMap();
+
+function streamFor(target, now) {
+  let stream = streams.get(target);
+  if (stream) return stream;
+
+  stream = {
+    subscribers: new Set(),
+    listening: false,
+    now,
+    // Whether the glasses have pressed a gesture key since this page loaded.
+    keysSeen: false,
+    // The last delivery passed on: which channel, and when (stream clock).
+    last: null,
+    keySeq: 0,
+  };
+
+  const offer = (reading, fromKey) => {
+    const at = stream.now();
+    if (!fromKey && stream.keysSeen) return;
+    if (stream.last && stream.last.fromKey !== fromKey && at - stream.last.at < CROSS_CHANNEL_WINDOW_MS) return;
+    stream.last = { fromKey, at };
+    // A copy, so a subscriber that stops itself (or another) mid-delivery
+    // does not change who hears this one.
+    for (const subscriber of [...stream.subscribers]) {
+      try {
+        subscriber(reading);
+      } catch (error) {
+        // One consumer's bug must not take the gesture away from the others.
+        if (typeof globalThis.reportError === 'function') globalThis.reportError(error);
+        else if (typeof console !== 'undefined') console.error(error);
+      }
+    }
+  };
+
+  stream.onNative = (event) => {
+    const reading = readNativeGestureEvent(event);
+    if (reading !== null) offer(reading, false);
+  };
+
+  stream.onKey = (event) => {
+    const reading = readGlassesKeyEvent(event, target);
+    if (reading === null) return;
+    swallowGlassesKey(event);
+    if (reading.gesture === null) return;
+    stream.keysSeen = true;
+    stream.keySeq += 1;
+    const at = Math.round(stream.now());
+    offer(Object.freeze({
+      gesture: reading.gesture,
+      eventId: `${GLASSES_KEY_SOURCE}:${stream.keySeq}@${at}`,
+      count: null,
+      at,
+      source: GLASSES_KEY_SOURCE,
+    }), true);
+  };
+
+  streams.set(target, stream);
+  return stream;
+}
+
 // Subscribes to the real gesture stream and returns a stop function.
 //
 //   const stop = subscribeNativeGestures(({ gesture }) => { ... })
 //
-// The listener is called once per real LEFT / RIGHT delivery, with the
-// canonical word. It is never called for any other code, and never called by
-// anything but the event. Returns a no-op stop when there is nothing to
-// listen on (a plain Node process, a build-time render), so a caller never
-// has to branch on the environment.
+// The listener is called once per real LEFT / RIGHT gesture, with the
+// canonical word - whichever channel it came in on, and never twice for one
+// swipe. It is never called for any other code, and never called by anything
+// but a real event. Returns a no-op stop when there is nothing to listen on
+// (a plain Node process, a build-time render), so a caller never has to
+// branch on the environment.
+//
+// `now` is the clock the cross-channel window is measured on; tests pass one.
+// It is read when the first subscription on a window creates that window's
+// stream.
 export function subscribeNativeGestures(onGesture, options = {}) {
   if (typeof onGesture !== 'function') throw new TypeError('subscribeNativeGestures(onGesture): onGesture must be a function');
-  const { target = defaultTarget() } = options;
+  const { target = defaultTarget(), now = defaultNow } = options;
   if (!target || typeof target.addEventListener !== 'function') return () => {};
 
-  const handler = (event) => {
-    const gesture = readNativeGestureEvent(event);
-    if (gesture !== null) onGesture(gesture);
-  };
+  const stream = streamFor(target, now);
+  const subscriber = (reading) => onGesture(reading);
+  stream.subscribers.add(subscriber);
+  if (!stream.listening) {
+    target.addEventListener(JORJIN_GESTURE_EVENT, stream.onNative);
+    target.addEventListener(GLASSES_KEY_EVENT, stream.onKey);
+    stream.listening = true;
+  }
 
-  target.addEventListener(JORJIN_GESTURE_EVENT, handler);
-  return () => target.removeEventListener(JORJIN_GESTURE_EVENT, handler);
+  return () => {
+    if (!stream.subscribers.delete(subscriber)) return;
+    if (stream.subscribers.size > 0 || !stream.listening) return;
+    target.removeEventListener(JORJIN_GESTURE_EVENT, stream.onNative);
+    target.removeEventListener(GLASSES_KEY_EVENT, stream.onKey);
+    stream.listening = false;
+  };
+}
+
+// Test teardown: forgets what a window's stream remembered - whether the
+// glasses have pressed a key, and the last delivery - without touching its
+// subscriptions.
+export function resetNativeGestureStream(target = defaultTarget()) {
+  const stream = target ? streams.get(target) : null;
+  if (!stream) return;
+  stream.keysSeen = false;
+  stream.last = null;
+  stream.keySeq = 0;
 }

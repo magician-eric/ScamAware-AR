@@ -733,6 +733,7 @@ test('8. no screen listens for a native gesture except the tutorial', async () =
 
   assert.deepEqual(files, [
     // The adapter that owns the event name...
+    'src/lib/arInteraction/native/glassesKeyGestures.js', // ...its key channel, which reads the shell marker...
     'src/lib/arInteraction/native/installJorjinGestureBridge.js',
     'src/lib/arInteraction/native/jorjinGestureAdapter.js',
     // ...and the one page that runs its own machine on the same stream.

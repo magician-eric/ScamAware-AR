@@ -152,9 +152,18 @@ const GESTURE_LAYER = [
   'src/lib/arInteraction/gestureBridge.js',
   'src/lib/arInteraction/index.js',
   'src/lib/arInteraction/native/jorjinGestureAdapter.js',
+  'src/lib/arInteraction/native/glassesKeyGestures.js',
   'src/lib/arInteraction/native/installJorjinGestureBridge.js',
   'src/components/native/NativeGestureBridge.jsx',
 ];
+
+// The glasses' ToF module reports its own gesture engine's swipes as Left /
+// Right Arrow key presses (see src/lib/arInteraction/native/glassesKeyGestures.js),
+// and a key the module pressed has to be kept from scrolling the page. That is
+// the one cancellation the gesture layer makes, in one named function, on key
+// events only - it is pinned to exactly that below, and every pointer token
+// stays forbidden in that file as everywhere else.
+const KEY_READER = 'src/lib/arInteraction/native/glassesKeyGestures.js';
 
 test('nothing in the gesture layer touches, blocks or fakes a pointer event', async () => {
   // The layer reads the screen's declaration and calls a React handler. It
@@ -169,22 +178,33 @@ test('nothing in the gesture layer touches, blocks or fakes a pointer event', as
   ];
 
   for (const file of GESTURE_LAYER) {
-    const source = stripComments(await read(file));
+    let source = stripComments(await read(file));
+    if (file === KEY_READER) {
+      // The single permitted cancellation, and nothing else: cut it out, then
+      // hold the rest of the file to the same list as every other file.
+      const swallow = /export function swallowGlassesKey\(event\) \{\n[^\n]*event\.preventDefault\(\);\n\}/;
+      assert.match(source, swallow, `${file} cancels a key in swallowGlassesKey and nowhere else`);
+      source = source.replace(swallow, '');
+    }
     forbidden.forEach((token) => {
       assert.equal(source.includes(token), false, `${file} must not contain ${token} - the gesture layer never touches the DOM`);
     });
   }
 });
 
-test('the only DOM listener the gesture layer installs is the vendor gesture event', async () => {
+test('the only DOM events the gesture layer listens for are the vendor gesture event and the glasses\' keys', async () => {
+  const allowed = ['JORJIN_GESTURE_EVENT', 'GLASSES_KEY_EVENT'];
   for (const file of GESTURE_LAYER) {
     const source = stripComments(await read(file));
     for (const match of source.matchAll(/addEventListener\(([^,)]+)/g)) {
       const target = match[1].trim();
-      assert.equal(target, 'JORJIN_GESTURE_EVENT',
-        `${file} listens for ${target}; the adapter may only subscribe to the vendor's own gesture event`);
+      assert.ok(allowed.includes(target),
+        `${file} listens for ${target}; the adapter may only subscribe to the vendor's gesture event and the glasses' key presses`);
     }
   }
+  // And the key channel is a key event - never a pointer, touch, mouse or click.
+  const keyReader = stripComments(await read(KEY_READER));
+  assert.match(keyReader, /export const GLASSES_KEY_EVENT = 'keydown';/);
 });
 
 test('the contract makes availability, not visibility - it can only ever say no to a gesture', async () => {
