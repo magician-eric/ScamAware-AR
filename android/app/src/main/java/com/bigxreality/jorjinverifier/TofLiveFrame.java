@@ -18,6 +18,8 @@ final class TofLiveFrame {
     private final float[] signal = new float[ZONES];
     private long timeMs = -1L;
     private long handMask;
+    private long maskedMask;
+    private int minRangeMm;
     private TofHandExtractor.Hand hand = TofHandExtractor.Hand.NONE;
     private int maxRangeMm;
     private float noiseRatio;
@@ -25,7 +27,8 @@ final class TofLiveFrame {
     private boolean columnIncreasesRight = true;
 
     synchronized void update(long nowMs, float[] range, float[] signal, TofHandExtractor.Hand hand,
-                             long handMask, float maxRangeMm, float noiseRatio, float floorFraction,
+                             long handMask, long maskedMask, float minRangeMm, float maxRangeMm,
+                             float noiseRatio, float floorFraction,
                              boolean columnIncreasesRight) {
         if (range == null || range.length < ZONES) return;
         timeMs = nowMs;
@@ -37,6 +40,8 @@ final class TofLiveFrame {
         }
         this.hand = hand == null ? TofHandExtractor.Hand.NONE : hand;
         this.handMask = handMask;
+        this.maskedMask = maskedMask;
+        this.minRangeMm = Math.round(minRangeMm);
         this.maxRangeMm = Math.round(maxRangeMm);
         this.noiseRatio = noiseRatio;
         this.floorFraction = floorFraction;
@@ -44,8 +49,8 @@ final class TofLiveFrame {
     }
 
     /**
-     * {@code {"ageMs", "range":[64 cm], "signal":[64], "hand":[64 0|1], "handPresent",
-     * "handCol", "handRow", "handCm", "sceneMoving", "maxRangeCm", "noise", "floor",
+     * {@code {"ageMs", "range":[64 cm], "signal":[64], "hand":[64 0|1], "masked":[64 0|1], "handPresent",
+     * "handCol", "handRow", "handCm", "sceneMoving", "minRangeCm", "maxRangeCm", "noise", "floor",
      * "columnIncreasesRight"}}, or {@code {"ageMs":-1}} before the first frame. Zone 0 is the
      * first the sensor sends; {@code columnIncreasesRight} is the recogniser's current reading of
      * which way the columns run for the wearer, so the view can be drawn the wearer's way round.
@@ -70,6 +75,11 @@ final class TofLiveFrame {
             if (i > 0) out.append(',');
             out.append((handMask >>> i & 1L) != 0L ? 1 : 0);
         }
+        out.append("],\"masked\":[");
+        for (int i = 0; i < ZONES; i++) {
+            if (i > 0) out.append(',');
+            out.append((maskedMask >>> i & 1L) != 0L ? 1 : 0);
+        }
         out.append("],\"handPresent\":").append(hand.present)
                 .append(",\"sceneMoving\":").append(hand.sceneMoving);
         if (hand.present) {
@@ -77,8 +87,9 @@ final class TofLiveFrame {
                     hand.col, hand.row, Math.round(hand.rangeMm / 10f)));
         }
         out.append(String.format(Locale.ROOT,
-                ",\"maxRangeCm\":%d,\"noise\":%.3f,\"floor\":%.2f,\"columnIncreasesRight\":%b}",
-                Math.round(maxRangeMm / 10f), noiseRatio, floorFraction, columnIncreasesRight));
+                ",\"minRangeCm\":%d,\"maxRangeCm\":%d,\"noise\":%.3f,\"floor\":%.2f,\"columnIncreasesRight\":%b}",
+                Math.round(minRangeMm / 10f), Math.round(maxRangeMm / 10f), noiseRatio, floorFraction,
+                columnIncreasesRight));
         return out.toString();
     }
 }

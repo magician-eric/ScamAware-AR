@@ -6,6 +6,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 const {
+  MIN_RANGE_CHOICES_CM,
   RANGE_CHOICES_CM,
   SIGNAL_MODES,
   describeExport,
@@ -58,6 +59,7 @@ function frame(overrides = {}) {
 
 test('the buttons offer exactly what the Shell accepts', () => {
   assert.deepEqual(RANGE_CHOICES_CM, [50, 40, 35]);
+  assert.deepEqual(MIN_RANGE_CHOICES_CM, [5, 10, 15]);
   assert.deepEqual(SIGNAL_MODES.map((mode) => mode.id), ['AUTO', 'LOOSE', 'STANDARD', 'STRICT']);
   assert.deepEqual(SIGNAL_MODES.map((mode) => mode.label), ['自動', '寬鬆', '標準', '嚴格']);
 });
@@ -90,7 +92,11 @@ test('the live grid is eight by eight, the hand marked, drawn the wearer\'s way 
   const rows = liveGrid(frame());
   assert.equal(rows.length, 8);
   assert.ok(rows.every((row) => row.length === 8));
-  assert.deepEqual(rows[0][0], { zone: 0, cm: 30, hand: true, inRange: true });
+  assert.deepEqual(rows[0][0], { zone: 0, cm: 30, hand: true, masked: false, tooNear: false, inRange: true });
+  const near = liveGrid(frame({ minRangeCm: 10, range: [6, ...Array(63).fill(0)], masked: [0, 1, ...Array(62).fill(0)] }));
+  assert.equal(near[0][0].tooNear, true, 'nearer than 手勢最近距離 is the face or the frame');
+  assert.equal(near[0][0].inRange, false);
+  assert.equal(near[0][1].masked, true);
   assert.equal(rows[0][7].inRange, false, '120 cm is beyond the gesture range');
   const mirrored = liveGrid(frame({ columnIncreasesRight: false }));
   assert.equal(mirrored[0][7].zone, 0, 'columns are mirrored when they run right to left for the wearer');
@@ -105,7 +111,8 @@ test('a live frame is only taken when it is a whole one', () => {
 
 test('the line under the grid says where the hand is, or why there is none', () => {
   assert.equal(describeLiveFrame(frame()), '看到手：約 30 公分');
-  assert.match(describeLiveFrame(frame({ handPresent: false, maxRangeCm: 40 })), /只找 40 公分以內/);
+  assert.match(describeLiveFrame(frame({ handPresent: false, maxRangeCm: 40 })), /只找 40 公分/);
+  assert.match(describeLiveFrame(frame({ handPresent: false, minRangeCm: 10, maxRangeCm: 40 })), /只找 10–40 公分/);
   assert.match(describeLiveFrame(frame({ sceneMoving: true })), /頭在轉/);
   assert.match(describeLiveFrame(frame({ ageMs: 5000 })), /沒有送畫面/);
   assert.match(describeLiveFrame(null), /接上眼鏡/);
@@ -134,6 +141,21 @@ test('the panel says plainly when the Shell has no tools, and shows the choices 
     assert.match(markup, /aria-pressed="true"[^>]*>40 公分/);
     assert.match(markup, /aria-pressed="true"[^>]*>嚴格/);
     assert.match(markup, /目前雜訊 20%，忽略低於最強訊號 25% 的回波/);
+    assert.equal(markup.includes('手勢最近距離'), false, 'Shell 1.2.4 has no nearest distance to set');
+  } finally {
+    delete globalThis.__cibarStaffTools;
+  }
+});
+
+test('a Shell that knows the nearest distance gets the choice, and every write carries it', async () => {
+  const { StaffGesturePanel } = await import('../src/pages/staff/StaffGesturePanel.jsx');
+  const shell = fakeShell({ getGestureSettings: () => ({ minRangeCm: 10, maxRangeCm: 50, signalMode: 'AUTO', noise: 0, floor: 0.08 }) });
+  globalThis.__cibarStaffTools = shell.scope.__cibarStaffTools;
+  try {
+    const markup = renderToStaticMarkup(React.createElement(StaffGesturePanel));
+    assert.ok(markup.includes('手勢最近距離'));
+    assert.match(markup, /aria-pressed="true"[^>]*>10 公分/);
+    assert.ok(markup.includes('5 公分') && markup.includes('15 公分'));
   } finally {
     delete globalThis.__cibarStaffTools;
   }

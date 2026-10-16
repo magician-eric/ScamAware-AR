@@ -9,7 +9,7 @@ import android.webkit.JavascriptInterface;
  * <pre>
  * window.__cibarStaffTools // { version: 1, available: true,
  *                          //   getGestureSettings() -> { maxRangeCm, signalMode, noise, floor } | null,
- *                          //   setGestureSettings({ maxRangeCm, signalMode }) -> same | null,
+ *                          //   setGestureSettings({ maxRangeCm, minRangeCm, signalMode }) -> same | null,
  *                          //   liveFrame() -> TofLiveFrame JSON | null,
  *                          //   shareTofLog() -> boolean }
  * window.addEventListener('cibarStaffToolsReady', ...)
@@ -39,7 +39,7 @@ final class StaffToolsBridge {
     interface Host {
         String gestureSettingsJson();
 
-        String applyGestureSettings(int maxRangeCm, String signalMode);
+        String applyGestureSettings(int maxRangeCm, String signalMode, int minRangeCm);
 
         String liveFrameJson();
 
@@ -57,9 +57,14 @@ final class StaffToolsBridge {
         return host.gestureSettingsJson();
     }
 
+    /** Shell 1.2.4's two-setting call, kept so nothing that still makes it breaks. */
     @JavascriptInterface public String setGestureSettings(int maxRangeCm, String signalMode) {
-        Log.i(TAG, "工作人員模式：手勢設定 " + maxRangeCm + " 公分、" + signalMode);
-        return host.applyGestureSettings(maxRangeCm, signalMode);
+        return setGestureRange(GestureSettings.DEFAULT_MIN_RANGE_CM, maxRangeCm, signalMode);
+    }
+
+    @JavascriptInterface public String setGestureRange(int minRangeCm, int maxRangeCm, String signalMode) {
+        Log.i(TAG, "工作人員模式：手勢設定 " + minRangeCm + "–" + maxRangeCm + " 公分、" + signalMode);
+        return host.applyGestureSettings(maxRangeCm, signalMode, minRangeCm);
     }
 
     @JavascriptInterface public String liveFrame() {
@@ -82,7 +87,8 @@ final class StaffToolsBridge {
                 + "available:true,"
                 + "getGestureSettings:function(){return j(function(){return n.getGestureSettings();});},"
                 + "setGestureSettings:function(s){s=s||{};return j(function(){"
-                + "return n.setGestureSettings(Number(s.maxRangeCm)||0,String(s.signalMode||''));});},"
+                + "return n.setGestureRange(Number(s.minRangeCm)||" + GestureSettings.DEFAULT_MIN_RANGE_CM
+                + ",Number(s.maxRangeCm)||0,String(s.signalMode||''));});},"
                 + "liveFrame:function(){return j(function(){return n.liveFrame();});},"
                 + "shareTofLog:function(){try{n.shareTofLog();return true;}catch(e){return false;}}"
                 + "};"

@@ -13,7 +13,8 @@ public class StaffToolsBridgeTest {
         assertTrue(script.contains("window.__cibarStaffToolsNative"));
         assertTrue(script.contains("window.__cibarStaffTools={"));
         assertTrue(script.contains("n.getGestureSettings()"));
-        assertTrue(script.contains("n.setGestureSettings(Number(s.maxRangeCm)||0,String(s.signalMode||''))"));
+        assertTrue(script, script.contains(
+                "n.setGestureRange(Number(s.minRangeCm)||10,Number(s.maxRangeCm)||0,String(s.signalMode||''))"));
         assertTrue(script.contains("n.liveFrame()"));
         assertTrue(script.contains("n.shareTofLog()"));
         assertTrue(script.contains("cibarStaffToolsReady"));
@@ -33,8 +34,9 @@ public class StaffToolsBridgeTest {
         StaffToolsBridge bridge = new StaffToolsBridge(new StaffToolsBridge.Host() {
             @Override public String gestureSettingsJson() { calls.append("get;"); return "{}"; }
 
-            @Override public String applyGestureSettings(int maxRangeCm, String signalMode) {
-                calls.append("set ").append(maxRangeCm).append(' ').append(signalMode).append(';');
+            @Override public String applyGestureSettings(int maxRangeCm, String signalMode, int minRangeCm) {
+                calls.append("set ").append(minRangeCm).append('-').append(maxRangeCm).append(' ')
+                        .append(signalMode).append(';');
                 return "{}";
             }
 
@@ -44,8 +46,10 @@ public class StaffToolsBridgeTest {
         });
         bridge.getGestureSettings();
         bridge.setGestureSettings(40, "STRICT");
+        bridge.setGestureRange(15, 35, "AUTO");
         bridge.liveFrame();
         bridge.shareTofLog();
-        assertEquals("get;set 40 STRICT;live;share;", calls.toString());
+        assertEquals("1.2.4 的呼叫方式用預設最近距離",
+                "get;set 10-40 STRICT;set 15-35 AUTO;live;share;", calls.toString());
     }
 }

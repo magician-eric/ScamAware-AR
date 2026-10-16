@@ -17,6 +17,14 @@ public class GestureSettingsTest {
         assertEquals(40, GestureSettings.of(42, "AUTO").maxRangeCm);
     }
 
+    @Test public void onlyTheOfferedNearestDistancesAreAccepted() {
+        assertEquals(5, GestureSettings.of(50, "AUTO", 5).minRangeCm);
+        assertEquals(15, GestureSettings.of(50, "AUTO", 15).minRangeCm);
+        assertEquals(15, GestureSettings.of(50, "AUTO", 40).minRangeCm);
+        assertEquals(5, GestureSettings.of(50, "AUTO", 0).minRangeCm);
+        assertEquals(10, GestureSettings.DEFAULT.minRangeCm);
+    }
+
     @Test public void anUnknownSignalModeIsAuto() {
         assertEquals(TofHandExtractor.SignalMode.STRICT, GestureSettings.of(50, "STRICT").signalMode);
         assertEquals(TofHandExtractor.SignalMode.AUTO, GestureSettings.of(50, "").signalMode);
@@ -35,15 +43,18 @@ public class GestureSettingsTest {
         assertEquals(350f, recognizer.maxRangeMm(), 0.1f);
         assertEquals(TofHandExtractor.SignalMode.LOOSE, recognizer.signalMode());
         assertEquals(0.05f, recognizer.signalFloorFraction(), 1e-6f);
+        assertEquals("沒指定最近距離就是 10 公分", 100f, recognizer.minRangeMm(), 0.1f);
+        GestureSettings.of(50, "AUTO", 5).applyTo(recognizer);
+        assertEquals(50f, recognizer.minRangeMm(), 0.1f);
     }
 
     @Test public void theJsonCarriesTheSettingsAndTheLiveNoise() {
-        String json = GestureSettings.of(40, "STANDARD").toJson(0.0314f, 0.12f);
-        assertEquals("{\"maxRangeCm\":40,\"signalMode\":\"STANDARD\",\"noise\":0.031,\"floor\":0.12}", json);
+        String json = GestureSettings.of(40, "STANDARD", 15).toJson(0.0314f, 0.12f);
+        assertEquals("{\"maxRangeCm\":40,\"minRangeCm\":15,\"signalMode\":\"STANDARD\",\"noise\":0.031,\"floor\":0.12}", json);
     }
 
     @Test public void theLogSaysItInTheStaffPagesWords() {
-        assertEquals("手勢最遠 35 公分、訊號過濾 嚴格", GestureSettings.of(35, "STRICT").describe());
+        assertEquals("手勢範圍 10–35 公分、訊號過濾 嚴格", GestureSettings.of(35, "STRICT").describe());
         assertTrue(GestureSettings.DEFAULT.describe().endsWith("自動"));
     }
 }

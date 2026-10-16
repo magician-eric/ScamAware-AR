@@ -194,8 +194,8 @@ public final class MainActivity extends Activity
         return hardware.gestureSettingsJson();
     }
 
-    @Override public String applyGestureSettings(int maxRangeCm, String signalMode) {
-        return hardware.applyGestureSettings(maxRangeCm, signalMode);
+    @Override public String applyGestureSettings(int maxRangeCm, String signalMode, int minRangeCm) {
+        return hardware.applyGestureSettings(maxRangeCm, signalMode, minRangeCm);
     }
 
     @Override public String liveFrameJson() {

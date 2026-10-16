@@ -23,7 +23,7 @@ public class TofLiveFrameTest {
         range[10] = Float.NaN;
         long mask = (1L << 0) | (1L << 63);
         live.update(1000L, range, signal, TofHandExtractor.Hand.at(2.5f, 3f, 304f, 2, 41.6f), mask,
-                400f, 0.0314f, 0.15f, false);
+                1L << 5, 150f, 400f, 0.0314f, 0.15f, false);
 
         JSONObject json = new JSONObject(live.toJson(1066L));
         assertEquals(66, json.getInt("ageMs"));
@@ -41,6 +41,9 @@ public class TofLiveFrameTest {
         assertEquals(2.5, json.getDouble("handCol"), 0.001);
         assertEquals(30, json.getInt("handCm"));
         assertEquals(40, json.getInt("maxRangeCm"));
+        assertEquals(15, json.getInt("minRangeCm"));
+        assertEquals("被遮蔽的雜訊格子", 1, json.getJSONArray("masked").getInt(5));
+        assertEquals(0, json.getJSONArray("masked").getInt(0));
         assertEquals(0.031, json.getDouble("noise"), 0.0005);
         assertEquals(0.15, json.getDouble("floor"), 0.001);
         assertTrue("左右方向跟著辨識器", !json.getBoolean("columnIncreasesRight"));
@@ -48,7 +51,7 @@ public class TofLiveFrameTest {
 
     @Test public void noHandHasNoPosition() throws Exception {
         TofLiveFrame live = new TofLiveFrame();
-        live.update(1L, new float[64], null, TofHandExtractor.Hand.NONE, 0L, 500f, 0f, 0.08f, true);
+        live.update(1L, new float[64], null, TofHandExtractor.Hand.NONE, 0L, 0L, 100f, 500f, 0f, 0.08f, true);
         JSONObject json = new JSONObject(live.toJson(1L));
         assertTrue(!json.getBoolean("handPresent"));
         assertTrue(!json.has("handCol"));
