@@ -43,8 +43,10 @@ export function getGestureTutorialLang() {
 //
 //   singleOption  the other half of the mapping: a screen with one action has
 //                 no LEFT at all, and RIGHT takes it
-//   reminder      what makes the sensor miss a real wave: a hand too far or too
-//                 near (about 30 cm is where it sees best), or moved too fast
+//   reminder      what makes the sensor miss a real wave: a hand outside the
+//                 patch the sensor sees - it sits at the wearer's RIGHT eye and
+//                 looks straight ahead, about 25 cm wide at 30 cm - too far or
+//                 too near, or moved too fast
 //   pointerHint   that a finger or a mouse works too, so a player on a phone
 //                 or a laptop is never stuck waiting for a sensor that is not
 //                 there
@@ -71,7 +73,7 @@ const STRINGS = {
       success: '右揮成功！',
     },
     singleOption: '只有一個選項時，向右揮即可選擇',
-    reminder: '手和眼鏡保持約 30 公分，放慢揮手速度，太快可能無法辨識',
+    reminder: '在右眼正前方約 30 公分處揮手，放慢速度，太快可能無法辨識',
     pointerHint: '手機或電腦操作時，也可以直接點擊畫面上的選項',
     complete: '手勢教學完成！',
   },
@@ -90,7 +92,7 @@ const STRINGS = {
       success: 'Right swipe successful!',
     },
     singleOption: 'For a single option, swipe right to select it.',
-    reminder: 'Keep your hand about 30 cm from the glasses and swipe slowly — too fast may not be recognised',
+    reminder: 'Swipe in front of your right eye, about 30 cm away, and slowly — too fast may not be recognised',
     pointerHint: 'On a phone or computer you can also just tap the option on screen',
     complete: 'Tutorial complete!',
   },
@@ -109,7 +111,7 @@ const STRINGS = {
       success: '右への操作ができました！',
     },
     singleOption: '選択肢が1つの場合は、右に振って選んでください。',
-    reminder: '手はメガネから約30cm離し、ゆっくり振ってください。速すぎると認識されないことがあります',
+    reminder: '右目の前、約30cmの位置でゆっくり振ってください。速すぎると認識されないことがあります',
     pointerHint: 'スマートフォンやパソコンでは、画面の選択肢を直接タップしても操作できます',
     complete: '練習完了！',
   },

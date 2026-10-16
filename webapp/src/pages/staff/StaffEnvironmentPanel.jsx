@@ -161,11 +161,11 @@ export function StaffEnvironmentPanel() {
       <div className="staff-env-preview" ref={previewRef} aria-hidden="true" />
 
       {step === STEP.CLEAR && <p className="staff-env-step">① 請把手移開，讓眼鏡前方淨空……</p>}
-      {step === STEP.HAND && <p className="staff-env-step">② 請把手掌放在眼鏡正前方約 30 公分，保持不動……</p>}
+      {step === STEP.HAND && <p className="staff-env-step">② 請把手掌放在右眼正前方約 30 公分，保持不動……</p>}
       {step === STEP.SWIPE && prompt && (
         <div className="staff-env-swipe" aria-live="polite">
           <p className="staff-env-swipe-count">③ 實測揮手 {prompt.index + 1}／{SWIPE_PLAN.length}</p>
-          <p className="staff-env-swipe-hand">{SWIPE_HAND_LABELS[prompt.planned.hand]}・距離約 30 公分</p>
+          <p className="staff-env-swipe-hand">{SWIPE_HAND_LABELS[prompt.planned.hand]}・右眼前方約 30 公分</p>
           <p className={`staff-env-swipe-direction${prompt.ready ? ' is-ready' : ''}`}>
             {prompt.ready ? DIRECTION_LABELS[prompt.planned.gesture] : '準備……'}
           </p>

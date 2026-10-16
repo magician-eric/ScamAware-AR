@@ -240,10 +240,11 @@ test('all three incoming calls shake while ringing, and none of them keeps shaki
   resetARInteractionContract();
   resetNavigations();
   updateScenario03State({ firstPoliceCallStatus: 'ended' });
-  withFakeTimers((settle) => {
+  withFakeTimers(() => {
     const page = mountSurface(ProsecutorCall);
     try {
-      settle();
+      // Before the clock runs: once its timers settle the ring screen answers
+      // itself (lib/autoAdvance.js), which is pinned in its own test below.
       assert.equal(ringingFrame(page), true, '檢察官來電 rings');
       assert.equal(performARInteraction(RIGHT), true, '接聽');
       page.rerender();
@@ -268,6 +269,51 @@ test('all three incoming calls shake while ringing, and none of them keeps shaki
       page.unmount();
     }
   });
+});
+
+// Every swipe is a chance for the sensor to miss one, and a call the scenario
+// says cannot be refused is not a decision: each ring screen answers itself
+// after a couple of rings (lib/autoAdvance.js), and a swipe still answers at once.
+test('each ring screen answers itself after a couple of rings', async () => {
+  const { AUTO_ANSWER_CALL_MS } = await import('../src/lib/autoAdvance.js');
+  assert.ok(AUTO_ANSWER_CALL_MS >= 2000 && AUTO_ANSWER_CALL_MS <= 4000, 'long enough to read the caller ID');
+
+  resetARInteractionContract();
+  resetNavigations();
+  withFakeTimers((settle) => {
+    const page = mountSurface(IncomingCall);
+    try {
+      settle();
+      assert.deepEqual(navigations.flat(), ['/scenario03-police/call-stage1'], 'the first call answers itself');
+    } finally {
+      page.unmount();
+    }
+  });
+
+  resetARInteractionContract();
+  resetNavigations();
+  updateScenario03State({ firstPoliceCallStatus: 'ended', prosecutorCallCompleted: false });
+  withFakeTimers((settle) => {
+    const page = mountSurface(ProsecutorCall);
+    try {
+      settle();
+      page.rerender();
+      assert.equal(Boolean(findElements(page.output, byName('PoliceFrame'))[0].props.ringing), false,
+        "the prosecutor's call has answered itself");
+    } finally {
+      page.unmount();
+    }
+  });
+
+  for (const file of ['IncomingCall.jsx', 'ProsecutorCall.jsx', 'PoliceCallback.jsx']) {
+    const source = await src(`pages/scenario03/${file}`);
+    assert.match(source, /useAutoAdvance\(answer, AUTO_ANSWER_CALL_MS/, `${file} answers itself`);
+  }
+  // 開始聊天 on the dating app's match screen is the same kind of non-choice.
+  for (const file of ['DatingBrowse.jsx', 'DatingMatch.jsx']) {
+    const source = await readFile(new URL(`../src/pages/scenario02/${file}`, import.meta.url), 'utf8');
+    assert.match(source, /useAutoAdvance\(\w+, AUTO_START_CHAT_MS/, `${file} opens the chat by itself`);
+  }
 });
 
 test('no screen that is not ringing asks the frame to shake', async () => {

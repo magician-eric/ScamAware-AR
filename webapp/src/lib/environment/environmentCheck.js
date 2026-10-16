@@ -244,7 +244,7 @@ export function judgeEnvironment({ tofClear, tofHand, camera, swipes }) {
   } else {
     overall = LEVEL.WARN;
     summary = '不是燈光的問題：可能是揮手方式或距離。';
-    advice.push('請手掌張開、朝向眼鏡，距離約 30 公分，慢慢左右揮動。');
+    advice.push('請在右眼正前方（感測器在眼鏡右側）約 30 公分處，手掌張開朝向眼鏡，慢慢左右揮動。');
   }
   return { overall, summary, swipe, tof, light, advice };
 }

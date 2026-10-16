@@ -4,6 +4,7 @@ import { MatchOverlay } from '../../apps/meetu';
 import { t, getDatingLeadName } from './i18n';
 import { getVisualAssetUrl } from '../../experience/characters/visuals';
 import { useARInteraction } from '../../lib/arInteraction';
+import { AUTO_START_CHAT_MS, useAutoAdvance } from '../../lib/autoAdvance';
 
 const DATING_LEAD_PHOTO = getVisualAssetUrl('dating_visual_03');
 
@@ -19,6 +20,7 @@ export function DatingMatch() {
 
   // AR Interaction Contract: one story action - open the conversation.
   useARInteraction({ mode: 'single', surfaceId: 'scenario02/dating-match', action: openChat });
+  useAutoAdvance(openChat, AUTO_START_CHAT_MS);
 
   return (
     <MatchOverlay
