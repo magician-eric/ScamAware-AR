@@ -272,6 +272,15 @@ export function dispatchARGesture(input) {
 
   if (!snapshot.active) return reject(AR_GESTURE_REJECTIONS.NO_ACTIVE_INTERACTION);
 
+  // One option: either direction takes it. Swiping right over and over is
+  // tiring, and with a single action there is nothing for LEFT to be confused
+  // with. The contract itself still says a 'single' screen is RIGHT; this is
+  // the one place a wave is read, so it is the one place that is relaxed.
+  if (snapshot.mode === AR_INTERACTION_MODES.SINGLE && request.gesture === LEFT) {
+    request.gesture = RIGHT;
+    base.gesture = RIGHT;
+  }
+
   const available = request.gesture === LEFT ? snapshot.leftAvailable : snapshot.rightAvailable;
   if (!available) return reject(unavailableReason(snapshot, request.gesture));
 

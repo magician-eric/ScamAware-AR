@@ -441,7 +441,7 @@ test('3. TWO_ACTION: the module\'s keys run the left and the right action', () =
   screen.unmount();
 });
 
-test('3. SINGLE_ACTION: the module\'s RIGHT runs it, its LEFT does nothing', () => {
+test('3. SINGLE_ACTION: either of the module\'s keys runs it', () => {
   globalThis.__cibarShell = SHELL;
   const ran = [];
   const screen = mountSurface(surface({
@@ -450,8 +450,6 @@ test('3. SINGLE_ACTION: the module\'s RIGHT runs it, its LEFT does nothing', () 
   const bridge = mountBridge();
 
   press(window, 'ArrowLeft');
-  assert.deepEqual(ran, []);
-  press(window, 'ArrowRight');
   assert.deepEqual(ran, ['action']);
   bridge.unmount();
   screen.unmount();

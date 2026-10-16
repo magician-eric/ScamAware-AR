@@ -196,16 +196,16 @@ test('3/4. a display surface rejects LEFT and RIGHT and advances nothing', () =>
 // ---------------------------------------------------------------------------
 // 5 & 6. single - RIGHT is the one action, LEFT does not exist
 // ---------------------------------------------------------------------------
-test('5. single + LEFT is rejected and runs nothing - that is normal, not an error', () => {
+test('5. single + LEFT takes the one option too - either direction will do', () => {
   const ran = [];
   const mounted = mountSurface(surface({
     mode: 'single', surfaceId: 'test/single', action: () => ran.push('action'),
   }));
 
   const result = dispatchARGesture({ gesture: LEFT, eventId: nextId() });
-  assert.equal(result.accepted, false);
-  assert.equal(result.reason, R.DIRECTION_UNAVAILABLE);
-  assert.deepEqual(ran, []);
+  assert.equal(result.accepted, true);
+  assert.equal(result.gesture, RIGHT, 'read as the one action, which the contract keeps on RIGHT');
+  assert.deepEqual(ran, ['action']);
   mounted.unmount();
 });
 
@@ -641,12 +641,13 @@ test('every dispatch is observable, and a listener cannot change the outcome', (
     throw new Error('a broken listener must not break the dispatch');
   });
 
-  assert.equal(dispatchARGesture({ gesture: LEFT, eventId: nextId() }).accepted, false);
-  assert.equal(dispatchARGesture({ gesture: RIGHT, eventId: nextId() }).accepted, true);
+  const repeated = nextId();
+  assert.equal(dispatchARGesture({ gesture: RIGHT, eventId: repeated }).accepted, true);
+  assert.equal(dispatchARGesture({ gesture: RIGHT, eventId: repeated }).accepted, false);
   assert.deepEqual(seen, [
-    'dispatched:direction-unavailable',
     'dispatched:accepted',
     'settled:accepted',
+    'dispatched:duplicate-event',
   ]);
   assert.deepEqual(ran, ['action']);
 
@@ -747,18 +748,22 @@ test('an arrow key pressed inside a text field is typing, not a gesture', () => 
 });
 
 test('the keyboard adapter obeys the contract, it does not talk past it', () => {
-  // A single surface has no LEFT. ArrowLeft must therefore do nothing at all -
-  // if the adapter were clicking a button or picking an element, it could.
+  // A display surface has no action. Neither arrow may do anything there - if
+  // the adapter were clicking a button or picking an element, it could.
   const ran = [];
-  const mounted = mountSurface(surface({
-    mode: 'single', surfaceId: 'test/single', action: () => ran.push('action'),
-  }));
-
+  const shown = mountSurface(surface({ mode: 'display', surfaceId: 'test/display' }));
   const target = new EventTarget();
   const stop = startARGestureKeyboardAdapter({ target, enabled: true });
   target.dispatchEvent(Object.assign(new Event('keydown'), { key: 'ArrowLeft' }));
-  assert.deepEqual(ran, []);
   target.dispatchEvent(Object.assign(new Event('keydown'), { key: 'ArrowRight' }));
+  assert.deepEqual(ran, []);
+  shown.unmount();
+
+  // A single surface takes either arrow, through the contract's one action.
+  const mounted = mountSurface(surface({
+    mode: 'single', surfaceId: 'test/single', action: () => ran.push('action'),
+  }));
+  target.dispatchEvent(Object.assign(new Event('keydown'), { key: 'ArrowLeft' }));
   assert.deepEqual(ran, ['action']);
   stop();
   mounted.unmount();
@@ -930,7 +935,6 @@ test('INT scenario02: the deposit warning\'s stop/continue decision is a real du
   const stopped = getARGestureSnapshot();
   assert.equal(stopped.surfaceId, 'scenario02/deposit-warning/stopped');
   assert.equal(stopped.mode, 'single');
-  assert.equal(dispatchOn(LEFT).reason, R.DIRECTION_UNAVAILABLE);
   again.unmount();
 });
 
@@ -950,15 +954,8 @@ test('INT scenario03: police-callback/answer answers to RIGHT only, and never to
   assert.equal(ringing.leftAvailable, false);
   assert.equal(ringing.rightAvailable, true);
 
-  // LEFT must not answer, decline, hang up or skip anything.
-  const left = dispatchOn(LEFT);
-  assert.equal(left.accepted, false);
-  assert.equal(left.reason, R.DIRECTION_UNAVAILABLE);
-  assert.equal(getARGestureSnapshot().surfaceId, 'scenario03/police-callback/answer', 'LEFT changed the screen');
-  assert.deepEqual(navigations, [], 'LEFT navigated somewhere');
-
-  // RIGHT answers it - exactly once.
-  assert.equal(dispatchOn(RIGHT).accepted, true);
+  // One option: either direction answers it - exactly once.
+  assert.equal(dispatchOn(LEFT).accepted, true);
   const inCall = getARGestureSnapshot();
   assert.equal(inCall.surfaceId, 'scenario03/police-callback');
   assert.equal(inCall.mode, 'display');
@@ -1022,10 +1019,8 @@ test('INT shared: the Outcome and the clue analysis are single-RIGHT surfaces', 
   });
   assert.equal(getARGestureSnapshot().surfaceId, 'shared/outcome');
   assert.equal(getARGestureSnapshot().mode, 'single');
-  assert.equal(dispatchOn(LEFT).reason, R.DIRECTION_UNAVAILABLE);
-  assert.deepEqual(navigations, [], 'LEFT must not leave the Outcome screen');
-  assert.equal(dispatchOn(RIGHT).accepted, true);
-  assert.deepEqual(navigations.at(-1), ['/analysis'], 'RIGHT goes where the button goes');
+  assert.equal(dispatchOn(LEFT).accepted, true, 'one option: LEFT takes it too');
+  assert.deepEqual(navigations.at(-1), ['/analysis'], 'it goes where the button goes');
   outcome.unmount();
 
   resetNavigations();
@@ -1035,8 +1030,6 @@ test('INT shared: the Outcome and the clue analysis are single-RIGHT surfaces', 
   });
   assert.equal(getARGestureSnapshot().surfaceId, 'shared/fraud-clue-analysis');
   assert.equal(getARGestureSnapshot().mode, 'single');
-  assert.equal(dispatchOn(LEFT).reason, R.DIRECTION_UNAVAILABLE);
-  assert.deepEqual(navigations, []);
   assert.equal(dispatchOn(RIGHT).accepted, true);
   assert.deepEqual(navigations.at(-1), ['/quiz']);
   analysis.unmount();
@@ -1082,12 +1075,9 @@ test('INT shared: the anti-fraud quiz goes dual -> single, and cannot be answere
   assert.equal(stale.reason, R.STALE_INTERACTION);
   assert.deepEqual(answers, [[true, 0]], 'the quiz must not be answered twice');
 
-  // A LEFT recognised now is simply unavailable: the answered screen has none.
-  assert.equal(dispatchOn(LEFT).reason, R.DIRECTION_UNAVAILABLE);
-  assert.deepEqual(navigations, []);
-
-  // RIGHT goes back to the scan, through the same navigate the button uses.
-  assert.equal(dispatchOn(RIGHT).accepted, true);
+  // A LEFT recognised now takes the one action left, like RIGHT: back to the
+  // scan, through the same navigate the button uses.
+  assert.equal(dispatchOn(LEFT).accepted, true);
   assert.deepEqual(navigations.at(-1), ['/ar-scan']);
   mounted.unmount();
 });
