@@ -198,7 +198,7 @@ test('1. TWO_ACTION: both sides are reachable, in either order, one wave each', 
   screen.unmount();
 });
 
-test('1. ONE_ACTION: a native LEFT does nothing at all', () => {
+test('1. ONE_ACTION: a native LEFT takes the one option too', () => {
   const ran = [];
   const screen = mountSurface(surface({
     mode: 'single', surfaceId: 'test/single', action: () => ran.push('action'),
@@ -208,10 +208,9 @@ test('1. ONE_ACTION: a native LEFT does nothing at all', () => {
 
   wave('LEFT');
 
-  assert.deepEqual(ran, [], 'a one-action screen has no LEFT');
-  assert.equal(seen.length, 1, 'the gesture still reached the Bridge - it was refused there');
-  assert.equal(seen[0].accepted, false);
-  assert.equal(seen[0].reason, R.DIRECTION_UNAVAILABLE);
+  assert.deepEqual(ran, ['action'], 'one option: either direction takes it');
+  assert.equal(seen.filter((event) => event.phase === 'dispatched').length, 1);
+  assert.equal(seen[0].accepted, true);
   stop();
   bridge.unmount();
   screen.unmount();
@@ -618,7 +617,7 @@ test('7. the log line names the gesture, the delivery, the revision, the surface
 
 test('7. nothing is logged unless diagnostics are on, and it is console output only', () => {
   const screen = mountSurface(surface({
-    mode: 'single', surfaceId: 'test/single', action: () => {},
+    mode: 'display', surfaceId: 'test/display',
   }));
 
   const original = console.info;

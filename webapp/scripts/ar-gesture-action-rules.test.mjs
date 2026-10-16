@@ -118,21 +118,17 @@ test('TWO_ACTION: LEFT runs the left action exactly once and never the right one
 // ---------------------------------------------------------------------------
 // 一顆按鈕: 向左揮 -> 沒反應, 向右揮 -> 執行
 // ---------------------------------------------------------------------------
-test('ONE_ACTION: LEFT does nothing at all, RIGHT runs the one action exactly once', () => {
+test('ONE_ACTION: either direction runs the one action, exactly once per wave', () => {
   const ran = [];
   const mounted = mountSurface(surface({ mode: 'single', surfaceId: 'rules/one', action: () => ran.push('only') }));
 
-  const left = wave(LEFT);
-  assert.equal(left.accepted, false);
-  assert.equal(left.reason, AR_GESTURE_REJECTIONS.DIRECTION_UNAVAILABLE);
-  assert.deepEqual(ran, [], 'LEFT must never reach a single screen\'s one action');
-
-  assert.equal(wave(RIGHT).accepted, true);
+  assert.equal(wave(LEFT).accepted, true, 'one option: swiping right over and over is tiring');
   assert.deepEqual(ran, ['only']);
+  assert.equal(wave(RIGHT).accepted, true);
+  assert.deepEqual(ran, ['only', 'only']);
 
-  // The contract does not merely refuse to run LEFT - it reports that this
-  // screen has no LEFT side at all, which is what a debug overlay and a
-  // future recogniser read.
+  // The contract still describes the one action as its RIGHT side; it is the
+  // Gesture Bridge that lets a LEFT wave reach it.
   assert.equal(getARGestureSnapshot().leftAvailable, false);
   assert.equal(getARGestureSnapshot().rightAvailable, true);
   mounted.unmount();
