@@ -50,8 +50,12 @@ final class TofFrameFile implements TofFrameRecorder.Sink {
         }
     }
 
-    /** Appends what has been collected. Also called directly by tests. */
-    void flush() {
+    /**
+     * Appends what has been collected. Also called directly by tests, and by the staff mode's
+     * 匯出紀錄檔 so the export ends with the last second too - hence synchronized, against the
+     * scheduled flush.
+     */
+    synchronized void flush() {
         String text;
         synchronized (pending) {
             if (pending.length() == 0) return;
@@ -74,5 +78,9 @@ final class TofFrameFile implements TofFrameRecorder.Sink {
 
     File file() {
         return file;
+    }
+
+    File previousFile() {
+        return previous;
     }
 }

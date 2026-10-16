@@ -230,4 +230,135 @@ public class TofHandExtractorTest {
         assertEquals("H 3.25 4.00 231mm 9z 1234", hand);
         assertEquals("M 6", TofHandExtractor.Hand.moving(6).describe());
     }
+
+    // ------------------------------------------------------------------ wall, audience, noise
+
+    /**
+     * The wall the player stands at: a hand less than 10 cm in front of it does not count, one
+     * clearly in front of it does.
+     */
+    @Test public void aHandMustBeTenCentimetresInFrontOfWhatIsBehindIt() {
+        scene.wall(450);
+        run(TofHandExtractor.ABSORB_MS + 500);
+        scene.handAt(3.5f, 3.5f, 380);
+        assertFalse("離牆只有 7 公分，不算手", frame().present);
+        scene.handAt(3.5f, 3.5f, 320);
+        assertTrue("離牆 13 公分，是手", frame().present);
+    }
+
+    /** 手勢最遠距離: brought in to 35 cm, a hand at 45 cm is no longer looked for at all. */
+    @Test public void theStaffModeCanBringTheRangeIn() {
+        scene.wall(1500);
+        run(TofHandExtractor.LEARN_MS + 200);
+        scene.handAt(3.5f, 3.5f, 450);
+        assertTrue(frame().present);
+        extractor.setMaxRangeMm(350);
+        assertFalse("最遠 35 公分時，45 公分的手不算", frame().present);
+        scene.handAt(3.5f, 3.5f, 300);
+        assertTrue(frame().present);
+        extractor.setMaxRangeMm(5000);
+        assertEquals("不能超過感測器本身的手勢範圍",
+                TofHandExtractor.MAX_RANGE_MM, extractor.maxRangeMm(), 0.1f);
+    }
+
+    /** Two patches: a weak one at 30 cm (infrared speckle) and a strong one, the hand, at 35. */
+    private TofHandExtractor.Hand weakNearStrong() {
+        float[] range = new float[64];
+        float[] signal = new float[64];
+        for (int row = 2; row <= 4; row++) {
+            for (int col = 0; col <= 1; col++) {
+                range[row * 8 + col] = 300f;
+                signal[row * 8 + col] = 4f;
+            }
+            for (int col = 4; col <= 6; col++) {
+                range[row * 8 + col] = 350f;
+                signal[row * 8 + col] = 60f;
+            }
+        }
+        TofHandExtractor.Hand last = TofHandExtractor.Hand.NONE;
+        for (int k = 0; k < 3; k++) {
+            clock += TofScene.FRAME_MS;
+            last = extractor.process(range, signal, clock, false);
+        }
+        return last;
+    }
+
+    /** 訊號過濾: weak next to the strongest return in the frame, a zone is ignored outright. */
+    @Test public void weakReturnsAreIgnoredAgainstTheStrongest() {
+        run(TofHandExtractor.LEARN_MS + 200);
+        extractor.setSignalMode(TofHandExtractor.SignalMode.LOOSE);
+        assertEquals("寬鬆時弱訊號仍在，最近的是它", 300f, weakNearStrong().rangeMm, 1f);
+        extractor.setSignalMode(TofHandExtractor.SignalMode.STANDARD);
+        TofHandExtractor.Hand hand = weakNearStrong();
+        assertTrue(hand.present);
+        assertEquals("標準時忽略只有最強訊號 7% 的那一塊", 350f, hand.rangeMm, 1f);
+    }
+
+    /** 自動: the more zones flicker with nothing in front, the stricter the signal floor. */
+    @Test public void autoGetsStricterAsTheSceneGetsNoisier() {
+        assertEquals(TofHandExtractor.SignalMode.AUTO, extractor.signalMode());
+        assertEquals(TofHandExtractor.AUTO_FRACTION_QUIET, extractor.signalFloorFraction(), 1e-6f);
+        java.util.Random random = new java.util.Random(7);
+        for (int k = 0; k < 150; k++) {
+            float[] range = new float[64];
+            float[] signal = new float[64];
+            for (int i = 0; i < 64; i++) {
+                if (random.nextInt(4) == 0) {
+                    range[i] = 1500f;
+                    signal[i] = 1f;
+                }
+            }
+            clock += TofScene.FRAME_MS;
+            extractor.process(range, signal, clock, false);
+        }
+        assertTrue("雜訊比例 " + extractor.noiseRatio(),
+                extractor.noiseRatio() >= TofHandExtractor.NOISE_VERY_NOISY);
+        assertEquals(TofHandExtractor.AUTO_FRACTION_VERY_NOISY, extractor.signalFloorFraction(), 1e-6f);
+        extractor.setSignalMode(TofHandExtractor.SignalMode.STANDARD);
+        assertEquals("手動選的不跟著雜訊變", 0.12f, extractor.signalFloorFraction(), 1e-6f);
+        extractor.reset();
+        extractor.setSignalMode(TofHandExtractor.SignalMode.AUTO);
+        assertEquals(TofHandExtractor.AUTO_FRACTION_QUIET, extractor.signalFloorFraction(), 1e-6f);
+    }
+
+    @Test public void aStaffChoiceIsReadByName() {
+        assertEquals(TofHandExtractor.SignalMode.STRICT, TofHandExtractor.SignalMode.parse("strict"));
+        assertEquals(TofHandExtractor.SignalMode.AUTO, TofHandExtractor.SignalMode.parse("nonsense"));
+        assertEquals(TofHandExtractor.SignalMode.AUTO, TofHandExtractor.SignalMode.parse(null));
+    }
+
+    /**
+     * A zone that was dark a frame ago must persist unless it arrives as part of a solid patch:
+     * a thin line of new zones is a hand from its second frame, a solid patch from its first.
+     */
+    @Test public void loneNewZonesMustPersistButASolidHandDoesNot() {
+        run(TofHandExtractor.LEARN_MS + 200);
+        float[] range = new float[64];
+        float[] signal = new float[64];
+        for (int row = 2; row <= 4; row++) {
+            range[row * 8 + 3] = 250f;
+            signal[row * 8 + 3] = 50f;
+        }
+        clock += TofScene.FRAME_MS;
+        assertFalse("一條剛出現的細線，第一張畫面不算", extractor.process(range, signal, clock, false).present);
+        clock += TofScene.FRAME_MS;
+        assertTrue("第二張畫面還在，就是手", extractor.process(range, signal, clock, false).present);
+
+        extractor.reset();
+        run(TofHandExtractor.LEARN_MS + 200);
+        scene.handAt(3.5f, 3.5f, 250);
+        assertTrue("整塊出現的手，第一張畫面就算", frame().present);
+    }
+
+    /** The staff mode's live view shows which zones were taken for the hand. */
+    @Test public void theHandsZonesAreKeptForTheLiveView() {
+        run(TofHandExtractor.LEARN_MS + 200);
+        scene.handAt(3.5f, 3.5f, 300);
+        TofHandExtractor.Hand hand = frame();
+        assertTrue(hand.present);
+        assertEquals(hand.zones, Long.bitCount(extractor.handMask()));
+        scene.noHand();
+        frame();
+        assertEquals(0L, extractor.handMask());
+    }
 }

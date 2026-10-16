@@ -106,9 +106,13 @@ final class TofHandExtractor {
     /** Small drift of the same surface is followed after this long. */
     static final long REFINE_MS = 500L;
 
-    /** How much nearer than its background a zone has to be to count as foreground. */
-    static final float FOREGROUND_MARGIN_MM = 60f;
-    static final float FOREGROUND_MARGIN_RATIO = 0.12f;
+    /**
+     * How much nearer than its background a zone has to be to count as foreground: 10 cm at
+     * least. A wall the player stands at, or a desk, is never mistaken for a hand that is not
+     * clearly in front of it - the gesture range ends 10 cm before whatever is behind.
+     */
+    static final float FOREGROUND_MARGIN_MM = 100f;
+    static final float FOREGROUND_MARGIN_RATIO = 0.15f;
     /** Two readings this close are the same surface (sensor noise grows with distance). */
     static final float SAME_TOLERANCE_MM = 25f;
     static final float SAME_TOLERANCE_RATIO = 0.06f;
@@ -118,11 +122,52 @@ final class TofHandExtractor {
     /** No zone weighs more than this multiple of the blob's median signal in the centroid. */
     static final float WEIGHT_CAP_OVER_MEDIAN = 3f;
 
+    /**
+     * How weak a return may be, against the strongest one within gesture range in the same
+     * frame, before the zone is ignored outright. Relative, because the sensor's units mean
+     * nothing until measured on site and a hand at 5 cm returns a hundred times what it returns
+     * at 50 cm; against the strongest return, because the hand is nearly always it - a wall or a
+     * person behind is further away, and returns fall with the square of distance.
+     */
+    enum SignalMode {
+        /** Follows the measured noise: the more zones flicker, the stricter. */
+        AUTO(0f),
+        LOOSE(0.05f),
+        STANDARD(0.12f),
+        STRICT(0.25f);
+
+        final float fraction;
+
+        SignalMode(float fraction) {
+            this.fraction = fraction;
+        }
+
+        static SignalMode parse(String name) {
+            for (SignalMode mode : values()) if (mode.name().equalsIgnoreCase(name)) return mode;
+            return AUTO;
+        }
+    }
+
+    /** {@link SignalMode#AUTO}'s fraction for quiet, noisy and very noisy surroundings. */
+    static final float AUTO_FRACTION_QUIET = 0.08f;
+    static final float AUTO_FRACTION_NOISY = 0.15f;
+    static final float AUTO_FRACTION_VERY_NOISY = 0.25f;
+    static final float NOISE_NOISY = 0.10f;
+    static final float NOISE_VERY_NOISY = 0.25f;
+    /** How quickly the noise estimate follows the scene (per frame with no hand in view). */
+    static final float NOISE_SMOOTHING = 0.05f;
+
     /** The depth band behind the nearest zone that still belongs to the hand. */
     static final float BAND_MIN_MM = 80f;
     static final float BAND_RATIO = 0.3f;
 
     static final int MIN_BLOB_ZONES = 3;
+    /**
+     * A zone that was dark in the previous frame and has fewer than this many foreground
+     * neighbours now is a flicker, not part of a hand, and is ignored this frame. A solid blob
+     * passes at once, so a hand is not delayed; only lone sparks have to persist.
+     */
+    static final int PERSIST_UNLESS_NEIGHBOURS = 2;
     /** Zones this far apart (in rows or columns) belong to the same blob. */
     static final int BLOB_REACH = 2;
 
@@ -206,6 +251,49 @@ final class TofHandExtractor {
         }
     }
 
+    /** The farthest a hand is looked for; the staff mode can bring it in. */
+    private volatile float maxRangeMm = MAX_RANGE_MM;
+    private volatile SignalMode signalMode = SignalMode.AUTO;
+    /** Share of zones changing between a reading and none per frame, smoothed. */
+    private volatile float noiseRatio;
+    private final boolean[] previousValid = new boolean[ZONES];
+    private final boolean[] wasValid = new boolean[ZONES];
+    private volatile long handMask;
+
+    void setMaxRangeMm(float value) {
+        maxRangeMm = Math.max(MIN_RANGE_MM + 50f, Math.min(MAX_RANGE_MM, value));
+    }
+
+    float maxRangeMm() {
+        return maxRangeMm;
+    }
+
+    void setSignalMode(SignalMode mode) {
+        signalMode = mode == null ? SignalMode.AUTO : mode;
+    }
+
+    SignalMode signalMode() {
+        return signalMode;
+    }
+
+    float noiseRatio() {
+        return noiseRatio;
+    }
+
+    /** The zones of the hand found in the last frame, one bit per zone (bit 0 is zone 0). */
+    long handMask() {
+        return handMask;
+    }
+
+    /** The fraction of the strongest return below which a zone is ignored, right now. */
+    float signalFloorFraction() {
+        SignalMode mode = signalMode;
+        if (mode != SignalMode.AUTO) return mode.fraction;
+        if (noiseRatio >= NOISE_VERY_NOISY) return AUTO_FRACTION_VERY_NOISY;
+        if (noiseRatio >= NOISE_NOISY) return AUTO_FRACTION_NOISY;
+        return AUTO_FRACTION_QUIET;
+    }
+
     /** Background distance per zone: NaN not yet known, 0 nothing there, otherwise mm. */
     private final float[] background = new float[ZONES];
     /** Whether that background was learned by absorbing something that arrived and stayed. */
@@ -235,6 +323,8 @@ final class TofHandExtractor {
         Arrays.fill(candidateSince, 0L);
         Arrays.fill(darkSince, -1L);
         Arrays.fill(absorbed, false);
+        Arrays.fill(previousValid, false);
+        noiseRatio = 0f;
     }
 
     /**
@@ -257,11 +347,16 @@ final class TofHandExtractor {
 
         int receded = 0;
         float recededFrom = 0f;
+        int flips = 0;
+        float farthest = maxRangeMm;
         for (int i = 0; i < ZONES; i++) {
             float r = range[i];
             float b = background[i];
             boolean valid = valid(r);
-            foreground[i] = valid && r >= MIN_RANGE_MM && r <= MAX_RANGE_MM && r < foregroundLimit(i);
+            if (valid != previousValid[i]) flips++;
+            wasValid[i] = previousValid[i];
+            previousValid[i] = valid;
+            foreground[i] = valid && r >= MIN_RANGE_MM && r <= farthest && r < foregroundLimit(i);
             if (valid && b > 0f && b <= EGO_BACKGROUND_MAX_MM && r > b + margin(b)) {
                 receded++;
                 recededFrom += b;
@@ -269,8 +364,12 @@ final class TofHandExtractor {
         }
         // Learned after classifying, so a frame is always judged against what came before it.
         learn(range, nowMs, locked);
+        if (hasSignal) dropWeakReturns(range, signal, farthest);
+        dropLoneSparks();
 
         Hand hand = findHand(range, signal, hasSignal);
+        // Noise is measured only while nothing is in front: a moving hand's edges flicker too.
+        if (!hand.present) noiseRatio += NOISE_SMOOTHING * (flips / (float) ZONES - noiseRatio);
         if (receded >= EGO_MIN_ZONES && hand.present
                 && Math.abs(hand.rangeMm - recededFrom / receded) <= band(hand.rangeMm)) {
             return Hand.moving(receded);
@@ -278,7 +377,51 @@ final class TofHandExtractor {
         return hand;
     }
 
+    /**
+     * Ignores foreground zones whose return is weak next to the strongest return within gesture
+     * range in this frame ({@link #signalFloorFraction()}): the far wall, the person behind, the
+     * infrared speckle a lamp leaves - weak beside a hand at arm's length.
+     */
+    private void dropWeakReturns(float[] range, float[] signal, float farthest) {
+        int n = 0;
+        for (int i = 0; i < ZONES; i++) {
+            float r = range[i];
+            if (valid(r) && r >= MIN_RANGE_MM && r <= farthest && signal[i] > 0f) scratch[n++] = signal[i];
+        }
+        if (n == 0) return;
+        Arrays.sort(scratch, 0, n);
+        // The third strongest rather than the strongest, so a glint or two cannot set it.
+        float strongest = scratch[Math.max(0, n - 3)];
+        float floor = strongest * signalFloorFraction();
+        for (int i = 0; i < ZONES; i++) {
+            if (foreground[i] && signal[i] < floor) foreground[i] = false;
+        }
+    }
+
+    /** See {@link #PERSIST_UNLESS_NEIGHBOURS}. */
+    private void dropLoneSparks() {
+        for (int i = 0; i < ZONES; i++) {
+            if (!foreground[i] || wasValid[i]) {
+                inBand[i] = foreground[i];
+                continue;
+            }
+            int neighbours = 0;
+            int row = i / GRID, col = i % GRID;
+            for (int dr = -1; dr <= 1; dr++) {
+                for (int dc = -1; dc <= 1; dc++) {
+                    if (dr == 0 && dc == 0) continue;
+                    int rr = row + dr, cc = col + dc;
+                    if (rr < 0 || rr >= GRID || cc < 0 || cc >= GRID) continue;
+                    if (foreground[rr * GRID + cc]) neighbours++;
+                }
+            }
+            inBand[i] = neighbours >= PERSIST_UNLESS_NEIGHBOURS;
+        }
+        System.arraycopy(inBand, 0, foreground, 0, ZONES);
+    }
+
     private Hand findHand(float[] range, float[] signal, boolean hasSignal) {
+        handMask = 0L;
         int count = 0;
         for (int i = 0; i < ZONES; i++) {
             if (foreground[i] && supported(i, range)) order[count++] = i;
@@ -351,7 +494,10 @@ final class TofHandExtractor {
                 if (!member[i]) continue;
                 int c = i % GRID;
                 if (c == 0 || c == GRID - 1) side = true;
+                // Squared: a zone the hand only clips counts for little, the zones it covers for a
+                // lot - weak returns made weaker, as well as the weakest dropped above.
                 float w = hasSignal ? Math.min(signal[i], cap) : 1f;
+                w *= w;
                 if (!(w > 0f)) w = Float.MIN_NORMAL;
                 sumW += w;
                 sumCol += w * (i % GRID);
@@ -361,6 +507,11 @@ final class TofHandExtractor {
             float meanRange = sumRange / sumW;
             // The nearest object is too big to be a hand; a hand cannot be behind it either.
             if (zones > maxHandZones(meanRange)) return Hand.notAHand("too-big", zones, meanRange);
+            long mask = 0L;
+            for (int n = 0; n < tail; n++) {
+                if (member[queue[n]]) mask |= 1L << queue[n];
+            }
+            handMask = mask;
             return Hand.at(sumCol / sumW, sumRow / sumW, meanRange, zones, peak, side);
         }
         return Hand.NONE;

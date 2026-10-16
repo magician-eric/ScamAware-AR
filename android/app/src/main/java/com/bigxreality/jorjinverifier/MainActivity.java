@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ApplicationExitInfo;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -12,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.net.Uri;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -61,7 +64,7 @@ import java.io.File;
  */
 public final class MainActivity extends Activity
         implements JorjinHardwareManager.Listener, WebLayerController.PageListener,
-        OtaControlBridge.Host, OtaController.StateListener {
+        OtaControlBridge.Host, StaffToolsBridge.Host, OtaController.StateListener {
     private static final String TAG = "JorjinVerifier";
     private static final int CAMERA_PERMISSION_REQUEST = 1001;
     /** What survives a process: the last renderer restart, the newest exit already reported. */
@@ -98,7 +101,8 @@ public final class MainActivity extends Activity
         WebBundle bundle = ota.openForLaunch();
 
         web = new WebLayerController((WebView) findViewById(R.id.cibarWebView), bundle, this,
-                new OtaControlBridge(this), new EnvironmentCheckBridge(hardware.environmentMeter()));
+                new OtaControlBridge(this), new EnvironmentCheckBridge(hardware.environmentMeter()),
+                new StaffToolsBridge(this));
         ota.setStateListener(this);
         web.setCameraStream(hardware.cameraStream());
         // Before any permission dialog: which flow the page takes depends on whether the glasses
@@ -181,6 +185,64 @@ public final class MainActivity extends Activity
 
     @Override public void refreshOtaState() {
         ota.publishState();
+    }
+
+    // The staff management mode's gesture tools (StaffToolsBridge). Also called on a WebView
+    // thread; the settings and the live frame are a field read or write, the export a thread.
+
+    @Override public String gestureSettingsJson() {
+        return hardware.gestureSettingsJson();
+    }
+
+    @Override public String applyGestureSettings(int maxRangeCm, String signalMode) {
+        return hardware.applyGestureSettings(maxRangeCm, signalMode);
+    }
+
+    @Override public String liveFrameJson() {
+        return hardware.liveFrameJson();
+    }
+
+    /**
+     * 匯出紀錄檔: the frame log copied into one file (a few megabytes - on its own thread), then
+     * the share sheet for LINE, e-mail or a drive. Opening the share sheet puts this activity in
+     * the background, which releases the glasses (see onStop); coming back starts them again.
+     */
+    @Override public void shareTofLog() {
+        File exportDir = new File(getCacheDir(), TofLogExport.DIRECTORY);
+        new Thread(() -> {
+            File exported;
+            try {
+                exported = hardware.exportTofLog(exportDir);
+            } catch (Throwable error) {
+                Log.w(TAG, "匯出紀錄檔失敗", error);
+                exported = null;
+            }
+            File result = exported;
+            post(() -> offerTofLog(result));
+        }, "TofLogExport").start();
+    }
+
+    private void offerTofLog(File exported) {
+        if (exported == null) {
+            web.publishTofLogExport(false, null, 0L, "empty");
+            return;
+        }
+        Uri uri = TofLogProvider.uriFor(getPackageName(), exported);
+        Intent send = new Intent(Intent.ACTION_SEND)
+                .setType(TofLogProvider.MIME)
+                .putExtra(Intent.EXTRA_STREAM, uri)
+                .putExtra(Intent.EXTRA_SUBJECT, exported.getName())
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // The grant travels with the ClipData; without it the receiving app is refused the file.
+        send.setClipData(ClipData.newRawUri(exported.getName(), uri));
+        Intent chooser = Intent.createChooser(send, "匯出 ToF 紀錄檔")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivity(chooser);
+            web.publishTofLogExport(true, exported.getName(), exported.length(), null);
+        } catch (ActivityNotFoundException error) {
+            web.publishTofLogExport(false, exported.getName(), 0L, "no-app");
+        }
     }
 
     /**

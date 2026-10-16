@@ -592,4 +592,66 @@ public class TofGestureRecognizerTest {
             assertTrue(gesture == LEFT || gesture == RIGHT);
         }
     }
+
+    // ------------------------------------------------------------------ fewer swipes needed
+
+    /**
+     * A hand that stays up after its swipe, held still, may swipe again without first leaving
+     * the sensor - the next question is answered from where the last swipe ended.
+     */
+    @Test public void aHandHeldStillAfterItsSwipeCanSwipeAgain() {
+        move(-1.5f, MID, 6f, MID, 300, 350);
+        hold(6f, MID, 300, 1500);
+        assertOnly(RIGHT);
+        swipe(6f, -1.5f, 300, 400);
+        assertEquals("停住之後往回揮應該算第二下：" + notes, 2, received.size());
+        assertEquals(LEFT, (int) received.get(1));
+    }
+
+    /** ...but the arm relaxing slowly back the way it came, after the hold, is not a swipe. */
+    @Test public void aSlowDriftAfterTheHoldIsNotASwipe() {
+        move(-1.5f, MID, 6f, MID, 300, 350);
+        hold(6f, MID, 300, 1500);
+        move(6f, MID, 2f, MID, 300, 1800);
+        hold(2f, MID, 300, 400);
+        assertOnly(RIGHT);
+    }
+
+    /**
+     * An edge-on hand (手刀) crossing only the edge of the sensor's narrow view - the right hand
+     * at the right eye: a short stroke that leaves at the side it was heading for is a swipe.
+     */
+    @Test public void aShortEdgeOnStrokeLeavingAtTheSideItWasHeadingForIsASwipe() {
+        float width = 25f / TofScene.zoneWidthMm(300);
+        float height = TofScene.HAND_HEIGHT_MM / TofScene.zoneWidthMm(300);
+        int steps = 5;
+        for (int i = 0; i <= steps; i++) {
+            scene.handAt(6.1f + 2.4f * i / steps, MID, 300, width, height);
+            frame();
+        }
+        away();
+        assertOnly(RIGHT);
+    }
+
+    /** The same edge-on hand, stopping short of the side: not enough to be a swipe. */
+    @Test public void aShortEdgeOnStrokeStoppingShortOfTheSideIsNothing() {
+        float width = 25f / TofScene.zoneWidthMm(300);
+        float height = TofScene.HAND_HEIGHT_MM / TofScene.zoneWidthMm(300);
+        for (int i = 0; i <= 5; i++) {
+            scene.handAt(4.6f + 0.2f * i, MID, 300, width, height);
+            frame();
+        }
+        away();
+        assertNothing();
+    }
+
+    /**
+     * A hand put into view from the side and taken away before it reached the middle - or one
+     * that went within 10 cm of the wall behind it - is not a swipe.
+     */
+    @Test public void aHandThatVanishesBeforeTheMiddleIsNotASwipe() {
+        move(-1.5f, MID, 2f, MID, 300, 350);
+        away();
+        assertNothing();
+    }
 }

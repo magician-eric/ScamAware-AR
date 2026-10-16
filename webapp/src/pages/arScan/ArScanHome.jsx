@@ -9,6 +9,7 @@ import { prepareScenarioEntry } from '../../lib/enterScenario';
 import { isScanDiagnosticsEnabled, recordScanDiagnostic, resetScanDiagnostics } from '../../lib/ar/scanDiagnostics';
 import { ArScanDiagnosticsOverlay } from './ArScanDiagnosticsOverlay';
 import { getArScanLang, getArScanStrings } from './i18n';
+import { areGlassesAbsent } from '../../lib/glasses/glassesPresence';
 import { HERO_IMAGE_SRC_BY_LANG, HERO_IMAGE_ASPECT_RATIO_BY_LANG, CAMERA_BOX_BY_LANG } from './heroLayout';
 import '../entryScreens.css';
 
@@ -227,6 +228,10 @@ export function ArScanHome() {
             {offer && <p className="ar-scan-offer-label">{t.offerLabel}</p>}
             <h1 className="ar-scan-title">{offer ? offer.headline : t.scanning.headline}</h1>
             {!offer && <p className="ar-scan-hint">{t.scanning.hint}</p>}
+            {/* The poster was found from close up, and the wall it hangs on is right behind
+                the hand that is about to swipe: a step back gives the depth sensor room to
+                tell the two apart. Only with the glasses - on a phone the button is tapped. */}
+            {offer && !areGlassesAbsent() && <p className="ar-scan-step-back">{t.stepBack}</p>}
           </div>
         </div>
 
