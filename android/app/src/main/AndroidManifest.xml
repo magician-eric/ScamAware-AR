@@ -72,16 +72,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Plugging the glasses in offers this app directly and grants it the USB
-                 permission for the matched device, so ToF verification needs no vendor app and
-                 no manual dialog. res/xml/device_filter.xml lists the ToF CDC node explicitly:
-                 it is a different USB device from the RGB camera. -->
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
+            <!-- No USB_DEVICE_ATTACHED filter (removed in 1.2.6). Plugging the glasses in used
+                 to launch this app, but a launch from that intent came up on a blank, frozen
+                 home screen. The app is now opened by hand; glasses plugged in while it is open
+                 are still picked up by JorjinHardwareManager's runtime receiver, and USB access
+                 is asked for through the normal permission dialog. -->
         </activity>
 
         <!-- 工作人員管理模式的「匯出紀錄檔」：把 tof-frames.txt 交給分享選單裡選的 APP（LINE、

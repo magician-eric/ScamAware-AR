@@ -70,10 +70,9 @@ test('pixels summarise to brightness, glare and warmth', () => {
   assert.equal(summarizePixels(new Uint8ClampedArray(0)), null);
 });
 
-test('the plan is five palm-facing swipes then five edge-on, directions alternating', () => {
+test('the plan is ten palm-facing swipes - what the tutorial teaches - directions alternating', () => {
   assert.equal(SWIPE_PLAN.length, 10);
-  assert.equal(SWIPE_PLAN.filter((p) => p.hand === SWIPE_HAND.PALM).length, 5);
-  assert.equal(SWIPE_PLAN.filter((p) => p.hand === SWIPE_HAND.EDGE).length, 5);
+  assert.equal(SWIPE_PLAN.filter((p) => p.hand === SWIPE_HAND.PALM).length, 10);
   for (let i = 1; i < SWIPE_PLAN.length; i += 1) {
     assert.notEqual(SWIPE_PLAN[i].gesture, SWIPE_PLAN[i - 1].gesture, 'each swipe starts where the last ended');
   }
@@ -83,7 +82,7 @@ test('the measured swipes are counted, by hand, and a wrong direction is a miss'
   const nine = judgeSwipes(swipes(1));
   assert.equal(nine.rate, 0.9);
   assert.equal(nine.level, LEVEL.GOOD);
-  assert.match(nine.detail, /實測 9\/10（90%）｜手掌朝前 5\/5｜手刀 4\/5/);
+  assert.equal(nine.detail, '實測 9/10（90%）');
   const wrong = swipes(0).map((r, i) => (i === 0 ? { ...r, got: 'right' } : r));
   assert.equal(judgeSwipes(wrong).rate, 0.9);
   assert.equal(judgeSwipes(swipes(3)).level, LEVEL.BAD);
@@ -91,7 +90,12 @@ test('the measured swipes are counted, by hand, and a wrong direction is a miss'
 });
 
 test('edge-on doing worse than palm-facing says so', () => {
-  const result = judgeSwipes(swipes(2, { edgeOnly: true }));
+  const mixed = [
+    ...Array(5).fill({ hand: SWIPE_HAND.PALM, gesture: 'left', got: 'left' }),
+    ...Array(5).fill(0).map((_, i) => ({ hand: SWIPE_HAND.EDGE, gesture: 'right', got: i < 2 ? null : 'right' })),
+  ];
+  const result = judgeSwipes(mixed);
+  assert.match(result.detail, /手掌朝前 5\/5｜手刀 3\/5/);
   assert.ok(result.advice.some((line) => line.includes('手掌張開、朝向眼鏡')));
 });
 

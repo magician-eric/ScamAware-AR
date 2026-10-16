@@ -117,6 +117,11 @@ x = acc >= 290;      // 290 == 0x122 == "1.2.2"，十六進位打包
   開分享選單（LINE、Email）。結果用 `cibarTofLogExport` 事件告訴網頁。開分享選單會讓 App 進背景、眼鏡暫停，
   回來後 `onStart` 重新連線——這是預期行為。
 
+### 插上眼鏡不再自動開 App（1.2.6 起）
+
+manifest 的 `USB_DEVICE_ATTACHED` intent-filter 已移除：由插入眼鏡啟動的 App 會卡在空白首頁。
+改成手動開 App；App 開著時插眼鏡照樣由 `JorjinHardwareManager` 的 receiver 接手，USB 權限走一般對話框。
+
 ### 沒插眼鏡時用手機鏡頭（1.2.3 起）
 
 - 啟動時（不需要任何權限）就列舉 USB 判斷眼鏡在不在，USB 插拔時再更新，發給網頁

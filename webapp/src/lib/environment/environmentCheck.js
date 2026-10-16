@@ -73,11 +73,12 @@ export const FALSE_TRIGGER_MS = 10000;
 
 export const SWIPE_HAND = Object.freeze({ PALM: 'palm', EDGE: 'edge' });
 
-// The ten prompts: palm toward the glasses first, then edge-on, directions
-// alternating so each one starts where the last ended.
+// The ten prompts: all with the palm toward the glasses (the tutorial teaches
+// the palm; it reads better than an edge-on hand), directions alternating so
+// each one starts where the last ended.
 export const SWIPE_PLAN = Object.freeze([
   ...['left', 'right', 'left', 'right', 'left'].map((gesture) => ({ hand: SWIPE_HAND.PALM, gesture })),
-  ...['right', 'left', 'right', 'left', 'right'].map((gesture) => ({ hand: SWIPE_HAND.EDGE, gesture })),
+  ...['right', 'left', 'right', 'left', 'right'].map((gesture) => ({ hand: SWIPE_HAND.PALM, gesture })),
 ]);
 
 export const SWIPE_HAND_LABELS = Object.freeze({
@@ -111,7 +112,8 @@ export function judgeSwipes(results) {
   return {
     level: overall >= THRESHOLDS.swipesGood ? LEVEL.GOOD : LEVEL.BAD,
     rate: overall,
-    detail: `實測 ${all.hits}/${all.total}（${percent(overall)}）｜手掌朝前 ${palm.hits}/${palm.total}｜手刀 ${edge.hits}/${edge.total}`,
+    detail: `實測 ${all.hits}/${all.total}（${percent(overall)}）`
+      + (edge.total > 0 ? `｜手掌朝前 ${palm.hits}/${palm.total}｜手刀 ${edge.hits}/${edge.total}` : ''),
     advice,
   };
 }
@@ -280,7 +282,7 @@ export function judgeEnvironment({ tofClear, tofHand, camera, swipes, falseTrigg
   } else {
     overall = LEVEL.WARN;
     summary = '不是燈光的問題：可能是揮手方式或距離。';
-    advice.push('請在右眼正前方（感測器在眼鏡右側）約 30 公分處，手掌張開朝向眼鏡，慢慢左右揮動。');
+    advice.push('請在右眼正前方（感測器在眼鏡右側）約 20～30 公分處，手掌張開朝向眼鏡，慢慢左右揮動。');
   }
   // Recognising swipes nobody made is its own problem, whatever the light: a wrong answer
   // chosen for the player is worse than a swipe that has to be made twice.

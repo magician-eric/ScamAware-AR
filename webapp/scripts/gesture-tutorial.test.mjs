@@ -519,7 +519,7 @@ const EXPECTED_COPY = {
       success: '右揮成功！',
     },
     singleOption: '只有一個選項時，向右揮即可選擇',
-    reminder: '在右眼正前方約 30 公分處揮手，放慢速度，太快可能無法辨識',
+    reminder: '在右眼正前方約 20～30 公分處揮手，放慢速度，太快可能無法辨識',
     pointerHint: '手機或電腦操作時，也可以直接點擊畫面上的選項',
     complete: '手勢教學完成！',
   },
@@ -538,7 +538,7 @@ const EXPECTED_COPY = {
       success: 'Right swipe successful!',
     },
     singleOption: 'For a single option, swipe right to select it.',
-    reminder: 'Swipe in front of your right eye, about 30 cm away, and slowly — too fast may not be recognised',
+    reminder: 'Swipe in front of your right eye, about 20–30 cm away, and slowly — too fast may not be recognised',
     pointerHint: 'On a phone or computer you can also just tap the option on screen',
     complete: 'Tutorial complete!',
   },
@@ -557,7 +557,7 @@ const EXPECTED_COPY = {
       success: '右への操作ができました！',
     },
     singleOption: '選択肢が1つの場合は、右に振って選んでください。',
-    reminder: '右目の前、約30cmの位置でゆっくり振ってください。速すぎると認識されないことがあります',
+    reminder: '右目の前、約20～30cmの位置でゆっくり振ってください。速すぎると認識されないことがあります',
     pointerHint: 'スマートフォンやパソコンでは、画面の選択肢を直接タップしても操作できます',
     complete: '練習完了！',
   },
@@ -949,18 +949,17 @@ test('the hand is on the live step only, and nothing is left waving at the end',
   page.unmount();
 });
 
-test('the sweep slows across the middle, holds at the end, and never runs backwards', () => {
-  // The cycle: 2.2s of travel + 0.5s held at the far end = 2.7s.
-  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-sweep-left 2\.7s linear infinite/);
+test('the sweep moves at the speed the sensor reads, holds at the end, and never runs backwards', () => {
+  // The cycle: 0.5s of travel + 1.0s held at the far end = 1.5s. Real swipes the
+  // ToF recognised took 0.19-0.33s; the demonstration is a touch slower.
+  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-sweep-left 1\.5s linear infinite/);
   assert.match(CSS, /\.gesture-tutorial-hand-right\{animation-name:gesture-tutorial-sweep-right\}/);
 
   ['gesture-tutorial-sweep-left', 'gesture-tutorial-sweep-right'].forEach((name) => {
     const stops = sweepStops(name);
     const progress = pathProgress(stops);
-    const CYCLE = 2.7;
+    const CYCLE = 1.5;
 
-    // Monotonic: the hand only ever moves towards the far end. A stop that
-    // went back would be a visible reverse wave - the opposite gesture.
     progress.forEach((stop, i) => {
       if (i === 0) return;
       assert.ok(stop.done >= progress[i - 1].done - 1e-9, `${name}: stop ${i} runs backwards`);
@@ -971,41 +970,20 @@ test('the sweep slows across the middle, holds at the end, and never runs backwa
     assert.equal(progress[progress.length - 1].done, 1);
     assert.equal(progress[progress.length - 1].at, 1);
 
-    // The travel finishes at 2.2s and the rest of the cycle is a hold.
     const arrival = progress.find((stop) => stop.done >= 1 - 1e-9);
-    assert.ok(Math.abs(arrival.at * CYCLE - 2.2) < 0.02, `${name}: one-way travel must be ~2.2s, got ${(arrival.at * CYCLE).toFixed(2)}s`);
-    assert.ok(Math.abs((1 - arrival.at) * CYCLE - 0.5) < 0.02, `${name}: the end pause must be ~0.5s`);
+    assert.ok(Math.abs(arrival.at * CYCLE - 0.5) < 0.02, `${name}: one-way travel must be ~0.5s, got ${(arrival.at * CYCLE).toFixed(2)}s`);
+    assert.ok(Math.abs((1 - arrival.at) * CYCLE - 1.0) < 0.02, `${name}: the end pause must be ~1.0s`);
 
-    // Speed per segment, in path-fraction per second.
+    // Even speed across the path: the sensor reads a steady swipe, not one that parks.
     const speeds = [];
     for (let i = 1; i < progress.length; i += 1) {
       const seconds = (progress[i].at - progress[i - 1].at) * CYCLE;
-      speeds.push({
-        from: progress[i - 1].done,
-        to: progress[i].done,
-        seconds,
-        speed: (progress[i].done - progress[i - 1].done) / seconds,
-      });
+      const speed = (progress[i].done - progress[i - 1].done) / seconds;
+      if (speed > 0) speeds.push(speed);
     }
-    const moving = speeds.filter((segment) => segment.speed > 0);
-
-    // The slowest segment is the one that straddles the middle, it lasts
-    // about 0.6s, and it is meaningfully - not marginally - slower than the
-    // fast ends. And it is still MOVING: the hand never parks in the centre.
-    const slowest = moving.reduce((a, b) => (b.speed < a.speed ? b : a));
-    const fastest = moving.reduce((a, b) => (b.speed > a.speed ? b : a));
-    assert.ok(slowest.from < 0.5 && slowest.to > 0.5, `${name}: the slow stretch must straddle the middle of the path`);
-    assert.ok(slowest.from >= 0.35 && slowest.to <= 0.65, `${name}: the slow stretch must sit around 40%-60% of the path`);
-    assert.ok(Math.abs(slowest.seconds - 0.6) < 0.05, `${name}: the slow stretch must last ~0.6s, got ${slowest.seconds.toFixed(2)}s`);
-    assert.ok(slowest.speed > 0, `${name}: the hand must keep moving through the middle, never freeze`);
-    assert.ok(fastest.speed / slowest.speed >= 1.8, `${name}: the middle must be clearly slower, got ${(fastest.speed / slowest.speed).toFixed(2)}x`);
-
-    // Symmetric: the run-in and the run-out are the same rhythm, so the two
-    // directions teach the same wave.
-    const half = Math.floor(moving.length / 2);
-    const leadIn = moving.slice(0, half).map((s) => Number(s.speed.toFixed(3)));
-    const runOut = moving.slice(moving.length - half).map((s) => Number(s.speed.toFixed(3))).reverse();
-    assert.deepEqual(leadIn, runOut, `${name}: decelerating in and accelerating out must mirror each other`);
+    const max = Math.max(...speeds);
+    const min = Math.min(...speeds);
+    assert.ok(max / min < 1.1, `${name}: the travel must be even, got ${(max / min).toFixed(2)}x`);
   });
 
   // The two directions are the same rhythm with the sign flipped - not two
@@ -1098,10 +1076,10 @@ test('the shipped hand is the delivered master, losslessly re-containered', asyn
 
 test('the arrow and the hand are one animation, not two kept in step', () => {
   // The hand names the timeline...
-  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-sweep-left 2\.7s linear infinite/);
+  assert.match(CSS, /\.gesture-tutorial-hand\{[\s\S]*?animation:gesture-tutorial-sweep-left 1\.5s linear infinite/);
   assert.match(CSS, /\.gesture-tutorial-hand-right\{animation-name:gesture-tutorial-sweep-right\}/);
   // ...and the arrow names the same one, with the same duration and easing.
-  assert.match(CSS, /\.gesture-tutorial-step\.is-active \.gesture-tutorial-arrow\{animation:gesture-tutorial-sweep-left 2\.7s linear infinite\}/);
+  assert.match(CSS, /\.gesture-tutorial-step\.is-active \.gesture-tutorial-arrow\{animation:gesture-tutorial-sweep-left 1\.5s linear infinite\}/);
   assert.match(CSS, /\.gesture-tutorial-step-right\.is-active \.gesture-tutorial-arrow\{animation-name:gesture-tutorial-sweep-right\}/);
 
   // Exactly two @keyframes for the whole tutorial: one per direction, shared.
