@@ -96,3 +96,24 @@
 .staff-ota-diagnostics summary{cursor:pointer;padding:6px 0}
 .staff-ota-diagnostics .staff-summary-row{font-size:var(--fs-caption)}
 .staff-ota-diagnostics .staff-summary-row strong{word-break:break-all;font-weight:500}
+
+/* ---- 現場環境檢測 (StaffEnvironmentPanel.jsx) ----------------------
+   Staff-only like the rest of this file. A small live preview so the host
+   can see what the glasses are pointed at, the current step in large text,
+   and one row per sensor coloured by verdict. */
+.staff-env-intro{margin:0 0 10px;font-size:var(--fs-body-sm);color:var(--muted);line-height:1.5}
+.staff-env-preview{width:160px;height:120px;margin:0 auto 10px;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.staff-env-preview>*{width:100%;height:100%;object-fit:cover;display:block}
+.staff-env-step{margin:8px 0;font-size:var(--fs-body);font-weight:700;color:#ffd166;text-align:center}
+.staff-env-result{margin-top:10px}
+.staff-env-summary{margin:0 0 8px;font-size:var(--fs-body-sm);line-height:1.5}
+.staff-env-row{flex-wrap:wrap}
+.staff-env-row em{flex-basis:100%;font-style:normal;font-size:var(--fs-caption);color:var(--muted)}
+.staff-env-good strong{color:var(--ok,#4ade80)}
+.staff-env-warn strong{color:var(--warn,#ffd166)}
+.staff-env-bad strong{color:var(--danger,#ff6b6b)}
+.staff-env-unknown strong{color:var(--muted)}
+.staff-env-advice{margin:10px 0 0;padding-left:18px;font-size:var(--fs-body-sm);line-height:1.5}
+.staff-env-advice li{margin-bottom:4px}
+.staff-env-note{margin:8px 0 0;font-size:var(--fs-caption);color:var(--muted)}
+.staff-env-actions{margin-top:12px}

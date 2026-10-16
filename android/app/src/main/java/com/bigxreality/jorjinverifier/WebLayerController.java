@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.webkit.ConsoleMessage;
+import android.webkit.PermissionRequest;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebChromeClient;
 import android.webkit.SslErrorHandler;
@@ -215,6 +216,15 @@ final class WebLayerController {
     private String lastGesture = "—";
     private ScanTarget lastScan;
     private GlassesCameraStream cameraStream;
+    /**
+     * Whether the glasses' RGB camera and ToF module are plugged in, as last told by
+     * {@link #setGlassesPresence}. The camera descriptor's {@code available} follows the camera,
+     * not the mere existence of {@link #cameraStream} (which is always constructed): with no
+     * glasses the page used to be told a glasses camera existed, waited eight seconds for its
+     * first frame and showed a camera error - instead of using the phone's own camera.
+     */
+    private boolean glassesCamera;
+    private boolean glassesTof;
     /** Serves {@link #bundle} at {@link #CIBAR_URL}. Rebuilt whenever the bundle changes. */
     private WebViewAssetLoader assetLoader;
     private long lastCount;
@@ -253,11 +263,14 @@ final class WebLayerController {
     /**
      * The update controls the staff management mode calls, or null in a build that has none.
      *
-     * <p>This is the only {@code addJavascriptInterface} in the app, and the only direction of
-     * travel that is page → native. See {@link OtaControlBridge} for why a WebView that never
-     * loads anything from the network can afford one.
+     * <p>One of the two {@code addJavascriptInterface}s in the app - both for the staff
+     * management mode, the only direction of travel that is page → native. See
+     * {@link OtaControlBridge} for why a WebView that never loads anything from the network can
+     * afford them.
      */
     private final OtaControlBridge otaControl;
+    /** The staff mode's site lighting check, or null in a build that has none. */
+    private final EnvironmentCheckBridge environmentCheck;
 
     WebLayerController(WebView webView, WebBundle bundle, PageListener listener) {
         this(webView, bundle, listener, null);
@@ -270,10 +283,17 @@ final class WebLayerController {
      */
     WebLayerController(WebView webView, WebBundle bundle, PageListener listener,
                        OtaControlBridge otaControl) {
+        this(webView, bundle, listener, otaControl, null);
+    }
+
+    /** @param environmentCheck bound into the page under {@link EnvironmentCheckBridge#NATIVE_OBJECT}. */
+    WebLayerController(WebView webView, WebBundle bundle, PageListener listener,
+                       OtaControlBridge otaControl, EnvironmentCheckBridge environmentCheck) {
         this.webView = webView;
         this.bundle = bundle;
         this.listener = listener;
         this.otaControl = otaControl;
+        this.environmentCheck = environmentCheck;
         configure();
     }
 
@@ -312,6 +332,9 @@ final class WebLayerController {
         installAssetLoader();
         if (otaControl != null) {
             webView.addJavascriptInterface(otaControl, OtaControlBridgeScript.NATIVE_OBJECT);
+        }
+        if (environmentCheck != null) {
+            webView.addJavascriptInterface(environmentCheck, EnvironmentCheckBridge.NATIVE_OBJECT);
         }
         webView.setBackgroundColor(0xFF080A0F);
         webView.setWebViewClient(client);
@@ -625,7 +648,10 @@ final class WebLayerController {
             // publishCameraDescriptor(): this is what stops /ar-scan from reading a descriptor
             // that was written before the camera had a frame, or one that a rebuilt WebView
             // never received at all.
-            if (CIBAR_URL.equals(page)) publishCameraDescriptor();
+            if (CIBAR_URL.equals(page)) {
+                publishCameraDescriptor();
+                publishGlassesDescriptor();
+            }
         }
 
         @Override public void onPageFinished(WebView view, String url) {
@@ -642,6 +668,7 @@ final class WebLayerController {
             // and only together do they identify what is installed on this device.
             evaluate(shellDescriptorScript());
             publishCameraDescriptor();
+            publishGlassesDescriptor();
             // Native OTA is this shell's version control; a Service Worker left over from any
             // earlier visit to this origin would answer requests above it and serve a version
             // nothing on the native side knows about. See ServiceWorkerGuardScript.
@@ -652,6 +679,7 @@ final class WebLayerController {
                 // Injected after the diagnostics so a page that reads both on cibarOtaControlReady
                 // already has the versions to go with them.
                 if (otaControl != null) evaluate(OtaControlBridgeScript.install());
+                if (environmentCheck != null) evaluate(EnvironmentCheckBridge.installScript());
                 evaluate(OtaControlBridgeScript.status(listener.otaStatusJson()));
                 // The document loaded. That is NOT the same as CIBAR having come up, and the
                 // difference is the one failure the rollback gate could not otherwise see - see
@@ -858,7 +886,71 @@ final class WebLayerController {
                     + " @" + message.sourceId() + ":" + message.lineNumber());
             return true;
         }
+
+        /**
+         * The page asking for a camera ({@code getUserMedia}). Granted only when no glasses
+         * camera is plugged in - the phone's camera is then the only one there is, and scanning
+         * runs on it - and only for video. With the glasses plugged in it is refused: a phone
+         * camera lighting up while the player wears the glasses is exactly what
+         * {@code webapp/src/lib/ar/cameraSource.js} exists to prevent, and this is the second
+         * lock on that door.
+         */
+        @Override public void onPermissionRequest(PermissionRequest request) {
+            boolean grant = cameraRequestAllowed(request.getResources(), glassesCamera,
+                    hasCameraPermission());
+            Log.i(TAG, "網頁要求鏡頭：" + (grant ? "允許（手機鏡頭）" : "拒絕")
+                    + " 眼鏡鏡頭=" + glassesCamera);
+            if (grant) request.grant(new String[] {PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+            else request.deny();
+        }
     };
+
+    /** Pure, so a JVM test can pin the rule: video only, no glasses camera, permission held. */
+    static boolean cameraRequestAllowed(String[] resources, boolean glassesCameraPresent,
+                                        boolean cameraPermissionGranted) {
+        if (glassesCameraPresent || !cameraPermissionGranted || resources == null) return false;
+        if (resources.length == 0) return false;
+        for (String resource : resources) {
+            if (!PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) return false;
+        }
+        return true;
+    }
+
+    private boolean hasCameraPermission() {
+        return webView.getContext().checkSelfPermission(android.Manifest.permission.CAMERA)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Whether the glasses are plugged in, from the activity: at start and whenever a USB device
+     * comes or goes. Re-publishes both descriptors into the page that is loaded now.
+     */
+    void setGlassesPresence(boolean camera, boolean tof) {
+        glassesCamera = camera;
+        glassesTof = tof;
+        publishCameraDescriptor();
+        publishGlassesDescriptor();
+    }
+
+    /**
+     * {@code window.__cibarGlasses}: whether the 佐臻 glasses are plugged in. The page uses it to
+     * choose the flow - with glasses, the gesture tutorial and the glasses camera; without, it
+     * goes from the language choice straight to scanning with the phone's camera.
+     */
+    static String glassesDescriptorScript(boolean camera, boolean tof) {
+        return "window.__cibarGlasses={"
+                + "version:1,"
+                + "connected:" + (camera || tof) + ","
+                + "camera:" + camera + ","
+                + "tof:" + tof
+                + "};"
+                + "try{window.dispatchEvent(new CustomEvent('cibarGlassesChange',"
+                + "{detail:window.__cibarGlasses}));}catch(e){}";
+    }
+
+    private void publishGlassesDescriptor() {
+        evaluate(glassesDescriptorScript(glassesCamera, glassesTof));
+    }
 
     /**
      * Tells the page whether a glasses camera exists and where to read it.
@@ -926,7 +1018,7 @@ final class WebLayerController {
 
     private void publishCameraDescriptor() {
         GlassesCameraStream stream = cameraStream;
-        boolean available = stream != null;
+        boolean available = stream != null && glassesCamera;
         int width = available ? stream.frameWidth() : 0;
         int height = available ? stream.frameHeight() : 0;
         Log.i(TAG, "Jorjin Camera Descriptor: " + (available ? "present" : "missing")

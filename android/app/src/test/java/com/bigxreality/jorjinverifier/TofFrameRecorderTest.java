@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-/** Frames around each gesture decision, and nothing while nothing happens. */
+/** Every frame, every decision - so a swipe that got no response at all can still be explained. */
 public class TofFrameRecorderTest {
     private final StringBuilder written = new StringBuilder();
     private final TofFrameRecorder recorder = new TofFrameRecorder(written::append);
@@ -30,33 +30,21 @@ public class TofFrameRecorderTest {
         return out;
     }
 
-    @Test public void nothingIsWrittenWhileNothingHappens() {
+    /** The swipe nobody recognised is exactly the one that must be on file. */
+    @Test public void everyFrameIsWrittenEvenWhenNothingIsDecided() {
         for (int i = 0; i < 100; i++) recorder.frame(i * 66L, filled(300), filled(40), "-");
-        assertEquals("", written.toString());
+        assertEquals(100, lines('F').size());
+        assertEquals(0, lines('#').size());
     }
 
-    @Test public void aMarkWritesTheSecondsBeforeItThenTheLabelThenTheFramesAfter() {
-        for (int i = 0; i < 100; i++) recorder.frame(i * 66L, filled(300), filled(40), "-");
-        long now = 99 * 66L;
-        recorder.mark(now, "眼鏡模組按鍵 RIGHT");
-        List<String> before = lines('F');
-        assertTrue(before.size() >= 30);
-        assertTrue(before.size() <= TofFrameRecorder.CAPACITY);
-        assertTrue(written.toString().contains("# " + now + " 眼鏡模組按鍵 RIGHT"));
-
-        for (int i = 100; i < 130; i++) recorder.frame(i * 66L, filled(300), filled(40), "-");
-        int after = lines('F').size() - before.size();
-        assertEquals("標記後 " + TofFrameRecorder.AFTER_MS + "ms 內的畫面",
-                (int) (TofFrameRecorder.AFTER_MS / 66), after);
-    }
-
-    @Test public void framesAreNeverWrittenTwice() {
-        for (int i = 0; i < 40; i++) recorder.frame(i * 50L, filled(300), filled(40), "-");
-        recorder.mark(39 * 50L, "a");
-        recorder.mark(39 * 50L + 10, "b");
-        List<String> frames = lines('F');
-        assertEquals(frames.size(), new java.util.HashSet<>(frames).size());
-        assertEquals(40, frames.size());
+    @Test public void aDecisionIsALineBetweenTheFrames() {
+        recorder.frame(100L, filled(300), filled(40), "-");
+        recorder.mark(120L, "12:00:00.000 眼鏡模組按鍵 RIGHT");
+        recorder.frame(166L, filled(300), filled(40), "-");
+        String[] all = written.toString().split("\n");
+        assertTrue(all[0].startsWith("F 100 "));
+        assertEquals("# 120 12:00:00.000 眼鏡模組按鍵 RIGHT", all[1]);
+        assertTrue(all[2].startsWith("F 166 "));
     }
 
     @Test public void aFrameLineCarriesCentimetresAndSignal() {
@@ -66,24 +54,26 @@ public class TofFrameRecorderTest {
         signal[0] = 41.6f;
         range[63] = 1995f;
         recorder.frame(1234L, range, signal, "H 0.00 0.00 304mm 3z 42");
-        recorder.mark(1300L, "x");
         String line = lines('F').get(0);
         assertTrue(line, line.startsWith("F 1234 H 0.00 0.00 304mm 3z 42 | r 30 0 0"));
         assertTrue(line, line.contains(" / "));
         assertTrue(line, line.contains("200 | s 42 0"));
     }
 
-    @Test public void theFileSinkAppendsAndRolls() throws Exception {
+    @Test public void aFrameWithoutSignalStillHasBothGrids() {
+        recorder.frame(1L, filled(300), null, "-");
+        assertTrue(lines('F').get(0).contains(" | s 0 0 0"));
+    }
+
+    @Test public void theFileSinkCollectsAndAppends() throws Exception {
         File dir = Files.createTempDirectory("tof").toFile();
         TofFrameFile sink = new TofFrameFile(dir);
         sink.write("one\n");
         sink.write("two\n");
-        long deadline = System.currentTimeMillis() + 5000;
-        while (System.currentTimeMillis() < deadline
-                && (!sink.file().exists() || sink.file().length() < 8)) {
-            Thread.sleep(10);
-        }
-        assertEquals("one\ntwo\n",
+        sink.flush();
+        sink.write("three\n");
+        sink.flush();
+        assertEquals("one\ntwo\nthree\n",
                 new String(Files.readAllBytes(sink.file().toPath()), StandardCharsets.UTF_8));
     }
 }

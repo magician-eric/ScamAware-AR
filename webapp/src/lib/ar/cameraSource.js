@@ -181,8 +181,16 @@ export async function resolveGlassesCameraDescriptor(scope = globalThis, {
 } = {}) {
   let descriptor = readGlassesCameraDescriptor(scope);
   let waitedMs = 0;
+  // A Shell that has said outright that no glasses camera is plugged in
+  // (`available: false`, Shell 1.2.3+ publishes that honestly) is not one
+  // whose descriptor is still on its way; the phone camera is the answer and
+  // there is nothing to wait for.
+  const published = scope?.[JORJIN_CAMERA_GLOBAL];
+  const glasses = scope?.__cibarGlasses;
+  const saidNoCamera = Boolean(published) && typeof published === 'object' && published.available === false
+    && Boolean(glasses) && typeof glasses === 'object' && glasses.camera === false;
 
-  if (!descriptor && looksLikeAndroidWebView(scope)) {
+  if (!descriptor && !saidNoCamera && looksLikeAndroidWebView(scope)) {
     recordScanDiagnostic('descriptor', 'pending', { waitingFor: `${timeoutMs}ms`, reason: 'android-webview' }, { scope });
     while (!descriptor && waitedMs < timeoutMs) {
       // eslint-disable-next-line no-await-in-loop

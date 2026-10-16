@@ -1,0 +1,192 @@
+// 現場環境檢測 - the staff management mode's check of whether the venue's
+// lighting will get in the way of the experience.
+//
+// Two sensors, two questions:
+//
+//   ToF (gestures)   The 8x8 depth sensor cannot report ambient light - JJSDK
+//                    only hands over distance and return strength - but light
+//                    rich in infrared (sun, halogen, the "yellow" bulbs at the
+//                    acceptance site) shows in what it measures: zones that
+//                    flicker or wander with nothing moving, and a hand held
+//                    still that comes and goes or jitters. The Shell
+//                    summarises its last 2.5 s of frames on request
+//                    (window.__cibarEnvironment.tofSnapshot(), Shell 1.2.3+,
+//                    android/.../TofEnvironmentMeter.java).
+//
+//   Camera (images)  Brightness: too dark and too much glare both cost image
+//                    recognition. Colour: a strongly warm cast hints at an
+//                    incandescent or halogen lamp - and so at infrared that
+//                    hurts the ToF - though the camera's own white balance
+//                    hides much of it, so it is a hint and never a verdict.
+//
+// The thresholds are a first calibration from simulation and the sensors'
+// data sheets, written down here so the next one, from frames recorded on
+// site (tof-frames.txt), changes numbers and not code.
+
+export const LEVEL = Object.freeze({
+  GOOD: 'good',
+  WARN: 'warn',
+  BAD: 'bad',
+  UNKNOWN: 'unknown',
+});
+
+export const THRESHOLDS = Object.freeze({
+  // Share of zones flickering or wandering with nothing in front.
+  noise: { warn: 0.10, bad: 0.25 },
+  // Share of frames a hand held still at ~30 cm was seen in.
+  handSeen: { warn: 0.9, bad: 0.6 },
+  // How much that still hand's distance wandered, mm.
+  handJitterMm: { warn: 12, bad: 25 },
+  // Too few frames means the ToF is not running at all.
+  minFrames: 10,
+  // Mean luma 0..255.
+  dark: { warn: 60, bad: 30 },
+  // Share of pixels blown out (luma >= 245).
+  glare: { warn: 0.10, bad: 0.25 },
+  // Mean red over mean blue.
+  warmCast: 1.5,
+});
+
+const RANK = { [LEVEL.GOOD]: 0, [LEVEL.UNKNOWN]: 1, [LEVEL.WARN]: 2, [LEVEL.BAD]: 3 };
+
+export function worst(...levels) {
+  return levels.reduce((a, b) => (RANK[b] > RANK[a] ? b : a), LEVEL.GOOD);
+}
+
+function above(value, { warn, bad }) {
+  if (value >= bad) return LEVEL.BAD;
+  if (value >= warn) return LEVEL.WARN;
+  return LEVEL.GOOD;
+}
+
+function below(value, { warn, bad }) {
+  if (value < bad) return LEVEL.BAD;
+  if (value < warn) return LEVEL.WARN;
+  return LEVEL.GOOD;
+}
+
+const percent = (value) => `${Math.round(value * 100)}%`;
+
+/** The Shell's ToF summary, or null outside the glasses app (or on an older Shell). */
+export function readTofSnapshot(scope = globalThis) {
+  const bridge = scope?.__cibarEnvironment;
+  if (!bridge || typeof bridge.tofSnapshot !== 'function') return null;
+  try {
+    const snapshot = bridge.tofSnapshot();
+    return snapshot && typeof snapshot === 'object' ? snapshot : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Judges the two ToF windows: `clear` with nothing in front of the glasses,
+ * `hand` with a hand held still about 30 cm away.
+ */
+export function judgeTof(clear, hand) {
+  if (!clear || !hand) {
+    return { level: LEVEL.UNKNOWN, detail: '這台裝置沒有提供 ToF 資料（不在眼鏡 App 內，或 App 版本太舊）。', advice: [] };
+  }
+  if (clear.frames < THRESHOLDS.minFrames || hand.frames < THRESHOLDS.minFrames) {
+    return {
+      level: LEVEL.BAD,
+      detail: 'ToF 沒有收到畫面：眼鏡可能沒接好，或 ToF 尚未啟動。',
+      advice: ['確認眼鏡 USB 線接好，重新開啟 App 後再檢測一次。'],
+    };
+  }
+  const noise = above(clear.noisyZoneRatio, THRESHOLDS.noise);
+  const seen = below(hand.handSeenRatio, THRESHOLDS.handSeen);
+  const jitter = hand.handSeenRatio > 0 ? above(hand.handJitterMm, THRESHOLDS.handJitterMm) : LEVEL.BAD;
+  const level = worst(noise, seen, jitter);
+  const advice = [];
+  if (noise !== LEVEL.GOOD) advice.push('畫面前沒有東西時仍有雜訊：現場可能有日光、鹵素燈或黃光燈泡直射，建議遮光、換成 LED 燈或換個方向。');
+  if (seen !== LEVEL.GOOD) advice.push('放在 30 公分的手時有時無：請玩家揮手時靠近一點（15～30 公分），並避開燈光直射眼鏡。');
+  if (jitter !== LEVEL.GOOD && seen === LEVEL.GOOD) advice.push('手的距離讀值不穩：光線干擾偏強，揮手可能時好時壞。');
+  return {
+    level,
+    detail: `雜訊 ${percent(clear.noisyZoneRatio)}｜手的偵測 ${percent(hand.handSeenRatio)}｜距離抖動 ${Math.round(hand.handJitterMm)} mm`,
+    advice,
+  };
+}
+
+/** Luma, glare and colour cast of RGBA pixels (a canvas ImageData's `data`). */
+export function summarizePixels(data) {
+  let pixels = 0;
+  let lumaSum = 0;
+  let blown = 0;
+  let red = 0;
+  let blue = 0;
+  for (let i = 0; i + 3 < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+    lumaSum += luma;
+    if (luma >= 245) blown += 1;
+    red += r;
+    blue += b;
+    pixels += 1;
+  }
+  if (pixels === 0) return null;
+  return {
+    luma: lumaSum / pixels,
+    glare: blown / pixels,
+    warmth: red / Math.max(1, blue),
+  };
+}
+
+/** Averages several {@link summarizePixels} results into one. */
+export function averageSummaries(summaries) {
+  const usable = summaries.filter(Boolean);
+  if (usable.length === 0) return null;
+  const mean = (key) => usable.reduce((sum, s) => sum + s[key], 0) / usable.length;
+  return { luma: mean('luma'), glare: mean('glare'), warmth: mean('warmth'), samples: usable.length };
+}
+
+export function judgeCamera(summary) {
+  if (!summary) {
+    return { level: LEVEL.UNKNOWN, detail: '無法開啟鏡頭，未檢測亮度。', advice: [] };
+  }
+  const dark = below(summary.luma, THRESHOLDS.dark);
+  const glare = above(summary.glare, THRESHOLDS.glare);
+  const advice = [];
+  if (dark !== LEVEL.GOOD) advice.push('現場偏暗：圖片可能辨識不到，請打亮掃描區域或卡片。');
+  if (glare !== LEVEL.GOOD) advice.push('強光或反光：請避免燈光直射卡片、改用霧面卡片，或調整卡片角度。');
+  return {
+    level: worst(dark, glare),
+    detail: `亮度 ${Math.round(summary.luma)}／255｜過曝 ${percent(summary.glare)}`,
+    advice,
+  };
+}
+
+export function judgeLightColour(summary) {
+  if (!summary) return { level: LEVEL.UNKNOWN, detail: '未檢測。', advice: [] };
+  const warm = summary.warmth >= THRESHOLDS.warmCast;
+  return {
+    level: warm ? LEVEL.WARN : LEVEL.GOOD,
+    detail: `紅藍比 ${summary.warmth.toFixed(2)}${warm ? '（偏黃）' : ''}`,
+    advice: warm ? ['光源偏黃，可能是鹵素燈或傳統燈泡，紅外線較強，可能影響揮手辨識；可以的話改用 LED 白光。'] : [],
+  };
+}
+
+export const LEVEL_LABELS = Object.freeze({
+  [LEVEL.GOOD]: '良好',
+  [LEVEL.WARN]: '可能受影響',
+  [LEVEL.BAD]: '會影響辨識',
+  [LEVEL.UNKNOWN]: '無法檢測',
+});
+
+/** All three judgements and the overall verdict. */
+export function judgeEnvironment({ tofClear, tofHand, camera }) {
+  const tof = judgeTof(tofClear, tofHand);
+  const image = judgeCamera(camera);
+  const light = judgeLightColour(camera);
+  const overall = worst(tof.level, image.level, light.level);
+  const summary = {
+    [LEVEL.GOOD]: '現場環境良好，不會影響辨識。',
+    [LEVEL.WARN]: '現場環境可能影響辨識，請參考下方建議調整。',
+    [LEVEL.BAD]: '現場環境會影響辨識，請依下方建議調整後再檢測一次。',
+    [LEVEL.UNKNOWN]: '部分項目無法檢測，請在眼鏡 App 內並接上眼鏡後再試。',
+  }[overall];
+  return { overall, summary, tof, image, light, advice: [...tof.advice, ...image.advice, ...light.advice] };
+}

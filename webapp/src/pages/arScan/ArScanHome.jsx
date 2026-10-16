@@ -224,6 +224,7 @@ export function ArScanHome() {
             on no other render. */}
         <div className={`ar-scan-prompt${offer ? ' ar-scan-prompt-offer' : ''}`} aria-live="polite">
           <div className="ar-scan-prompt-copy" key={scenario ?? 'scanning'}>
+            {offer && <p className="ar-scan-offer-label">{t.offerLabel}</p>}
             <h1 className="ar-scan-title">{offer ? offer.headline : t.scanning.headline}</h1>
             {!offer && <p className="ar-scan-hint">{t.scanning.hint}</p>}
           </div>

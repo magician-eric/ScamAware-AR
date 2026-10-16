@@ -456,6 +456,22 @@ public class TofGestureRecognizerTest {
         assertOnly(RIGHT);
     }
 
+    /**
+     * The swipe that was "remembered": a stroke that stopped short of the edge, a hand held up
+     * trembling for seconds, then lowered. The trembling used to keep the stroke open, and it
+     * was reported when the hand finally dropped - on whatever screen was up by then.
+     */
+    @Test public void aStrokeIsNeverReportedSecondsAfterItEnded() {
+        move(1.5f, MID, 3.8f, MID, 300, 300);
+        for (int i = 0; i < 45; i++) {
+            scene.handAt(3.8f + (i % 2 == 0 ? 0.3f : -0.3f), MID, 300);
+            frame();
+        }
+        move(3.8f, MID, 3.8f, 14f, 300, 400);
+        away();
+        assertNothing();
+    }
+
     @Test public void anObjectThatNeverLeavesNeverReArms() {
         move(-1.5f, MID, 6f, MID, 300, 350);
         for (int i = 0; i < 45; i++) {

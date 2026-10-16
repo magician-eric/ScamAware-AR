@@ -109,7 +109,22 @@ final class TofGestureRecognizer {
     static final float REVERSAL_HYSTERESIS = 0.6f;
     /** A hand that stays within this radius (zones) for {@link #STOP_MS} has stopped. */
     static final float STILL_RADIUS = 0.4f;
+    /**
+     * A stroke that has not got any further for this long is over - whether the hand is perfectly
+     * still or trembling in place. Measured as "no progress", not "no movement": a hand held up
+     * after its swipe shakes by more than {@link #STILL_RADIUS} now and then, and when stopping
+     * was "staying inside a radius" that shake kept the stroke open for as long as the hand
+     * stayed up. It was then reported when the hand finally dropped - seconds later, on whatever
+     * screen was showing by then: the swipe the wearer saw "remembered" and spent on the next
+     * question.
+     */
     static final long STOP_MS = 250L;
+    /**
+     * A stroke is only ever reported within this long of its end. Whatever path led to a report
+     * - the hand leaving, a turn, a stop - a movement that finished longer ago than this belongs
+     * to a screen that may no longer be there.
+     */
+    static final long REPORT_WITHIN_MS = 600L;
     /** After the scene moved, this long passes before a new movement is tracked. */
     static final long SCENE_SETTLE_MS = 300L;
     /** A module swipe and one of ours this close together are the same swipe. */
@@ -179,6 +194,8 @@ final class TofGestureRecognizer {
     private Stroke pending;
     /** Frames the current stroke spans, its starting point included. */
     private int strokeSamples;
+    /** The time {@link #judge} measures a stroke's age against. */
+    private long nowMsForJudge;
     private float anchorRangeMm, extremeRangeMm;
     /** Whether the hand has been seen clear of both sides since the stroke began. */
     private boolean strokeSeenWhole;
@@ -359,7 +376,7 @@ final class TofGestureRecognizer {
             strokeSamples = 2;
             return;
         }
-        if (stopped) {
+        if (nowMs - extremeMs >= STOP_MS) {
             if (endStroke(End.STOP, nowMs)) return;
             anchorAt(col, row, nowMs);
             extremeAt(col, row, nowMs);
@@ -370,9 +387,10 @@ final class TofGestureRecognizer {
 
     private void handLeft(long nowMs) {
         boolean reported;
+        nowMsForJudge = nowMs;
         if (strokeDir != 0) {
             reported = endStroke(End.EXIT, nowMs);
-        } else if (pending != null) {
+        } else if (pending != null && nowMs - pending.endMs <= REPORT_WITHIN_MS) {
             report(pending, nowMs, false, "手離開");
             reported = true;
         } else {
@@ -383,13 +401,15 @@ final class TofGestureRecognizer {
 
     /** @return whether a swipe was reported (the recogniser is then locked). */
     private boolean endStroke(End end, long nowMs) {
+        nowMsForJudge = nowMs;
         Stroke stroke = new Stroke(extremeCol - anchorCol, extremeRow - anchorRow, extremeCol,
                 anchorMs, extremeMs, strokeDir, strokeSamples, anchorRangeMm, extremeRangeMm,
                 strokeSeenWhole);
         String rejection = judge(stroke);
         if (end == End.EXIT) {
             Stroke chosen = rejection == null ? stroke : null;
-            if (pending != null && (chosen == null || Math.abs(pending.dx) > Math.abs(chosen.dx))) {
+            if (pending != null && nowMs - pending.endMs <= REPORT_WITHIN_MS
+                    && (chosen == null || Math.abs(pending.dx) > Math.abs(chosen.dx))) {
                 chosen = pending;
             }
             if (chosen != null) {
@@ -434,6 +454,9 @@ final class TofGestureRecognizer {
         if (h < MIN_ZONE_TRAVEL) return "水平只移動 " + fmt(h) + " 格";
         if (h < v * HORIZONTAL_DOMINANCE) return "偏垂直（水平 " + fmt(h) + "／垂直 " + fmt(v) + " 格）";
         if (duration > MAX_SWIPE_MS) return "太慢（" + duration + "ms）";
+        if (nowMsForJudge - stroke.endMs > REPORT_WITHIN_MS) {
+            return "動作已經結束 " + (nowMsForJudge - stroke.endMs) + "ms，太久以前的不送";
+        }
         if (lastDir != 0 && stroke.dir == -lastDir
                 && stroke.startMs < lastGestureAtMs + RETURN_SUPPRESS_MS) {
             return "上一個手勢的回程（" + (stroke.startMs - lastGestureAtMs) + "ms 後開始）";
