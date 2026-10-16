@@ -117,3 +117,10 @@
 .staff-env-advice li{margin-bottom:4px}
 .staff-env-note{margin:8px 0 0;font-size:var(--fs-caption);color:var(--muted)}
 .staff-env-actions{margin-top:12px}
+/* The swipe prompt: what to do, large enough to read through the glasses. */
+.staff-env-swipe{margin:10px 0;text-align:center}
+.staff-env-swipe p{margin:4px 0}
+.staff-env-swipe-count{font-size:var(--fs-body-sm);color:var(--muted)}
+.staff-env-swipe-hand{font-size:var(--fs-body);font-weight:700;color:#fff}
+.staff-env-swipe-direction{font-size:clamp(26px,8vw,40px);font-weight:900;color:var(--muted)}
+.staff-env-swipe-direction.is-ready{color:#ffd23f}

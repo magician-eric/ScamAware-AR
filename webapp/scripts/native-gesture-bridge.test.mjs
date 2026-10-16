@@ -709,7 +709,7 @@ test('8. the app installs the binding once, above the router', async () => {
   assert.match(stripComments(app), /\{element\}\s*<NativeGestureBridge \/>/);
 });
 
-test('8. no screen listens for a native gesture except the tutorial', async () => {
+test('8. no screen listens for a native gesture except the tutorial (and the staff lighting check, which only counts)', async () => {
   const { readdir } = await import('node:fs/promises');
   const src = new URL('../src/', import.meta.url);
 
@@ -738,6 +738,9 @@ test('8. no screen listens for a native gesture except the tutorial', async () =
     'src/lib/arInteraction/native/jorjinGestureAdapter.js',
     // ...and the one page that runs its own machine on the same stream.
     'src/pages/gestureTutorial/GestureTutorial.jsx',
+    // The staff mode's lighting check counts the swipes it prompts for. It
+    // decides nothing: a count is not an action, and no player reaches it.
+    'src/pages/staff/StaffEnvironmentPanel.jsx',
   ], 'a scenario that subscribed itself would be a second place deciding what a gesture means');
 });
 
