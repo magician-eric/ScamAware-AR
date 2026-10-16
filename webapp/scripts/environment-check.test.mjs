@@ -4,15 +4,27 @@ import test from 'node:test';
 
 const {
   LEVEL,
+  SWIPE_HAND,
+  SWIPE_PLAN,
   averageSummaries,
-  judgeCamera,
   judgeEnvironment,
   judgeLightColour,
+  judgeSwipes,
   judgeTof,
   readTofSnapshot,
   summarizePixels,
   worst,
 } = await import('../src/lib/environment/environmentCheck.js');
+
+// Ten prompts answered: `misses` of them (from the end) got nothing.
+function swipes(misses = 0, { edgeOnly = false } = {}) {
+  return SWIPE_PLAN.map((planned, i) => {
+    const missed = edgeOnly
+      ? planned.hand === SWIPE_HAND.EDGE && i >= SWIPE_PLAN.length - misses
+      : i >= SWIPE_PLAN.length - misses;
+    return { ...planned, got: missed ? null : planned.gesture };
+  });
+}
 
 const clearQuiet = { frames: 38, noisyZoneRatio: 0.02 };
 const handSteady = { frames: 45, handSeenRatio: 1, handJitterMm: 3 };
@@ -56,12 +68,29 @@ test('pixels summarise to brightness, glare and warmth', () => {
   assert.equal(summarizePixels(new Uint8ClampedArray(0)), null);
 });
 
-test('dark and glaring scenes cost image recognition', () => {
-  assert.equal(judgeCamera({ luma: 120, glare: 0.02, warmth: 1 }).level, LEVEL.GOOD);
-  assert.equal(judgeCamera({ luma: 45, glare: 0, warmth: 1 }).level, LEVEL.WARN);
-  assert.equal(judgeCamera({ luma: 20, glare: 0, warmth: 1 }).level, LEVEL.BAD);
-  assert.equal(judgeCamera({ luma: 140, glare: 0.3, warmth: 1 }).level, LEVEL.BAD);
-  assert.equal(judgeCamera(null).level, LEVEL.UNKNOWN);
+test('the plan is five palm-facing swipes then five edge-on, directions alternating', () => {
+  assert.equal(SWIPE_PLAN.length, 10);
+  assert.equal(SWIPE_PLAN.filter((p) => p.hand === SWIPE_HAND.PALM).length, 5);
+  assert.equal(SWIPE_PLAN.filter((p) => p.hand === SWIPE_HAND.EDGE).length, 5);
+  for (let i = 1; i < SWIPE_PLAN.length; i += 1) {
+    assert.notEqual(SWIPE_PLAN[i].gesture, SWIPE_PLAN[i - 1].gesture, 'each swipe starts where the last ended');
+  }
+});
+
+test('the measured swipes are counted, by hand, and a wrong direction is a miss', () => {
+  const nine = judgeSwipes(swipes(1));
+  assert.equal(nine.rate, 0.9);
+  assert.equal(nine.level, LEVEL.GOOD);
+  assert.match(nine.detail, /實測 9\/10（90%）｜手掌朝前 5\/5｜手刀 4\/5/);
+  const wrong = swipes(0).map((r, i) => (i === 0 ? { ...r, got: 'right' } : r));
+  assert.equal(judgeSwipes(wrong).rate, 0.9);
+  assert.equal(judgeSwipes(swipes(3)).level, LEVEL.BAD);
+  assert.equal(judgeSwipes([]).level, LEVEL.UNKNOWN);
+});
+
+test('edge-on doing worse than palm-facing says so', () => {
+  const result = judgeSwipes(swipes(2, { edgeOnly: true }));
+  assert.ok(result.advice.some((line) => line.includes('手掌張開、朝向眼鏡')));
 });
 
 test('a warm cast is a hint, never worse than a warning', () => {
@@ -69,13 +98,41 @@ test('a warm cast is a hint, never worse than a warning', () => {
   assert.equal(judgeLightColour({ luma: 120, glare: 0, warmth: 2.4 }).level, LEVEL.WARN);
 });
 
-test('the overall verdict is the worst of the three, with all the advice', () => {
-  const all = judgeEnvironment({ tofClear: clearQuiet, tofHand: handSteady, camera: { luma: 120, glare: 0, warmth: 1 } });
-  assert.equal(all.overall, LEVEL.GOOD);
-  assert.deepEqual(all.advice, []);
-  const yellow = judgeEnvironment({ tofClear: { ...clearQuiet, noisyZoneRatio: 0.3 }, tofHand: handSteady, camera: { luma: 120, glare: 0, warmth: 2 } });
-  assert.equal(yellow.overall, LEVEL.BAD);
-  assert.equal(yellow.advice.length, 2);
+const neutral = { luma: 120, glare: 0, warmth: 1 };
+const yellowLamp = { luma: 120, glare: 0, warmth: 2 };
+const noisy = { ...clearQuiet, noisyZoneRatio: 0.3 };
+
+test('swipes work and the light is clean: the light does not get in the way', () => {
+  const r = judgeEnvironment({ tofClear: clearQuiet, tofHand: handSteady, camera: neutral, swipes: swipes(0) });
+  assert.equal(r.overall, LEVEL.GOOD);
+  assert.equal(r.summary, '燈光不影響辨識。');
+  assert.deepEqual(r.advice, []);
+});
+
+test('swipes work but the light is noisy: interference, still recognised', () => {
+  const r = judgeEnvironment({ tofClear: noisy, tofHand: handSteady, camera: yellowLamp, swipes: swipes(1) });
+  assert.equal(r.overall, LEVEL.WARN);
+  assert.equal(r.summary, '燈光有干擾，但目前還能辨識。');
+});
+
+test('swipes fail and the light is noisy: the light is what is in the way', () => {
+  const r = judgeEnvironment({ tofClear: noisy, tofHand: handSteady, camera: yellowLamp, swipes: swipes(4) });
+  assert.equal(r.overall, LEVEL.BAD);
+  assert.match(r.summary, /^燈光影響辨識/);
+  assert.ok(r.advice.some((line) => line.includes('LED')));
+});
+
+test('swipes fail but the light is clean: it is not the light', () => {
+  const r = judgeEnvironment({ tofClear: clearQuiet, tofHand: handSteady, camera: neutral, swipes: swipes(4) });
+  assert.equal(r.overall, LEVEL.WARN);
+  assert.match(r.summary, /^不是燈光的問題/);
+  assert.ok(r.advice.some((line) => line.includes('30 公分')));
+});
+
+test('without the glasses there are no swipes, and the verdict says so', () => {
+  const r = judgeEnvironment({ tofClear: null, tofHand: null, camera: neutral, swipes: [] });
+  assert.equal(r.swipe.level, LEVEL.UNKNOWN);
+  assert.match(r.summary, /未實測揮手/);
   assert.equal(worst(LEVEL.GOOD, LEVEL.UNKNOWN), LEVEL.UNKNOWN);
 });
 

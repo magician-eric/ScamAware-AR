@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { acquireCameraSource, mountCameraPreview, unmountCameraPreview } from '../../lib/ar/cameraSource';
+import { subscribeNativeGestures } from '../../lib/arInteraction/native/jorjinGestureAdapter';
+import { areGlassesAbsent } from '../../lib/glasses/glassesPresence';
 import {
-  LEVEL,
   LEVEL_LABELS,
+  SWIPE_HAND_LABELS,
+  SWIPE_PLAN,
   averageSummaries,
   judgeEnvironment,
   readTofSnapshot,
@@ -12,21 +15,35 @@ import {
 // 現場環境檢測 - part of 工作人員管理模式 and nowhere else (see StaffVersionPanel.jsx for why
 // the staff mode is the only door to it).
 //
-// One button. The check walks the host through two short windows - nothing in front of the
-// glasses, then a hand held still about 30 cm away - while the glasses read the ToF sensor and
-// the camera samples brightness and colour, and then says, in one line per sensor, whether this
-// venue's lighting will get in the way, with what to change if it will. The judging lives in
-// lib/environment/environmentCheck.js; this file only runs the steps and shows the answer.
+// One button, and one question answered: does the light here get in the way of recognising a
+// swipe? The check walks the host through three parts -
+//
+//   1. nothing in front of the glasses, then a hand held still at about 30 cm (about 6 s): the
+//      ToF's noise and how steadily it sees a hand, and the camera's colour cast;
+//   2. ten swipes on prompt, five with the palm toward the glasses and five edge-on (about
+//      30 s): how many the experience would actually have recognised, counted exactly as it
+//      counts them - the module's keys and the depth recogniser, through the same stream;
+//   3. the verdict, with the percentage it rests on and what to change.
+//
+// The judging lives in lib/environment/environmentCheck.js; this file only runs the steps and
+// shows the answer.
 
 const CLEAR_MS = 2600;
 const HAND_MS = 3000;
 const SAMPLE_MS = 250;
 const SAMPLE_W = 80;
 const SAMPLE_H = 60;
+// Between two prompts: long enough that the depth recogniser does not take the next swipe for
+// the arm coming back from the last one (it ignores those for 1.2 s).
+const SWIPE_GAP_MS = 1500;
+// How long a prompt waits for its swipe.
+const SWIPE_WAIT_MS = 4000;
 
-const STEP = Object.freeze({ IDLE: 'idle', CLEAR: 'clear', HAND: 'hand', DONE: 'done' });
+const STEP = Object.freeze({ IDLE: 'idle', CLEAR: 'clear', HAND: 'hand', SWIPE: 'swipe', DONE: 'done' });
 
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+
+const DIRECTION_LABELS = Object.freeze({ left: '往左揮 ←', right: '往右揮 →' });
 
 function sampleFrame(context, frameSource) {
   if (!context || !frameSource || !(frameSource.frameWidth > 0)) return null;
@@ -40,17 +57,14 @@ function sampleFrame(context, frameSource) {
 
 export function StaffEnvironmentPanel() {
   const [step, setStep] = useState(STEP.IDLE);
+  const [prompt, setPrompt] = useState(null);
   const [result, setResult] = useState(null);
   const previewRef = useRef(null);
   const cancelledRef = useRef(false);
 
   useEffect(() => () => { cancelledRef.current = true; }, []);
 
-  async function run() {
-    cancelledRef.current = false;
-    setResult(null);
-    setStep(STEP.CLEAR);
-
+  async function measureEnvironment() {
     let camera = null;
     let release = null;
     try {
@@ -67,12 +81,12 @@ export function StaffEnvironmentPanel() {
     canvas.height = SAMPLE_H;
     const context = canvas.getContext('2d', { willReadFrequently: true });
     const samples = [];
-
     try {
+      setStep(STEP.CLEAR);
       for (let t = 0; t < CLEAR_MS; t += SAMPLE_MS) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(SAMPLE_MS);
-        if (cancelledRef.current) return;
+        if (cancelledRef.current) return null;
         samples.push(sampleFrame(context, camera));
       }
       const tofClear = readTofSnapshot();
@@ -81,39 +95,89 @@ export function StaffEnvironmentPanel() {
       for (let t = 0; t < HAND_MS; t += SAMPLE_MS) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(SAMPLE_MS);
-        if (cancelledRef.current) return;
+        if (cancelledRef.current) return null;
         samples.push(sampleFrame(context, camera));
       }
-      const tofHand = readTofSnapshot();
-
-      setResult(judgeEnvironment({ tofClear, tofHand, camera: averageSummaries(samples) }));
-      setStep(STEP.DONE);
+      return { tofClear, tofHand: readTofSnapshot(), camera: averageSummaries(samples) };
     } finally {
       if (camera) unmountCameraPreview(camera);
       release?.();
     }
   }
 
-  const running = step === STEP.CLEAR || step === STEP.HAND;
+  async function measureSwipes() {
+    // With no glasses there is nothing to swipe at; the verdict then rests on the readings alone.
+    if (areGlassesAbsent()) return [];
+    let waiting = null;
+    const stop = subscribeNativeGestures(({ gesture }) => {
+      if (waiting) waiting(gesture);
+    });
+    const results = [];
+    try {
+      setStep(STEP.SWIPE);
+      for (let i = 0; i < SWIPE_PLAN.length; i += 1) {
+        const planned = SWIPE_PLAN[i];
+        setPrompt({ index: i, planned, ready: false });
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(SWIPE_GAP_MS);
+        if (cancelledRef.current) return null;
+        setPrompt({ index: i, planned, ready: true });
+        // eslint-disable-next-line no-await-in-loop
+        const got = await new Promise((resolve) => {
+          const timer = setTimeout(() => { waiting = null; resolve(null); }, SWIPE_WAIT_MS);
+          waiting = (gesture) => { clearTimeout(timer); waiting = null; resolve(gesture); };
+        });
+        if (cancelledRef.current) return null;
+        results.push({ ...planned, got });
+      }
+      return results;
+    } finally {
+      waiting = null;
+      stop();
+      setPrompt(null);
+    }
+  }
+
+  async function run() {
+    cancelledRef.current = false;
+    setResult(null);
+    const environment = await measureEnvironment();
+    if (!environment) return;
+    const swipes = await measureSwipes();
+    if (!swipes) return;
+    setResult(judgeEnvironment({ ...environment, swipes }));
+    setStep(STEP.DONE);
+  }
+
+  const running = step === STEP.CLEAR || step === STEP.HAND || step === STEP.SWIPE;
 
   return (
     <div className="staff-card staff-env">
       <h2>現場環境檢測（燈光）</h2>
       <p className="staff-env-intro">
-        檢查現場燈光是否會影響揮手（ToF）與圖片辨識（鏡頭）。請戴上或拿好眼鏡，對著玩家揮手和掃描的位置，按下開始後依照指示操作，約 6 秒。
+        檢查現場燈光是否會影響揮手辨識。請戴上眼鏡，對著玩家揮手的位置，按下開始後依照指示操作，約 40 秒：先量環境，再實際揮手 10 下（手掌朝前 5 下、手刀 5 下）。
       </p>
 
       <div className="staff-env-preview" ref={previewRef} aria-hidden="true" />
 
       {step === STEP.CLEAR && <p className="staff-env-step">① 請把手移開，讓眼鏡前方淨空……</p>}
       {step === STEP.HAND && <p className="staff-env-step">② 請把手掌放在眼鏡正前方約 30 公分，保持不動……</p>}
+      {step === STEP.SWIPE && prompt && (
+        <div className="staff-env-swipe" aria-live="polite">
+          <p className="staff-env-swipe-count">③ 實測揮手 {prompt.index + 1}／{SWIPE_PLAN.length}</p>
+          <p className="staff-env-swipe-hand">{SWIPE_HAND_LABELS[prompt.planned.hand]}・距離約 30 公分</p>
+          <p className={`staff-env-swipe-direction${prompt.ready ? ' is-ready' : ''}`}>
+            {prompt.ready ? DIRECTION_LABELS[prompt.planned.gesture] : '準備……'}
+          </p>
+        </div>
+      )}
 
       {result && (
         <div className={`staff-env-result staff-env-${result.overall}`}>
           <p className="staff-env-summary"><strong>{LEVEL_LABELS[result.overall]}</strong>　{result.summary}</p>
           {[
-            ['揮手辨識（ToF）', result.tof],
-            ['圖片辨識（鏡頭亮度）', result.image],
+            ['揮手實測', result.swipe],
+            ['環境干擾（ToF）', result.tof],
             ['光源顏色', result.light],
           ].map(([name, item]) => (
             <div key={name} className={`staff-summary-row staff-env-row staff-env-${item.level}`}>
@@ -127,9 +191,7 @@ export function StaffEnvironmentPanel() {
               {result.advice.map((line) => <li key={line}>{line}</li>)}
             </ul>
           )}
-          {result.overall !== LEVEL.GOOD && (
-            <p className="staff-env-note">門檻為初版，之後會用現場紀錄檔（tof-frames.txt）再校正。</p>
-          )}
+          <p className="staff-env-note">環境數據的門檻為初版，之後會用現場紀錄檔（tof-frames.txt）再校正。</p>
         </div>
       )}
 

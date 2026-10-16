@@ -1,7 +1,13 @@
 // 現場環境檢測 - the staff management mode's check of whether the venue's
-// lighting will get in the way of the experience.
+// lighting will get in the way of gesture recognition.
 //
-// Two sensors, two questions:
+// Three readings, one question - does the light here stop a swipe being
+// recognised?
+//
+//   Swipes (measured) Ten real swipes on prompt - five with the palm open
+//                    toward the glasses, five edge-on - counted the way the
+//                    experience counts them. This is the percentage the
+//                    answer rests on.
 //
 //   ToF (gestures)   The 8x8 depth sensor cannot report ambient light - JJSDK
 //                    only hands over distance and return strength - but light
@@ -13,11 +19,19 @@
 //                    (window.__cibarEnvironment.tofSnapshot(), Shell 1.2.3+,
 //                    android/.../TofEnvironmentMeter.java).
 //
-//   Camera (images)  Brightness: too dark and too much glare both cost image
-//                    recognition. Colour: a strongly warm cast hints at an
-//                    incandescent or halogen lamp - and so at infrared that
-//                    hurts the ToF - though the camera's own white balance
-//                    hides much of it, so it is a hint and never a verdict.
+//   Camera (colour)  A strongly warm cast hints at an incandescent or halogen
+//                    lamp - and so at infrared that hurts the ToF - though
+//                    the camera's own white balance hides much of it, so it is
+//                    a hint and never a verdict. Image recognition itself is
+//                    not checked: it holds up in every venue tried so far.
+//
+// The swipe rate says whether recognition works here; the ToF readings and
+// the colour say whether the light is what is in the way. Together:
+//
+//   swipes good, light clean      燈光不影響辨識
+//   swipes good, light noisy      燈光有干擾，但目前還能辨識
+//   swipes poor, light noisy      燈光影響辨識
+//   swipes poor, light clean      不是燈光的問題 - the way of swiping, or the distance
 //
 // The thresholds are a first calibration from simulation and the sensors'
 // data sheets, written down here so the next one, from frames recorded on
@@ -39,13 +53,56 @@ export const THRESHOLDS = Object.freeze({
   handJitterMm: { warn: 12, bad: 25 },
   // Too few frames means the ToF is not running at all.
   minFrames: 10,
-  // Mean luma 0..255.
-  dark: { warn: 60, bad: 30 },
-  // Share of pixels blown out (luma >= 245).
-  glare: { warn: 0.10, bad: 0.25 },
   // Mean red over mean blue.
   warmCast: 1.5,
+  // Share of the measured swipes recognised: at or above this is "works here".
+  swipesGood: 0.8,
 });
+
+export const SWIPE_HAND = Object.freeze({ PALM: 'palm', EDGE: 'edge' });
+
+// The ten prompts: palm toward the glasses first, then edge-on, directions
+// alternating so each one starts where the last ended.
+export const SWIPE_PLAN = Object.freeze([
+  ...['left', 'right', 'left', 'right', 'left'].map((gesture) => ({ hand: SWIPE_HAND.PALM, gesture })),
+  ...['right', 'left', 'right', 'left', 'right'].map((gesture) => ({ hand: SWIPE_HAND.EDGE, gesture })),
+]);
+
+export const SWIPE_HAND_LABELS = Object.freeze({
+  [SWIPE_HAND.PALM]: '手掌張開朝向眼鏡',
+  [SWIPE_HAND.EDGE]: '手刀（手掌與臉垂直）',
+});
+
+const rate = (hits, total) => (total > 0 ? hits / total : 0);
+
+/**
+ * @param {Array<{hand: string, gesture: string, got: string|null}>} results
+ *   one per prompt: what was asked for, and what was recognised in its window
+ *   (null for nothing).
+ */
+export function judgeSwipes(results) {
+  if (!Array.isArray(results) || results.length === 0) {
+    return { level: LEVEL.UNKNOWN, rate: null, detail: '沒有實測揮手（未接上眼鏡）。', advice: [] };
+  }
+  const count = (hand) => {
+    const mine = results.filter((r) => hand === null || r.hand === hand);
+    return { hits: mine.filter((r) => r.got === r.gesture).length, total: mine.length };
+  };
+  const all = count(null);
+  const palm = count(SWIPE_HAND.PALM);
+  const edge = count(SWIPE_HAND.EDGE);
+  const overall = rate(all.hits, all.total);
+  const advice = [];
+  if (edge.total > 0 && palm.total > 0 && rate(edge.hits, edge.total) < rate(palm.hits, palm.total)) {
+    advice.push('手刀比手掌朝前更容易漏掉：請提醒玩家手掌張開、朝向眼鏡揮動。');
+  }
+  return {
+    level: overall >= THRESHOLDS.swipesGood ? LEVEL.GOOD : LEVEL.BAD,
+    rate: overall,
+    detail: `實測 ${all.hits}/${all.total}（${percent(overall)}）｜手掌朝前 ${palm.hits}/${palm.total}｜手刀 ${edge.hits}/${edge.total}`,
+    advice,
+  };
+}
 
 const RANK = { [LEVEL.GOOD]: 0, [LEVEL.UNKNOWN]: 1, [LEVEL.WARN]: 2, [LEVEL.BAD]: 3 };
 
@@ -143,22 +200,6 @@ export function averageSummaries(summaries) {
   return { luma: mean('luma'), glare: mean('glare'), warmth: mean('warmth'), samples: usable.length };
 }
 
-export function judgeCamera(summary) {
-  if (!summary) {
-    return { level: LEVEL.UNKNOWN, detail: '無法開啟鏡頭，未檢測亮度。', advice: [] };
-  }
-  const dark = below(summary.luma, THRESHOLDS.dark);
-  const glare = above(summary.glare, THRESHOLDS.glare);
-  const advice = [];
-  if (dark !== LEVEL.GOOD) advice.push('現場偏暗：圖片可能辨識不到，請打亮掃描區域或卡片。');
-  if (glare !== LEVEL.GOOD) advice.push('強光或反光：請避免燈光直射卡片、改用霧面卡片，或調整卡片角度。');
-  return {
-    level: worst(dark, glare),
-    detail: `亮度 ${Math.round(summary.luma)}／255｜過曝 ${percent(summary.glare)}`,
-    advice,
-  };
-}
-
 export function judgeLightColour(summary) {
   if (!summary) return { level: LEVEL.UNKNOWN, detail: '未檢測。', advice: [] };
   const warm = summary.warmth >= THRESHOLDS.warmCast;
@@ -176,17 +217,34 @@ export const LEVEL_LABELS = Object.freeze({
   [LEVEL.UNKNOWN]: '無法檢測',
 });
 
-/** All three judgements and the overall verdict. */
-export function judgeEnvironment({ tofClear, tofHand, camera }) {
+/**
+ * The answer to "does the light here get in the way of recognition", from the
+ * measured swipes, the ToF readings and the light's colour.
+ */
+export function judgeEnvironment({ tofClear, tofHand, camera, swipes }) {
   const tof = judgeTof(tofClear, tofHand);
-  const image = judgeCamera(camera);
   const light = judgeLightColour(camera);
-  const overall = worst(tof.level, image.level, light.level);
-  const summary = {
-    [LEVEL.GOOD]: '現場環境良好，不會影響辨識。',
-    [LEVEL.WARN]: '現場環境可能影響辨識，請參考下方建議調整。',
-    [LEVEL.BAD]: '現場環境會影響辨識，請依下方建議調整後再檢測一次。',
-    [LEVEL.UNKNOWN]: '部分項目無法檢測，請在眼鏡 App 內並接上眼鏡後再試。',
-  }[overall];
-  return { overall, summary, tof, image, light, advice: [...tof.advice, ...image.advice, ...light.advice] };
+  const swipe = judgeSwipes(swipes);
+  const lightInterferes = tof.level === LEVEL.WARN || tof.level === LEVEL.BAD || light.level === LEVEL.WARN;
+  const advice = [...swipe.advice, ...tof.advice, ...light.advice];
+
+  let overall;
+  let summary;
+  if (swipe.level === LEVEL.UNKNOWN) {
+    overall = worst(tof.level, light.level);
+    summary = lightInterferes
+      ? '燈光可能影響辨識（未實測揮手，僅依環境數據判斷）。'
+      : '環境數據良好（未實測揮手）。';
+  } else if (swipe.level === LEVEL.GOOD) {
+    overall = lightInterferes ? LEVEL.WARN : LEVEL.GOOD;
+    summary = lightInterferes ? '燈光有干擾，但目前還能辨識。' : '燈光不影響辨識。';
+  } else if (lightInterferes) {
+    overall = LEVEL.BAD;
+    summary = '燈光影響辨識，請依下方建議調整後再檢測一次。';
+  } else {
+    overall = LEVEL.WARN;
+    summary = '不是燈光的問題：可能是揮手方式或距離。';
+    advice.push('請手掌張開、朝向眼鏡，距離約 30 公分，慢慢左右揮動。');
+  }
+  return { overall, summary, swipe, tof, light, advice };
 }
