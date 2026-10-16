@@ -291,7 +291,7 @@
    already behind the player is still, and finishing the tutorial stops the
    arrow in exactly the same frame it stops the hand - both are switched off by
    the same class change, in the same commit. */
-.gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-arrow{animation:gesture-tutorial-sweep-left 2.7s linear infinite}
+.gesture-tutorial-page .gesture-tutorial-step.is-active .gesture-tutorial-arrow{animation:gesture-tutorial-sweep-left 1.5s linear infinite}
 .gesture-tutorial-page .gesture-tutorial-step-right.is-active .gesture-tutorial-arrow{animation-name:gesture-tutorial-sweep-right}
 /* The three standing lines, fixed for the whole tutorial - none of them is a
    state and nothing switches any of them off. Three weights, because they are
@@ -341,62 +341,40 @@
      touch target and must stay the thing a finger lands on. The hand
      demonstrates, it never intercepts. */
   pointer-events:none;
-  animation:gesture-tutorial-sweep-left 2.7s linear infinite}
+  animation:gesture-tutorial-sweep-left 1.5s linear infinite}
 .gesture-tutorial-page .gesture-tutorial-hand-right{animation-name:gesture-tutorial-sweep-right}
-/* The sweep, timed in segments rather than eased as one curve.
+/* The sweep, at the speed the depth sensor reads best.
    ────────────────────────────────────────────────────────────
-   2.7s per cycle: 2.2s of travel, then 0.5s standing still at the far end,
-   then an immediate reset to the start (a reverse sweep would teach the
+   1.5s per cycle: 0.5s of even travel, then 1.0s standing still at the far
+   end, then an immediate reset to the start (a reverse sweep would teach the
    opposite gesture, so the return is a cut, never an animation).
 
-   Keyframe %  ->  time   ->  how far along the path
-      0.00%        0.00s        0%     start
-     11.11%        0.30s       18%   ┐
-     20.37%        0.55s       31%   ├ full speed, then easing off
-     29.63%        0.80s       42%   ┘
-     51.85%        1.40s       58%     ← the slow zone: 16% of the path
-                                         spread over 0.60s, so the hand
-                                         crosses the middle at ~27 %/s
-                                         against ~60 %/s at the ends - it
-                                         keeps moving, it never parks
-     61.11%        1.65s       69%   ┐
-     70.37%        1.90s       82%   ├ picking the speed back up
-     81.48%        2.20s      100%   ┘ far end reached at 2.2s
-    100.00%        2.70s      100%     held for 0.5s, then cut back
-
-   `linear` between the stops is the point: the velocity is carried by where
-   the stops are, so the middle is measurably - not just perceptually - slower.
-   A single `ease-in-out` over the whole sweep would do the opposite of what
-   this is for, since it is fastest exactly in the middle.
+   0.5s is from the field logs: real swipes the ToF recognised took 0.19-0.33s
+   (median 0.26s), and anything up to 2s is still read. The old 2.2s sweep,
+   slowing in the middle, taught a wave slower than the people it was teaching
+   ever made; this one is a touch slower than theirs and easy to follow, and the
+   1.0s pause marks where one wave ends and the next begins.
 
    Travel is symmetric about the panel's centre (±half of
    --gesture-hand-travel), which is what lets both directions share one set of
-   distances with only the sign flipped.
-
-   Two elements ride this timeline: the hand, and the direction arrow at the top
-   of the same panel. They are the same animation, not two copies of it, so
-   "in sync" is a property of the stylesheet rather than something that has to
-   be maintained. */
+   distances with only the sign flipped. The hand and the direction arrow ride
+   the same animation, so they are in sync by construction. */
 @keyframes gesture-tutorial-sweep-left{
   0%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
-  11.11%{transform:translateX(calc(var(--gesture-hand-travel) * .32))}
-  20.37%{transform:translateX(calc(var(--gesture-hand-travel) * .19))}
-  29.63%{transform:translateX(calc(var(--gesture-hand-travel) * .08))}
-  51.85%{transform:translateX(calc(var(--gesture-hand-travel) * -.08))}
-  61.11%{transform:translateX(calc(var(--gesture-hand-travel) * -.19))}
-  70.37%{transform:translateX(calc(var(--gesture-hand-travel) * -.32))}
-  81.48%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
+  6.67%{transform:translateX(calc(var(--gesture-hand-travel) * .3))}
+  13.33%{transform:translateX(calc(var(--gesture-hand-travel) * .1))}
+  20%{transform:translateX(calc(var(--gesture-hand-travel) * -.1))}
+  26.67%{transform:translateX(calc(var(--gesture-hand-travel) * -.3))}
+  33.33%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
   100%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
 }
 @keyframes gesture-tutorial-sweep-right{
   0%{transform:translateX(calc(var(--gesture-hand-travel) * -.5))}
-  11.11%{transform:translateX(calc(var(--gesture-hand-travel) * -.32))}
-  20.37%{transform:translateX(calc(var(--gesture-hand-travel) * -.19))}
-  29.63%{transform:translateX(calc(var(--gesture-hand-travel) * -.08))}
-  51.85%{transform:translateX(calc(var(--gesture-hand-travel) * .08))}
-  61.11%{transform:translateX(calc(var(--gesture-hand-travel) * .19))}
-  70.37%{transform:translateX(calc(var(--gesture-hand-travel) * .32))}
-  81.48%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
+  6.67%{transform:translateX(calc(var(--gesture-hand-travel) * -.3))}
+  13.33%{transform:translateX(calc(var(--gesture-hand-travel) * -.1))}
+  20%{transform:translateX(calc(var(--gesture-hand-travel) * .1))}
+  26.67%{transform:translateX(calc(var(--gesture-hand-travel) * .3))}
+  33.33%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
   100%{transform:translateX(calc(var(--gesture-hand-travel) * .5))}
 }
 /* Short windows.

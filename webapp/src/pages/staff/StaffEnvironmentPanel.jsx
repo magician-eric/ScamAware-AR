@@ -21,7 +21,7 @@ import {
 //
 //   1. nothing in front of the glasses, then a hand held still at about 30 cm (about 6 s): the
 //      ToF's noise and how steadily it sees a hand, and the camera's colour cast;
-//   2. ten swipes on prompt, five with the palm toward the glasses and five edge-on (about
+//   2. ten swipes on prompt, all with the palm toward the glasses - what the tutorial teaches (about
 //      30 s): how many the experience would actually have recognised, counted exactly as it
 //      counts them - the module's keys and the depth recogniser, through the same stream;
 //   3. ten seconds of not swiping at all (誤觸測試): every gesture recognised then is one the
@@ -195,17 +195,17 @@ export function StaffEnvironmentPanel() {
     <div className="staff-card staff-env">
       <h2>現場環境檢測（燈光）</h2>
       <p className="staff-env-intro">
-        檢查現場燈光和背景是否會影響揮手辨識。請戴上眼鏡，站在玩家體驗的位置，按下開始後依照指示操作，約 55 秒：先量環境，再實際揮手 10 下（手掌朝前 5 下、手刀 5 下），最後 10 秒不揮手，測會不會誤觸。
+        檢查現場燈光和背景是否會影響揮手辨識。請戴上眼鏡，站在玩家體驗的位置，按下開始後依照指示操作，約 55 秒：先量環境，再用手掌實際揮手 10 下，最後 10 秒不揮手，測會不會誤觸。
       </p>
 
       <div className="staff-env-preview" ref={previewRef} aria-hidden="true" />
 
       {step === STEP.CLEAR && <p className="staff-env-step">① 請把手移開，讓眼鏡前方淨空……</p>}
-      {step === STEP.HAND && <p className="staff-env-step">② 請把手掌放在右眼正前方約 30 公分，保持不動……</p>}
+      {step === STEP.HAND && <p className="staff-env-step">② 請把手掌放在右眼正前方約 20～30 公分，保持不動……</p>}
       {step === STEP.SWIPE && prompt && (
         <div className="staff-env-swipe" aria-live="polite">
           <p className="staff-env-swipe-count">③ 實測揮手 {prompt.index + 1}／{SWIPE_PLAN.length}</p>
-          <p className="staff-env-swipe-hand">{SWIPE_HAND_LABELS[prompt.planned.hand]}・右眼前方約 30 公分</p>
+          <p className="staff-env-swipe-hand">{SWIPE_HAND_LABELS[prompt.planned.hand]}・右眼前方約 20～30 公分</p>
           <p className={`staff-env-swipe-direction${prompt.ready ? ' is-ready' : ''}`}>
             {prompt.ready ? DIRECTION_LABELS[prompt.planned.gesture] : '準備……'}
           </p>
