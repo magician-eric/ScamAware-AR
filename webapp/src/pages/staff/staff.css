@@ -132,4 +132,6 @@
 .staff-gesture-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:3px;background:#0b0f18;color:rgba(255,255,255,.35);font-size:10px;font-variant-numeric:tabular-nums}
 .staff-gesture-cell.is-far{background:#222a36;color:rgba(255,255,255,.55)}
 .staff-gesture-cell.is-near{background:#1d4e89;color:#fff}
+.staff-gesture-cell.is-too-near{background:#4b2a6b;color:rgba(255,255,255,.7)}
+.staff-gesture-cell.is-masked{background:repeating-linear-gradient(45deg,#2a2f3a 0 3px,#11151d 3px 6px);color:rgba(255,255,255,.45)}
 .staff-gesture-cell.is-hand{background:#ffd23f;color:#111;font-weight:800}

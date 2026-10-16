@@ -184,8 +184,8 @@ final class JorjinHardwareManager {
     }
 
     /** Changes, keeps and logs the staff mode's gesture settings; any thread. */
-    String applyGestureSettings(int maxRangeCm, String signalMode) {
-        GestureSettings wanted = GestureSettings.of(maxRangeCm, signalMode);
+    String applyGestureSettings(int maxRangeCm, String signalMode, int minRangeCm) {
+        GestureSettings wanted = GestureSettings.of(maxRangeCm, signalMode, minRangeCm);
         if (!wanted.equals(gestureSettings)) {
             gestureSettings = wanted;
             wanted.save(gesturePrefs);
@@ -603,7 +603,8 @@ final class JorjinHardwareManager {
                     depthRecognizer.onFrame(frame.medianRange, frame.peakSignalRate, now);
             frameRecorder.frame(now, frame.medianRange, frame.peakSignalRate, hand.describe());
             liveFrame.update(now, frame.medianRange, frame.peakSignalRate, hand,
-                    depthRecognizer.handMask(), depthRecognizer.maxRangeMm(),
+                    depthRecognizer.handMask(), depthRecognizer.maskedMask(),
+                    depthRecognizer.minRangeMm(), depthRecognizer.maxRangeMm(),
                     depthRecognizer.noiseRatio(), depthRecognizer.signalFloorFraction(),
                     depthRecognizer.isColumnIncreasesRight());
             environmentMeter.frame(now, frame.medianRange, frame.peakSignalRate);

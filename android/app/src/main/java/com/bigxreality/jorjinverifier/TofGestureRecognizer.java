@@ -255,6 +255,13 @@ final class TofGestureRecognizer {
 
     float maxRangeMm() { return extractor.maxRangeMm(); }
 
+    /** The staff mode's 手勢最近距離: nearer than this is the face or a hand at the glasses. */
+    void setMinRangeMm(float value) { extractor.setMinRangeMm(value); }
+
+    float minRangeMm() { return extractor.minRangeMm(); }
+
+    long maskedMask() { return extractor.maskedMask(); }
+
     /** The staff mode's 訊號過濾: how weak a return may be before it is ignored. */
     void setSignalMode(TofHandExtractor.SignalMode mode) { extractor.setSignalMode(mode); }
 

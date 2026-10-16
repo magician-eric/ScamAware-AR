@@ -82,6 +82,35 @@ final class TofHandExtractor {
      */
     static final float MIN_RANGE_MM = 30f;
     static final float MAX_RANGE_MM = 500f;
+    /**
+     * Where a hand is looked for from, unless the staff mode says otherwise. On the glasses the
+     * zones towards the nose and the bottom rows (the cheek) report 1-9 cm in about half of all
+     * frames with nothing in front: the wearer's own face, the frame, the cover glass. A field
+     * log from a wearer swiping closer and closer showed it, and that nothing nearer than 10 cm
+     * is a swipe anyone would make in the experience - it is a hand at the glasses, adjusting
+     * them, or the face itself.
+     */
+    static final float DEFAULT_MIN_RANGE_MM = 100f;
+    /** The nearest the staff mode can set it. */
+    static final float MIN_RANGE_SETTING_MAX_MM = 200f;
+
+    /**
+     * A zone whose reading within gesture range keeps coming and going with nothing in front
+     * is masked out: it is noise there (the face at the edge of the view, a lamp's infrared
+     * speckle), not something a hand could be. Smoothed per frame with no hand; masked at
+     * {@link #ZONE_MASK_ON}, unmasked again below {@link #ZONE_MASK_OFF}.
+     */
+    static final float ZONE_FLICKER_SMOOTHING = 0.03f;
+    static final float ZONE_MASK_ON = 0.2f;
+    static final float ZONE_MASK_OFF = 0.1f;
+    /**
+     * This many unmasked zones nearer than the 手勢最近距離 make the whole frame "too near": a
+     * hand right at the glasses. Without this its rim - the fingers, the part of the palm that
+     * is a little further away - is beyond the limit and reads as a hand of its own.
+     */
+    static final int TOO_NEAR_ZONES = 4;
+    /** Never more than this many zones masked: the rest of the view has to stay usable. */
+    static final int MAX_MASKED_ZONES = 24;
 
     /** A zone never seen before, showing nothing within gesture range, is learned this soon. */
     static final long LEARN_MS = 1000L;
@@ -253,6 +282,13 @@ final class TofHandExtractor {
 
     /** The farthest a hand is looked for; the staff mode can bring it in. */
     private volatile float maxRangeMm = MAX_RANGE_MM;
+    private volatile float minRangeMm = DEFAULT_MIN_RANGE_MM;
+    private final float[] zoneFlicker = new float[ZONES];
+    private final boolean[] masked = new boolean[ZONES];
+    private final boolean[] previousNear = new boolean[ZONES];
+    private final boolean[] near = new boolean[ZONES];
+    private int maskedCount;
+    private volatile long maskedMask;
     private volatile SignalMode signalMode = SignalMode.AUTO;
     /** Share of zones changing between a reading and none per frame, smoothed. */
     private volatile float noiseRatio;
@@ -261,7 +297,21 @@ final class TofHandExtractor {
     private volatile long handMask;
 
     void setMaxRangeMm(float value) {
-        maxRangeMm = Math.max(MIN_RANGE_MM + 50f, Math.min(MAX_RANGE_MM, value));
+        maxRangeMm = Math.max(MIN_RANGE_SETTING_MAX_MM + 50f, Math.min(MAX_RANGE_MM, value));
+    }
+
+    /** The staff mode's 手勢最近距離: nearer than this is the face or a hand at the glasses. */
+    void setMinRangeMm(float value) {
+        minRangeMm = Math.max(MIN_RANGE_MM, Math.min(MIN_RANGE_SETTING_MAX_MM, value));
+    }
+
+    float minRangeMm() {
+        return minRangeMm;
+    }
+
+    /** The zones masked as noise right now, one bit per zone (bit 0 is zone 0). */
+    long maskedMask() {
+        return maskedMask;
     }
 
     float maxRangeMm() {
@@ -325,6 +375,11 @@ final class TofHandExtractor {
         Arrays.fill(absorbed, false);
         Arrays.fill(previousValid, false);
         noiseRatio = 0f;
+        Arrays.fill(zoneFlicker, 0f);
+        Arrays.fill(masked, false);
+        Arrays.fill(previousNear, false);
+        maskedCount = 0;
+        maskedMask = 0L;
     }
 
     /**
@@ -349,6 +404,8 @@ final class TofHandExtractor {
         float recededFrom = 0f;
         int flips = 0;
         float farthest = maxRangeMm;
+        float nearest = minRangeMm;
+        int tooNear = 0;
         for (int i = 0; i < ZONES; i++) {
             float r = range[i];
             float b = background[i];
@@ -356,7 +413,10 @@ final class TofHandExtractor {
             if (valid != previousValid[i]) flips++;
             wasValid[i] = previousValid[i];
             previousValid[i] = valid;
-            foreground[i] = valid && r >= MIN_RANGE_MM && r <= farthest && r < foregroundLimit(i);
+            near[i] = valid && r <= farthest;
+            if (valid && r >= MIN_RANGE_MM && r < nearest && !masked[i]) tooNear++;
+            foreground[i] = valid && r >= nearest && r <= farthest && r < foregroundLimit(i)
+                    && !masked[i];
             if (valid && b > 0f && b <= EGO_BACKGROUND_MAX_MM && r > b + margin(b)) {
                 receded++;
                 recededFrom += b;
@@ -364,12 +424,17 @@ final class TofHandExtractor {
         }
         // Learned after classifying, so a frame is always judged against what came before it.
         learn(range, nowMs, locked);
-        if (hasSignal) dropWeakReturns(range, signal, farthest);
+        if (hasSignal) dropWeakReturns(range, signal, nearest, farthest);
         dropLoneSparks();
 
-        Hand hand = findHand(range, signal, hasSignal);
+        Hand hand = tooNear >= TOO_NEAR_ZONES ? tooNear() : findHand(range, signal, hasSignal);
         // Noise is measured only while nothing is in front: a moving hand's edges flicker too.
-        if (!hand.present) noiseRatio += NOISE_SMOOTHING * (flips / (float) ZONES - noiseRatio);
+        // Nor while something too near or too big is: that is not an empty view either.
+        if (!hand.present && hand.rejected == null) {
+            noiseRatio += NOISE_SMOOTHING * (flips / (float) ZONES - noiseRatio);
+            updateMask();
+        }
+        System.arraycopy(near, 0, previousNear, 0, ZONES);
         if (receded >= EGO_MIN_ZONES && hand.present
                 && Math.abs(hand.rangeMm - recededFrom / receded) <= band(hand.rangeMm)) {
             return Hand.moving(receded);
@@ -382,11 +447,13 @@ final class TofHandExtractor {
      * range in this frame ({@link #signalFloorFraction()}): the far wall, the person behind, the
      * infrared speckle a lamp leaves - weak beside a hand at arm's length.
      */
-    private void dropWeakReturns(float[] range, float[] signal, float farthest) {
+    private void dropWeakReturns(float[] range, float[] signal, float nearest, float farthest) {
         int n = 0;
         for (int i = 0; i < ZONES; i++) {
             float r = range[i];
-            if (valid(r) && r >= MIN_RANGE_MM && r <= farthest && signal[i] > 0f) scratch[n++] = signal[i];
+            if (valid(r) && r >= nearest && r <= farthest && signal[i] > 0f && !masked[i]) {
+                scratch[n++] = signal[i];
+            }
         }
         if (n == 0) return;
         Arrays.sort(scratch, 0, n);
@@ -396,6 +463,29 @@ final class TofHandExtractor {
         for (int i = 0; i < ZONES; i++) {
             if (foreground[i] && signal[i] < floor) foreground[i] = false;
         }
+    }
+
+    private Hand tooNear() {
+        handMask = 0L;
+        return Hand.notAHand("too-near", 0, 0f);
+    }
+
+    /** See {@link #ZONE_MASK_ON}. Only with nothing in front: a moving hand's edges flicker too. */
+    private void updateMask() {
+        long mask = 0L;
+        for (int i = 0; i < ZONES; i++) {
+            float flip = near[i] != previousNear[i] ? 1f : 0f;
+            zoneFlicker[i] += ZONE_FLICKER_SMOOTHING * (flip - zoneFlicker[i]);
+            if (masked[i] && zoneFlicker[i] < ZONE_MASK_OFF) {
+                masked[i] = false;
+                maskedCount--;
+            } else if (!masked[i] && zoneFlicker[i] >= ZONE_MASK_ON && maskedCount < MAX_MASKED_ZONES) {
+                masked[i] = true;
+                maskedCount++;
+            }
+            if (masked[i]) mask |= 1L << i;
+        }
+        maskedMask = mask;
     }
 
     /** See {@link #PERSIST_UNLESS_NEIGHBOURS}. */

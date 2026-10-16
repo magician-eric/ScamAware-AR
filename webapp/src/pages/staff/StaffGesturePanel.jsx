@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
+  DEFAULT_MIN_RANGE_CM,
+  MIN_RANGE_CHOICES_CM,
   RANGE_CHOICES_CM,
   SIGNAL_MODES,
   STAFF_TOOLS_READY_EVENT,
@@ -70,6 +72,7 @@ export function StaffGesturePanel() {
     // Both settings travel together; one never read back must not become 0 cm on the way.
     const current = settings ?? readGestureSettings() ?? { maxRangeCm: RANGE_CHOICES_CM[0], signalMode: 'AUTO' };
     const next = writeGestureSettings({
+      minRangeCm: current.minRangeCm ?? DEFAULT_MIN_RANGE_CM,
       maxRangeCm: current.maxRangeCm,
       signalMode: current.signalMode,
       ...change,
@@ -98,6 +101,26 @@ export function StaffGesturePanel() {
       <p className="staff-env-intro">
         手要比背後的東西（牆、桌子）近 10 公分以上才算，這一點系統會自動處理。現場有背景牆、玩家背後有觀眾或在教室宣導時，再用下面的設定調整。
       </p>
+
+      {typeof settings?.minRangeCm === 'number' && (
+        <>
+          <h3 className="staff-gesture-label">手勢最近距離</h3>
+          <div className="staff-btn-row staff-gesture-choices">
+            {MIN_RANGE_CHOICES_CM.map((cm) => (
+              <button
+                key={cm}
+                type="button"
+                className={`btn${settings.minRangeCm === cm ? '' : ' secondary'}`}
+                aria-pressed={settings.minRangeCm === cm}
+                onClick={() => choose({ minRangeCm: cm })}
+              >
+                {cm} 公分
+              </button>
+            ))}
+          </div>
+          <p className="staff-env-note">比這個距離近的都不看：臉、鼻樑、眼鏡框，還有手碰眼鏡、調整眼鏡的動作。建議 10 公分。</p>
+        </>
+      )}
 
       <h3 className="staff-gesture-label">手勢最遠距離</h3>
       <div className="staff-btn-row staff-gesture-choices">
@@ -141,14 +164,14 @@ export function StaffGesturePanel() {
             {rows.flat().map((cell) => (
               <span
                 key={cell.zone}
-                className={`staff-gesture-cell${cell.hand ? ' is-hand' : cell.inRange ? ' is-near' : cell.cm > 0 ? ' is-far' : ''}`}
+                className={`staff-gesture-cell${cell.hand ? ' is-hand' : cell.masked ? ' is-masked' : cell.tooNear ? ' is-too-near' : cell.inRange ? ' is-near' : cell.cm > 0 ? ' is-far' : ''}`}
               >
                 {cell.cm > 0 ? cell.cm : ''}
               </span>
             ))}
           </div>
           <p className="staff-env-note">{describeLiveFrame(frame)}</p>
-          <p className="staff-env-note">數字是距離（公分）。黃色是被當成手的格子，藍色是範圍內但不算手，灰色是範圍外。方向是配戴者看出去的方向。</p>
+          <p className="staff-env-note">數字是距離（公分）。黃色是被當成手的格子，藍色是範圍內但不算手，紫色是太近（臉、眼鏡框），斜線是自動遮蔽的雜訊格子，灰色是太遠。方向是配戴者看出去的方向。</p>
         </div>
       )}
       <div className="staff-btn-row">

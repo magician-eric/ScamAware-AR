@@ -242,9 +242,48 @@ public class TofGestureRecognizerTest {
         assertOnly(LEFT);
     }
 
-    /** 4 cm: the hand covers the whole grid; only its leading and trailing edges move. */
-    @Test public void aSwipeRightAgainstTheGlassesIsRecognised() {
-        swipe(-11f, 18.5f, 40, 500);
+    /**
+     * Nearer than 10 cm is the wearer's face, the frame, or a hand at the glasses - a field log
+     * of a wearer swiping closer and closer showed it. Not a swipe, by default.
+     */
+    @Test public void aHandRightAtTheGlassesIsNotASwipe() {
+        swipe(-8f, 15.5f, 60, 500);
+        assertNothing();
+    }
+
+    /**
+     * 6 cm with 手勢最近距離 brought in to 5 cm: the hand covers the whole grid and only its
+     * leading and trailing edges move.
+     */
+    @Test public void aSwipeRightAtSixCentimetresIsRecognisedWhenTheStaffAllowIt() {
+        recognizer.setMinRangeMm(50);
+        swipe(-8f, 15.5f, 60, 500);
+        assertOnly(RIGHT);
+    }
+
+    /**
+     * The zones at the nose and the cheek: with nothing in front they report something within
+     * reach every other frame. They are masked out, and a swipe still gets through beside them.
+     */
+    @Test public void zonesFlickeringAtTheFaceAreMaskedAndASwipeStillWorks() {
+        boolean on = false;
+        for (int k = 0; k < 120; k++) {
+            on = !on;
+            float[] range = scene.range();
+            float[] signal = scene.signal();
+            for (int row = 0; row < 8; row++) {
+                int zone = row * 8;
+                range[zone] = on ? 160f : 0f;
+                signal[zone] = on ? 30f : 0f;
+                range[zone + 1] = on ? 170f : 0f;
+                signal[zone + 1] = on ? 30f : 0f;
+            }
+            clock += TofScene.FRAME_MS;
+            recognizer.onFrame(range, signal, clock);
+        }
+        assertNothing();
+        assertEquals("鼻子那兩排被遮蔽", 16, Long.bitCount(recognizer.maskedMask()));
+        swipeRight(300);
         assertOnly(RIGHT);
     }
 

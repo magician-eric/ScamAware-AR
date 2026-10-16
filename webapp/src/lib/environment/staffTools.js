@@ -3,8 +3,9 @@
 //
 //   window.__cibarStaffTools = {
 //     version: 1, available: true,
-//     getGestureSettings() -> { maxRangeCm, signalMode, noise, floor } | null,
-//     setGestureSettings({ maxRangeCm, signalMode }) -> the same | null,
+//     getGestureSettings() -> { minRangeCm, maxRangeCm, signalMode, noise, floor } | null,
+//     setGestureSettings({ minRangeCm, maxRangeCm, signalMode }) -> the same | null,
+//                         (Shell 1.2.4 has no minRangeCm and ignores it)
 //     liveFrame() -> one 8x8 frame (TofLiveFrame.java) | null,
 //     shareTofLog() -> boolean,
 //   }
@@ -21,6 +22,10 @@ export const TOF_LOG_EXPORT_EVENT = 'cibarTofLogExport';
 // The choices on the panel's buttons - the Shell accepts only these
 // (GestureSettings.java), anything else falls back to the nearest.
 export const RANGE_CHOICES_CM = Object.freeze([50, 40, 35]);
+// 手勢最近距離 (Shell 1.2.5+): nearer is the wearer's face, the frame, or a
+// hand at the glasses - all noise to a swipe.
+export const MIN_RANGE_CHOICES_CM = Object.freeze([5, 10, 15]);
+export const DEFAULT_MIN_RANGE_CM = 10;
 
 export const SIGNAL_MODES = Object.freeze([
   { id: 'AUTO', label: '自動', hint: '依現場雜訊自動調整（建議）' },
@@ -101,7 +106,9 @@ export function liveGrid(frame) {
         zone,
         cm,
         hand: Array.isArray(frame.hand) && frame.hand[zone] === 1,
-        inRange: cm > 0 && cm <= (frame.maxRangeCm || 50),
+        masked: Array.isArray(frame.masked) && frame.masked[zone] === 1,
+        tooNear: cm > 0 && cm < (frame.minRangeCm || 0),
+        inRange: cm >= (frame.minRangeCm || 0) && cm > 0 && cm <= (frame.maxRangeCm || 50),
       });
     }
     rows.push(cells);
@@ -116,5 +123,6 @@ export function describeLiveFrame(frame) {
   if (frame.ageMs > 1000) return '感測器沒有送畫面過來。';
   if (frame.sceneMoving) return '整個畫面在動（頭在轉），這時不判斷手勢。';
   if (frame.handPresent) return `看到手：約 ${frame.handCm} 公分`;
-  return `沒有看到手（只找 ${frame.maxRangeCm} 公分以內、比背景近 10 公分以上的東西）`;
+  const from = frame.minRangeCm ? `${frame.minRangeCm}–` : '';
+  return `沒有看到手（只找 ${from}${frame.maxRangeCm} 公分、比背景近 10 公分以上的東西）`;
 }
