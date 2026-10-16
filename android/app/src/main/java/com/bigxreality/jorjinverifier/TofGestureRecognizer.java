@@ -125,6 +125,33 @@ final class TofGestureRecognizer {
      * to a screen that may no longer be there.
      */
     static final long REPORT_WITHIN_MS = 600L;
+    /**
+     * A hand that stays up after its swipe, held still this long, may swipe again without first
+     * leaving the sensor. Waiting for the sensor to clear made a hand that stayed in view -
+     * resting on the side the last swipe ended on, waiting for the next question - invisible to
+     * this recogniser for the next swipe, leaving only the module to catch it.
+     */
+    static final long HOLD_REARM_MS = 600L;
+    /**
+     * After such a hold, a stroke must move at least this fast (zones per second) to count. A
+     * swipe does; an arm relaxing and drifting back the way it came does not.
+     */
+    static final float MIN_SPEED_AFTER_HOLD = 3f;
+    /**
+     * A stroke that leaves the view at the side it was heading for may be this short. A hand
+     * crossing only the edge of the sensor's narrow view - the right hand, which swipes to the
+     * right of the sensor at the right eye - is seen for less of its travel.
+     */
+    static final float EDGE_EXIT_MIN_TRAVEL = 0.9f;
+    /** How near the side a stroke must end, in zones, for {@link #EDGE_EXIT_MIN_TRAVEL}. */
+    static final float EDGE_EXIT_WITHIN = 0.8f;
+    /**
+     * How far short of the middle of the view a stroke that ends with the hand vanishing may
+     * stop, in zones. A swipe carries on across; a hand that disappears on the side it came in
+     * from was put into view and taken down again - or went within 10 cm of what is behind it
+     * (the wall the player stands at), where it stops counting as a hand.
+     */
+    static final float EXIT_SHORT_OF_CENTRE = 0.5f;
     /** After the scene moved, this long passes before a new movement is tracked. */
     static final long SCENE_SETTLE_MS = 300L;
     /** A module swipe and one of ours this close together are the same swipe. */
@@ -196,6 +223,12 @@ final class TofGestureRecognizer {
     private int strokeSamples;
     /** The time {@link #judge} measures a stroke's age against. */
     private long nowMsForJudge;
+    /** Whether this track began by a hold after a swipe; see {@link #MIN_SPEED_AFTER_HOLD}. */
+    private boolean afterHold;
+    private float holdCol, holdRow;
+    private long holdSinceMs = NEVER;
+    /** Whether the stroke being judged ended because the hand left the view. */
+    private boolean judgingExit;
     private float anchorRangeMm, extremeRangeMm;
     /** Whether the hand has been seen clear of both sides since the stroke began. */
     private boolean strokeSeenWhole;
@@ -216,6 +249,23 @@ final class TofGestureRecognizer {
     void setColumnIncreasesRight(boolean value) { columnIncreasesRight = value; }
 
     boolean isColumnIncreasesRight() { return columnIncreasesRight; }
+
+    /** The staff mode's 手勢最遠距離: how far from the glasses a hand is looked for. */
+    void setMaxRangeMm(float value) { extractor.setMaxRangeMm(value); }
+
+    float maxRangeMm() { return extractor.maxRangeMm(); }
+
+    /** The staff mode's 訊號過濾: how weak a return may be before it is ignored. */
+    void setSignalMode(TofHandExtractor.SignalMode mode) { extractor.setSignalMode(mode); }
+
+    TofHandExtractor.SignalMode signalMode() { return extractor.signalMode(); }
+
+    /** Read off the frame thread; a value a frame old is as good as the current one. */
+    float noiseRatio() { return extractor.noiseRatio(); }
+
+    float signalFloorFraction() { return extractor.signalFloorFraction(); }
+
+    long handMask() { return extractor.handMask(); }
 
     /**
      * @param range  the frame's 64 zone distances in mm, zero where the zone had no valid
@@ -247,6 +297,16 @@ final class TofGestureRecognizer {
             case LOCKED:
                 if (present) {
                     neutralSinceMs = NOT_NEUTRAL;
+                    if (holdSinceMs == NEVER
+                            || Math.hypot(hand.col - holdCol, hand.row - holdRow) > STILL_RADIUS) {
+                        holdCol = hand.col;
+                        holdRow = hand.row;
+                        holdSinceMs = nowMs;
+                    } else if (nowMs - holdSinceMs >= HOLD_REARM_MS) {
+                        startTracking(hand, nowMs);
+                        afterHold = true;
+                        note("手停住 " + HOLD_REARM_MS + "ms，可以接著揮");
+                    }
                 } else if (neutralSinceMs == NOT_NEUTRAL) {
                     neutralSinceMs = nowMs;
                 } else if (nowMs - neutralSinceMs >= NEUTRAL_REARM_MS) {
@@ -255,7 +315,10 @@ final class TofGestureRecognizer {
                 }
                 break;
             case IDLE:
-                if (present && nowMs >= quietUntilMs) startTracking(hand, nowMs);
+                if (present && nowMs >= quietUntilMs) {
+                    startTracking(hand, nowMs);
+                    afterHold = false;
+                }
                 break;
             case TRACKING:
                 if (present && Math.abs(hand.rangeMm - trackRangeMm)
@@ -299,6 +362,7 @@ final class TofGestureRecognizer {
         if (ownDir != 0) compareWithModule(ownDir == columnDirOf(gesture));
 
         state = State.LOCKED;
+        holdSinceMs = NEVER;
         neutralSinceMs = handInView ? NOT_NEUTRAL : nowMs;
         lastDir = columnDirOf(gesture);
         lastGestureAtMs = nowMs;
@@ -402,6 +466,7 @@ final class TofGestureRecognizer {
     /** @return whether a swipe was reported (the recogniser is then locked). */
     private boolean endStroke(End end, long nowMs) {
         nowMsForJudge = nowMs;
+        judgingExit = end == End.EXIT;
         Stroke stroke = new Stroke(extremeCol - anchorCol, extremeRow - anchorRow, extremeCol,
                 anchorMs, extremeMs, strokeDir, strokeSamples, anchorRangeMm, extremeRangeMm,
                 strokeSeenWhole);
@@ -451,7 +516,17 @@ final class TofGestureRecognizer {
         if (!stroke.seenWhole && near >= SEEN_WHOLE_BEYOND_MM) {
             return "一直貼著畫面邊緣，像是旁邊經過的人而不是手";
         }
-        if (h < MIN_ZONE_TRAVEL) return "水平只移動 " + fmt(h) + " 格";
+        boolean edgeExit = judgingExit && (stroke.dir > 0
+                ? stroke.endCol >= GRID - 1 - EDGE_EXIT_WITHIN
+                : stroke.endCol <= EDGE_EXIT_WITHIN);
+        if (h < (edgeExit ? EDGE_EXIT_MIN_TRAVEL : MIN_ZONE_TRAVEL)) return "水平只移動 " + fmt(h) + " 格";
+        float centre = (GRID - 1) / 2f;
+        if (judgingExit && (stroke.endCol - centre) * stroke.dir < -EXIT_SHORT_OF_CENTRE) {
+            return "手在畫面還沒過一半的地方消失（停在第 " + fmt(stroke.endCol) + " 格），像是把手放進來又拿走";
+        }
+        if (afterHold && duration > 0 && h * 1000f / duration < MIN_SPEED_AFTER_HOLD) {
+            return "手停住後的慢慢移動（" + fmt(h * 1000f / duration) + " 格/秒），不是揮手";
+        }
         if (h < v * HORIZONTAL_DOMINANCE) return "偏垂直（水平 " + fmt(h) + "／垂直 " + fmt(v) + " 格）";
         if (duration > MAX_SWIPE_MS) return "太慢（" + duration + "ms）";
         if (nowMsForJudge - stroke.endMs > REPORT_WITHIN_MS) {
@@ -475,6 +550,7 @@ final class TofGestureRecognizer {
         int gesture = (stroke.dir > 0) == columnIncreasesRight
                 ? TofGestureEvent.GESTURE_RIGHT : TofGestureEvent.GESTURE_LEFT;
         state = State.LOCKED;
+        holdSinceMs = NEVER;
         neutralSinceMs = handStillInView ? NOT_NEUTRAL : nowMs;
         lastDir = stroke.dir;
         lastGestureAtMs = nowMs;
@@ -525,6 +601,8 @@ final class TofGestureRecognizer {
     synchronized void reset() {
         state = State.IDLE;
         neutralSinceMs = NOT_NEUTRAL;
+        holdSinceMs = NEVER;
+        afterHold = false;
         lastDir = 0;
         lastGestureAtMs = NEVER;
         lastWasOwn = false;

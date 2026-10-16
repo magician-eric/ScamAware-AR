@@ -124,3 +124,12 @@
 .staff-env-swipe-hand{font-size:var(--fs-body);font-weight:700;color:#fff}
 .staff-env-swipe-direction{font-size:clamp(26px,8vw,40px);font-weight:900;color:var(--muted)}
 .staff-env-swipe-direction.is-ready{color:#ffd23f}
+/* 手勢設定 (StaffGesturePanel.jsx): the range and filter choices, the live 8x8 view. */
+.staff-gesture-label{margin:14px 0 8px;font-size:var(--fs-body);font-weight:700}
+.staff-gesture-choices .btn{padding:10px 4px;font-size:var(--fs-body-sm)}
+.staff-gesture-live{margin:4px 0 10px}
+.staff-gesture-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-width:320px;margin:0 auto 6px}
+.staff-gesture-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:3px;background:#0b0f18;color:rgba(255,255,255,.35);font-size:10px;font-variant-numeric:tabular-nums}
+.staff-gesture-cell.is-far{background:#222a36;color:rgba(255,255,255,.55)}
+.staff-gesture-cell.is-near{background:#1d4e89;color:#fff}
+.staff-gesture-cell.is-hand{background:#ffd23f;color:#111;font-weight:800}

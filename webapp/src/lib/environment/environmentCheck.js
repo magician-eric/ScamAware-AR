@@ -1,7 +1,7 @@
 // 現場環境檢測 - the staff management mode's check of whether the venue's
 // lighting will get in the way of gesture recognition.
 //
-// Three readings, one question - does the light here stop a swipe being
+// Four readings, one question - does the light here stop a swipe being
 // recognised?
 //
 //   Swipes (measured) Ten real swipes on prompt - five with the palm open
@@ -24,6 +24,13 @@
 //                    the camera's own white balance hides much of it, so it is
 //                    a hint and never a verdict. Image recognition itself is
 //                    not checked: it holds up in every venue tried so far.
+//
+//   False triggers   Ten seconds of NOT swiping - standing at the wall,
+//   (誤觸測試)       turning the head, people walking behind - counting every
+//                    gesture the experience would have acted on. The
+//                    background wall and an audience behind the player are
+//                    what this catches; the cure is the staff mode's 手勢最遠
+//                    距離 and 訊號過濾 (StaffGesturePanel.jsx).
 //
 // The swipe rate says whether recognition works here; the ToF readings and
 // the colour say whether the light is what is in the way. Together:
@@ -57,7 +64,12 @@ export const THRESHOLDS = Object.freeze({
   warmCast: 1.5,
   // Share of the measured swipes recognised: at or above this is "works here".
   swipesGood: 0.8,
+  // Gestures recognised in the false-trigger window, nobody swiping.
+  falseTriggers: { warn: 1, bad: 2 },
 });
+
+// How long the false-trigger test watches for gestures nobody made.
+export const FALSE_TRIGGER_MS = 10000;
 
 export const SWIPE_HAND = Object.freeze({ PALM: 'palm', EDGE: 'edge' });
 
@@ -101,6 +113,29 @@ export function judgeSwipes(results) {
     rate: overall,
     detail: `實測 ${all.hits}/${all.total}（${percent(overall)}）｜手掌朝前 ${palm.hits}/${palm.total}｜手刀 ${edge.hits}/${edge.total}`,
     advice,
+  };
+}
+
+/**
+ * @param {{count: number, ms: number}|null} measured gestures recognised while
+ *   nobody swiped, over how long; null when the test was not run.
+ */
+export function judgeFalseTriggers(measured) {
+  if (!measured || !(measured.ms > 0)) {
+    return { level: LEVEL.UNKNOWN, count: null, detail: '沒有做誤觸測試（未接上眼鏡）。', advice: [] };
+  }
+  const { count } = measured;
+  const seconds = Math.round(measured.ms / 1000);
+  const level = count >= THRESHOLDS.falseTriggers.bad
+    ? LEVEL.BAD
+    : count >= THRESHOLDS.falseTriggers.warn ? LEVEL.WARN : LEVEL.GOOD;
+  return {
+    level,
+    count,
+    detail: `${seconds} 秒內沒有人揮手，誤觸 ${count} 次`,
+    advice: count > 0
+      ? ['背景牆或後方的人造成誤觸：請在「手勢設定」把「手勢最遠距離」調近（40 或 35 公分），或把「訊號過濾」調成嚴格，再檢測一次。']
+      : [],
   };
 }
 
@@ -221,12 +256,13 @@ export const LEVEL_LABELS = Object.freeze({
  * The answer to "does the light here get in the way of recognition", from the
  * measured swipes, the ToF readings and the light's colour.
  */
-export function judgeEnvironment({ tofClear, tofHand, camera, swipes }) {
+export function judgeEnvironment({ tofClear, tofHand, camera, swipes, falseTriggers = null }) {
   const tof = judgeTof(tofClear, tofHand);
   const light = judgeLightColour(camera);
   const swipe = judgeSwipes(swipes);
+  const falseTrigger = judgeFalseTriggers(falseTriggers);
   const lightInterferes = tof.level === LEVEL.WARN || tof.level === LEVEL.BAD || light.level === LEVEL.WARN;
-  const advice = [...swipe.advice, ...tof.advice, ...light.advice];
+  const advice = [...swipe.advice, ...falseTrigger.advice, ...tof.advice, ...light.advice];
 
   let overall;
   let summary;
@@ -244,7 +280,13 @@ export function judgeEnvironment({ tofClear, tofHand, camera, swipes }) {
   } else {
     overall = LEVEL.WARN;
     summary = '不是燈光的問題：可能是揮手方式或距離。';
-    advice.push('請手掌張開、朝向眼鏡，距離約 30 公分，慢慢左右揮動。');
+    advice.push('請在右眼正前方（感測器在眼鏡右側）約 30 公分處，手掌張開朝向眼鏡，慢慢左右揮動。');
   }
-  return { overall, summary, swipe, tof, light, advice };
+  // Recognising swipes nobody made is its own problem, whatever the light: a wrong answer
+  // chosen for the player is worse than a swipe that has to be made twice.
+  if (falseTrigger.level === LEVEL.WARN || falseTrigger.level === LEVEL.BAD) {
+    overall = worst(overall, falseTrigger.level);
+    summary = `${summary}另外，沒有揮手時誤觸了 ${falseTrigger.count} 次。`;
+  }
+  return { overall, summary, swipe, falseTrigger, tof, light, advice };
 }

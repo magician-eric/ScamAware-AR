@@ -298,7 +298,8 @@ test('the prosecutor account question is a dual contract AND a two-column panel'
   const choice = withFakeTimers((settle) => {
     const page = mountSurface(ProsecutorCall);
     try {
-      settle();
+      // Answered by hand, before the clock runs: the ring screen would answer
+      // itself once its timers settle (lib/autoAdvance.js).
       performARInteraction(RIGHT);
       page.rerender();
       settle();

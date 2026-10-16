@@ -10,6 +10,7 @@ import { buzz, playSound, startRingtone } from '../../lib/scenario03Feedback';
 import { buildScenario03Script } from '../../data/scenario03Dialogues';
 import { getScenario03Lang, getScenario03Strings } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
+import { AUTO_ANSWER_CALL_MS, useAutoAdvance } from '../../lib/autoAdvance';
 
 function formatCallTime(seconds) {
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
@@ -160,6 +161,9 @@ export function ProsecutorCall() {
           right: () => player.choose(player.choice.options[1]),
         }
         : { mode: 'display', surfaceId: 'scenario03/prosecutor-call' });
+  // 接聽 is the only action while it rings, so it answers itself after a
+  // couple of rings (lib/autoAdvance.js). A swipe or a tap still answers at once.
+  useAutoAdvance(answer, AUTO_ANSWER_CALL_MS, stage === 'ringing');
 
   // 'blocked' is the pre-guard frame of an out-of-order mount, on its way to a
   // redirect - it must not flash a ring screen for a call that already ended.

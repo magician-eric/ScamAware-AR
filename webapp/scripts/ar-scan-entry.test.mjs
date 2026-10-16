@@ -464,6 +464,29 @@ test('B. the prompt is story copy, never a recognition status', async () => {
   }
 });
 
+test('B. with the glasses, an offer asks the player to step back before swiping', async () => {
+  globalThis.__cibarGlasses = { version: 1, connected: true, camera: true, tof: true };
+  try {
+    const page = await mountArScan();
+    assert.equal(textOf(page, 'ar-scan-step-back'), null, 'nothing to step back from while searching');
+    page.recogniser.see(targetIndex('scenario2'));
+    assert.equal(textOf(page, 'ar-scan-step-back'), ZH.stepBack);
+  } finally {
+    delete globalThis.__cibarGlasses;
+  }
+});
+
+test('B. on a phone with no glasses there is no swipe, so no step back either', async () => {
+  globalThis.__cibarGlasses = { version: 1, connected: false, camera: false, tof: false };
+  try {
+    const page = await mountArScan();
+    page.recogniser.see(targetIndex('scenario2'));
+    assert.equal(textOf(page, 'ar-scan-step-back'), null);
+  } finally {
+    delete globalThis.__cibarGlasses;
+  }
+});
+
 test('C. an offer left alone never enters its scenario', async () => {
   const page = await mountArScan();
   page.recogniser.see(targetIndex('scenario2'));

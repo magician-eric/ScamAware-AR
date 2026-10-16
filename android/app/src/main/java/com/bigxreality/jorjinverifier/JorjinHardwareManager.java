@@ -101,6 +101,13 @@ final class JorjinHardwareManager {
     private final TofGestureRecognizer depthRecognizer;
     /** Raw frames around every gesture decision, for tuning; see {@link TofFrameRecorder}. */
     private final TofFrameRecorder frameRecorder;
+    /** Where {@link #frameRecorder} writes; the staff mode's 匯出紀錄檔 reads it. */
+    private final TofFrameFile frameFile;
+    /** The newest frame, for the staff mode's live 8x8 view. */
+    private final TofLiveFrame liveFrame = new TofLiveFrame();
+    /** The staff mode's 手勢最遠距離 and 訊號過濾, kept between launches. */
+    private final android.content.SharedPreferences gesturePrefs;
+    private volatile GestureSettings gestureSettings;
     /** The staff mode's site lighting check reads the sensor through this. */
     private final TofEnvironmentMeter environmentMeter = new TofEnvironmentMeter();
     /**
@@ -150,7 +157,8 @@ final class JorjinHardwareManager {
         // misses; a module swipe locks it (onModuleGestureKey) so one movement counts once.
         java.io.File logDirectory = this.context.getExternalFilesDir(null);
         if (logDirectory == null) logDirectory = this.context.getFilesDir();
-        this.frameRecorder = new TofFrameRecorder(new TofFrameFile(logDirectory));
+        this.frameFile = new TofFrameFile(logDirectory);
+        this.frameRecorder = new TofFrameRecorder(frameFile);
         this.depthRecognizer = new TofGestureRecognizer(new TofGestureRecognizer.Callback() {
             @Override public void onRecognised(int gesture, int action, long eventTimeNanos) {
                 gestureController.onRawEvent(action, gesture, eventTimeNanos,
@@ -163,6 +171,50 @@ final class JorjinHardwareManager {
                 frameRecorder.mark(android.os.SystemClock.elapsedRealtime(), wallClock() + " " + note);
             }
         });
+        this.gesturePrefs = this.context.getSharedPreferences(GestureSettings.PREFS, Context.MODE_PRIVATE);
+        this.gestureSettings = GestureSettings.load(gesturePrefs);
+        gestureSettings.applyTo(depthRecognizer);
+    }
+
+    // ---------------------------------------------------------------- staff mode
+
+    /** The staff mode's gesture settings and what the sensor measures now, as JSON. */
+    String gestureSettingsJson() {
+        return gestureSettings.toJson(depthRecognizer.noiseRatio(), depthRecognizer.signalFloorFraction());
+    }
+
+    /** Changes, keeps and logs the staff mode's gesture settings; any thread. */
+    String applyGestureSettings(int maxRangeCm, String signalMode) {
+        GestureSettings wanted = GestureSettings.of(maxRangeCm, signalMode);
+        if (!wanted.equals(gestureSettings)) {
+            gestureSettings = wanted;
+            wanted.save(gesturePrefs);
+            wanted.applyTo(depthRecognizer);
+            frameRecorder.mark(android.os.SystemClock.elapsedRealtime(),
+                    wallClock() + " 工作人員設定：" + wanted.describe());
+        }
+        return gestureSettingsJson();
+    }
+
+    /** The newest frame for the staff mode's live view, as JSON; any thread. */
+    String liveFrameJson() {
+        return liveFrame.toJson(android.os.SystemClock.elapsedRealtime());
+    }
+
+    /**
+     * The frame log gathered into one file in {@code exportDir} for the share sheet, or null when
+     * there is none yet. Blocks for as long as copying a few megabytes takes - not the main thread.
+     */
+    java.io.File exportTofLog(java.io.File exportDir) {
+        frameRecorder.line(wallClock() + " 匯出紀錄檔（" + gestureSettings.describe() + "）");
+        frameFile.flush();
+        String header = "# CIBAR ToF 紀錄檔：外殼 " + BuildConfig.SHELL_VERSION
+                + "（" + BuildConfig.VERSION_NAME + "）、" + android.os.Build.MANUFACTURER + " "
+                + android.os.Build.MODEL + "、Android " + android.os.Build.VERSION.RELEASE
+                + "、匯出於 " + wallClock() + "、" + gestureSettings.describe() + "\n";
+        return TofLogExport.write(exportDir,
+                TofLogExport.fileName(BuildConfig.SHELL_VERSION, System.currentTimeMillis()),
+                header, frameFile.previousFile(), frameFile.file());
     }
 
     private static final String GESTURE_TAG = "JorjinGesture";
@@ -358,7 +410,7 @@ final class JorjinHardwareManager {
         gestureController.reset();
         depthRecognizer.reset();
         frameRecorder.line(wallClock() + " 開始：外殼 " + BuildConfig.SHELL_VERSION
-                + "（" + BuildConfig.VERSION_NAME + "）");
+                + "（" + BuildConfig.VERSION_NAME + "）、" + gestureSettings.describe());
         // Camera + ToF, always. This is the one start-up path the app has: the production
         // experience needs the RGB stream for recognition and the ToF module for gestures, so
         // there is nothing to choose between and nothing on screen that could choose it.
@@ -550,6 +602,10 @@ final class JorjinHardwareManager {
             TofHandExtractor.Hand hand =
                     depthRecognizer.onFrame(frame.medianRange, frame.peakSignalRate, now);
             frameRecorder.frame(now, frame.medianRange, frame.peakSignalRate, hand.describe());
+            liveFrame.update(now, frame.medianRange, frame.peakSignalRate, hand,
+                    depthRecognizer.handMask(), depthRecognizer.maxRangeMm(),
+                    depthRecognizer.noiseRatio(), depthRecognizer.signalFloorFraction(),
+                    depthRecognizer.isColumnIncreasesRight());
             environmentMeter.frame(now, frame.medianRange, frame.peakSignalRate);
         }
     };

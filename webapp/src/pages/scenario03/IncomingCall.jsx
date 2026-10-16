@@ -7,6 +7,7 @@ import { addWarningFlags, startFirstPoliceCall } from '../../lib/scenario03Store
 import { buzz, playSound, startRingtone } from '../../lib/scenario03Feedback';
 import { getScenario03Lang, getScenario03Strings } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
+import { AUTO_ANSWER_CALL_MS, useAutoAdvance } from '../../lib/autoAdvance';
 
 // Scene 02 - 陌生來電. 接聽 is the ONLY action on this screen, matching the
 // prosecutor's own incoming call and the officer's callback later in the run -
@@ -58,6 +59,9 @@ export function IncomingCall() {
     surfaceId: 'scenario03/incoming-call',
     action: answer,
   });
+  // The call cannot be refused (cannotHangUp), so it is not a decision: it
+  // answers itself after a couple of rings. A swipe or a tap still answers at once.
+  useAutoAdvance(answer, AUTO_ANSWER_CALL_MS);
 
   const t = getScenario03Strings();
   const lang = getScenario03Lang();

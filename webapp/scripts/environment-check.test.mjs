@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const {
+  FALSE_TRIGGER_MS,
   LEVEL,
   SWIPE_HAND,
   SWIPE_PLAN,
   averageSummaries,
   judgeEnvironment,
+  judgeFalseTriggers,
   judgeLightColour,
   judgeSwipes,
   judgeTof,
@@ -147,4 +149,27 @@ test('the Shell bridge is read when present and never throws', () => {
   assert.equal(readTofSnapshot({}), null);
   assert.deepEqual(readTofSnapshot({ __cibarEnvironment: { tofSnapshot: () => ({ frames: 3 }) } }), { frames: 3 });
   assert.equal(readTofSnapshot({ __cibarEnvironment: { tofSnapshot: () => { throw new Error('gone'); } } }), null);
+});
+
+test('ten seconds of nobody swiping: none is good, one is a warning, two is bad', () => {
+  assert.equal(judgeFalseTriggers({ count: 0, ms: FALSE_TRIGGER_MS }).level, LEVEL.GOOD);
+  assert.equal(judgeFalseTriggers({ count: 1, ms: FALSE_TRIGGER_MS }).level, LEVEL.WARN);
+  const bad = judgeFalseTriggers({ count: 3, ms: FALSE_TRIGGER_MS });
+  assert.equal(bad.level, LEVEL.BAD);
+  assert.match(bad.detail, /10 秒內沒有人揮手，誤觸 3 次/);
+  assert.ok(bad.advice.some((line) => line.includes('手勢最遠距離')), 'the cure is named');
+  assert.equal(judgeFalseTriggers(null).level, LEVEL.UNKNOWN);
+});
+
+test('false triggers make the verdict worse even when the light is fine', () => {
+  const quiet = { tofClear: clearQuiet, tofHand: handSteady, camera: null, swipes: swipes(0) };
+  assert.equal(judgeEnvironment({ ...quiet, falseTriggers: { count: 0, ms: FALSE_TRIGGER_MS } }).overall, LEVEL.GOOD);
+  const one = judgeEnvironment({ ...quiet, falseTriggers: { count: 1, ms: FALSE_TRIGGER_MS } });
+  assert.equal(one.overall, LEVEL.WARN);
+  assert.match(one.summary, /誤觸了 1 次/);
+  const many = judgeEnvironment({ ...quiet, falseTriggers: { count: 2, ms: FALSE_TRIGGER_MS } });
+  assert.equal(many.overall, LEVEL.BAD);
+  assert.ok(many.advice.some((line) => line.includes('訊號過濾')));
+  assert.equal(judgeEnvironment(quiet).falseTrigger.level, LEVEL.UNKNOWN, 'not measured is not a failure');
+  assert.equal(judgeEnvironment(quiet).overall, LEVEL.GOOD);
 });

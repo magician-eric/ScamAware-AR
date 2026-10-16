@@ -1,6 +1,6 @@
 {
-  "shellVersion": "1.2.3",
-  "shellVersionCode": 10203,
-  "webBundleVersion": "1.9.1",
+  "shellVersion": "1.2.4",
+  "shellVersionCode": 10204,
+  "webBundleVersion": "1.9.2",
   "minShellVersion": "1.2.0"
 }

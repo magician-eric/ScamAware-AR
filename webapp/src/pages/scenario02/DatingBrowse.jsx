@@ -21,6 +21,7 @@ import {
 import { t, useT, useScenario02Lang, getDatingCharacterName } from './i18n';
 import { getVisualAssetUrl } from '../../experience/characters/visuals';
 import { useARInteraction } from '../../lib/arInteraction';
+import { AUTO_START_CHAT_MS, useAutoAdvance } from '../../lib/autoAdvance';
 
 // Every value `phase` can ever hold - kept as one place to check against
 // rather than loose string literals scattered through the file.
@@ -322,6 +323,9 @@ function BrowseStage({ card, matchOpen, subtitle, onDecision, onStartChat, onPro
       left: () => onDecision('pass'),
       right: () => onDecision('like'),
     });
+  // 開始聊天 is the only thing on the match overlay - not a decision - so the
+  // chat opens by itself after a beat (lib/autoAdvance.js).
+  useAutoAdvance(onStartChat, AUTO_START_CHAT_MS, matchOpen);
 
   return (
     <>

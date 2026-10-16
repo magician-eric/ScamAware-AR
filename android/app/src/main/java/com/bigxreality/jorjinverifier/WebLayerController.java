@@ -263,7 +263,7 @@ final class WebLayerController {
     /**
      * The update controls the staff management mode calls, or null in a build that has none.
      *
-     * <p>One of the two {@code addJavascriptInterface}s in the app - both for the staff
+     * <p>One of the {@code addJavascriptInterface}s in the app - all of them for the staff
      * management mode, the only direction of travel that is page → native. See
      * {@link OtaControlBridge} for why a WebView that never loads anything from the network can
      * afford them.
@@ -271,6 +271,8 @@ final class WebLayerController {
     private final OtaControlBridge otaControl;
     /** The staff mode's site lighting check, or null in a build that has none. */
     private final EnvironmentCheckBridge environmentCheck;
+    /** The staff mode's gesture settings, live view and log export, or null. */
+    private final StaffToolsBridge staffTools;
 
     WebLayerController(WebView webView, WebBundle bundle, PageListener listener) {
         this(webView, bundle, listener, null);
@@ -289,11 +291,19 @@ final class WebLayerController {
     /** @param environmentCheck bound into the page under {@link EnvironmentCheckBridge#NATIVE_OBJECT}. */
     WebLayerController(WebView webView, WebBundle bundle, PageListener listener,
                        OtaControlBridge otaControl, EnvironmentCheckBridge environmentCheck) {
+        this(webView, bundle, listener, otaControl, environmentCheck, null);
+    }
+
+    /** @param staffTools bound into the page under {@link StaffToolsBridge#NATIVE_OBJECT}. */
+    WebLayerController(WebView webView, WebBundle bundle, PageListener listener,
+                       OtaControlBridge otaControl, EnvironmentCheckBridge environmentCheck,
+                       StaffToolsBridge staffTools) {
         this.webView = webView;
         this.bundle = bundle;
         this.listener = listener;
         this.otaControl = otaControl;
         this.environmentCheck = environmentCheck;
+        this.staffTools = staffTools;
         configure();
     }
 
@@ -335,6 +345,9 @@ final class WebLayerController {
         }
         if (environmentCheck != null) {
             webView.addJavascriptInterface(environmentCheck, EnvironmentCheckBridge.NATIVE_OBJECT);
+        }
+        if (staffTools != null) {
+            webView.addJavascriptInterface(staffTools, StaffToolsBridge.NATIVE_OBJECT);
         }
         webView.setBackgroundColor(0xFF080A0F);
         webView.setWebViewClient(client);
@@ -680,6 +693,7 @@ final class WebLayerController {
                 // already has the versions to go with them.
                 if (otaControl != null) evaluate(OtaControlBridgeScript.install());
                 if (environmentCheck != null) evaluate(EnvironmentCheckBridge.installScript());
+                if (staffTools != null) evaluate(StaffToolsBridge.installScript());
                 evaluate(OtaControlBridgeScript.status(listener.otaStatusJson()));
                 // The document loaded. That is NOT the same as CIBAR having come up, and the
                 // difference is the one failure the rollback gate could not otherwise see - see
@@ -925,6 +939,11 @@ final class WebLayerController {
      * Whether the glasses are plugged in, from the activity: at start and whenever a USB device
      * comes or goes. Re-publishes both descriptors into the page that is loaded now.
      */
+    /** How the staff mode's 匯出紀錄檔 went; see {@link StaffToolsBridge#EXPORT_EVENT}. Main thread. */
+    void publishTofLogExport(boolean ok, String name, long bytes, String reason) {
+        evaluate(StaffToolsBridge.exportResultScript(ok, name, bytes, reason));
+    }
+
     void setGlassesPresence(boolean camera, boolean tof) {
         glassesCamera = camera;
         glassesTof = tof;

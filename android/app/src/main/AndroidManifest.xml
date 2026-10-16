@@ -83,6 +83,15 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/device_filter" />
         </activity>
+
+        <!-- 工作人員管理模式的「匯出紀錄檔」：把 tof-frames.txt 交給分享選單裡選的 APP（LINE、
+             Email、雲端硬碟）。不對外開放，別的 APP 只能透過分享時附帶的單一檔案讀取授權拿到
+             那一個匯出檔；只讀，只認 TofLogExport 產生的檔名。見 TofLogProvider。 -->
+        <provider
+            android:name=".TofLogProvider"
+            android:authorities="${applicationId}.toflog"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 
 </manifest>

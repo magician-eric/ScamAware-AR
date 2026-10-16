@@ -20,6 +20,7 @@ import { StaffLocationSummary } from './StaffLocationSummary';
 import { StaffHandoffConfirm } from './StaffHandoffConfirm';
 import { StaffVersionPanel } from './StaffVersionPanel';
 import { StaffEnvironmentPanel } from './StaffEnvironmentPanel';
+import { StaffGesturePanel } from './StaffGesturePanel';
 import './staff.css';
 
 const FAILURE_MESSAGES = {
@@ -264,6 +265,11 @@ export function StaffSetupScreen() {
           image recognition. Before the version panel: it is a setup step, run before a
           session like 所在地設定, not a diagnosis. */}
       <StaffEnvironmentPanel />
+
+      {/* 手勢設定: what to change when 現場環境檢測 finds false triggers or misses - the
+          gesture range, the signal filter - with the sensor's live view and the frame log
+          export beside them. */}
+      <StaffGesturePanel />
 
       <StaffVersionPanel />
 
