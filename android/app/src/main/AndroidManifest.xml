@@ -56,7 +56,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- configChanges: the glasses enumerate as a USB keyboard too (the ToF module presses
+        <!-- launchMode singleTask: there is only ever one CIBAR. Anything that launches the app
+             again while it is running - an older install's plug-in filter, the vendor app, a
+             launcher tap - is delivered to the running activity (onNewIntent) instead of
+             stacking a second one on top. Two of them fought over the glasses' USB devices and
+             the WebView, and the new one stopped on the opening artwork until the app was closed
+             and opened again.
+
+             configChanges: the glasses enumerate as a USB keyboard too (the ToF module presses
              arrow keys for its gestures), so a hardware keyboard appearing or going away is a
              normal event here, not a reason to tear the activity down. Without keyboard and
              navigation listed, Android destroys and recreates the activity when that happens:
@@ -66,6 +73,7 @@
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
