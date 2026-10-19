@@ -197,8 +197,8 @@ test('a completed tutorial enters the AR scan by itself, after the completion li
     wave('RIGHT');
 
     assert.deepEqual(navigations, [], 'the completion line must be readable before the page moves on');
-    // Comfortably inside the 0.8-1.2s window the spec asks for.
-    assert.ok(GESTURE_TUTORIAL_COMPLETE_DELAY_MS >= 800 && GESTURE_TUTORIAL_COMPLETE_DELAY_MS <= 1200);
+    // About 3 s: long enough to read the one-option rule it shows.
+    assert.ok(GESTURE_TUTORIAL_COMPLETE_DELAY_MS >= 2800 && GESTURE_TUTORIAL_COMPLETE_DELAY_MS <= 3200);
 
     mock.timers.tick(GESTURE_TUTORIAL_COMPLETE_DELAY_MS - 1);
     assert.deepEqual(navigations, [], 'the page must not leave early');
@@ -507,122 +507,88 @@ const EXPECTED_COPY = {
   zh: {
     heading: '手勢操作教學',
     left: {
-      title: '向左揮',
-      instruction: '手掌張開朝向眼鏡，慢慢向左揮動',
-      rule: '向左揮，選擇左邊的選項',
-      success: '左揮成功！',
+      instruction: '手掌放在額頭前方約 20 公分，向左揮',
+      success: '你學會了！向左揮＝選擇左邊的選項',
     },
     right: {
-      title: '向右揮',
-      instruction: '手掌張開朝向眼鏡，慢慢向右揮動',
-      rule: '向右揮，選擇右邊的選項',
-      success: '右揮成功！',
+      instruction: '手掌放在額頭前方約 20 公分，向右揮',
+      success: '你學會了！向右揮＝選擇右邊的選項',
     },
-    singleOption: '只有一個選項時，向左或向右揮都可以選擇',
-    reminder: '在右眼正前方約 20～30 公分處揮手，放慢速度，太快可能無法辨識',
-    pointerHint: '手機或電腦操作時，也可以直接點擊畫面上的選項',
+    singleOption: '只有一個選項時，向左或向右揮都可以',
     complete: '手勢教學完成！',
   },
   en: {
     heading: 'Gesture Tutorial',
     left: {
-      title: 'Swipe left',
-      instruction: 'Open your palm toward the glasses and slowly swipe left.',
-      rule: 'Swipe left to choose the option on the left.',
-      success: 'Left swipe successful!',
+      instruction: 'Hold your palm about 20 cm in front of your forehead and swipe left',
+      success: 'You got it! Swipe left = choose the option on the left',
     },
     right: {
-      title: 'Swipe right',
-      instruction: 'Open your palm toward the glasses and slowly swipe right.',
-      rule: 'Swipe right to choose the option on the right.',
-      success: 'Right swipe successful!',
+      instruction: 'Hold your palm about 20 cm in front of your forehead and swipe right',
+      success: 'You got it! Swipe right = choose the option on the right',
     },
-    singleOption: 'For a single option, swipe left or right to select it.',
-    reminder: 'Swipe in front of your right eye, about 20–30 cm away, and slowly — too fast may not be recognised',
-    pointerHint: 'On a phone or computer you can also just tap the option on screen',
+    singleOption: 'With only one option, swipe left or right — either works',
     complete: 'Tutorial complete!',
   },
   jp: {
     heading: 'ジェスチャー練習',
     left: {
-      title: '左に振る',
-      instruction: '手のひらを開いてメガネに向け、ゆっくり左に振ってください。',
-      rule: '左に振ると、左側の選択肢を選べます。',
-      success: '左への操作ができました！',
+      instruction: '手のひらを額の前 約20cmに置き、左に振ってください',
+      success: 'できました！左に振る＝左側の選択肢を選ぶ',
     },
     right: {
-      title: '右に振る',
-      instruction: '手のひらを開いてメガネに向け、ゆっくり右に振ってください。',
-      rule: '右に振ると、右側の選択肢を選べます。',
-      success: '右への操作ができました！',
+      instruction: '手のひらを額の前 約20cmに置き、右に振ってください',
+      success: 'できました！右に振る＝右側の選択肢を選ぶ',
     },
-    singleOption: '選択肢が1つの場合は、左右どちらに振っても選べます。',
-    reminder: '右目の前、約20～30cmの位置でゆっくり振ってください。速すぎると認識されないことがあります',
-    pointerHint: 'スマートフォンやパソコンでは、画面の選択肢を直接タップしても操作できます',
+    singleOption: '選択肢が1つのときは、左右どちらに振っても選べます',
     complete: '練習完了！',
   },
 };
 
-test('every step, all three standing lines and the completion line have copy in all three languages', () => {
+test('every step, the one-option rule and the completion line have copy in all three languages', () => {
   Object.entries(EXPECTED_COPY).forEach(([lang, expected]) => {
     assert.deepEqual(JSON.parse(JSON.stringify(getGestureTutorialStrings(lang))), expected, `${lang} copy must match the spec`);
   });
-  // An unknown language reads as Chinese, the same fallback the other entry
-  // screens use.
   assert.deepEqual(getGestureTutorialStrings('fr'), getGestureTutorialStrings('zh'));
 });
 
-test('the page renders the language the player chose on the previous screen', () => {
+test('each step is the animation and one line; after its wave, what that wave picks', () => {
   Object.entries(EXPECTED_COPY).forEach(([lang, expected]) => {
     const page = mountTutorial(lang);
     assert.equal(textOf(nodesWithClass(page.output, 'gesture-tutorial-heading')[0]), expected.heading);
-
-    // Both steps read in the chosen language from the first frame, and all
-    // three standing lines are up alongside them rather than waiting for a
-    // mistake or for a later step.
     ['left', 'right'].forEach((side) => {
-      assert.equal(titleOf(page.output, side), expected[side].title, `${lang}: ${side} title`);
       assert.equal(instructionOf(page.output, side), expected[side].instruction, `${lang}: ${side} instruction`);
-      assert.equal(ruleOf(page.output, side), expected[side].rule, `${lang}: ${side} mapping rule`);
     });
-    assert.equal(singleRuleOf(page.output), expected.singleOption, `${lang}: the one-option rule must be on screen`);
-    assert.equal(reminderOf(page.output), expected.reminder, `${lang}: the slow-down reminder must be on screen`);
-    assert.equal(pointerHintOf(page.output), expected.pointerHint, `${lang}: the tap hint must be on screen`);
+    for (const gone of ['gesture-tutorial-step-title', 'gesture-tutorial-step-rule', 'gesture-tutorial-reminder', 'gesture-tutorial-pointer-hint']) {
+      assert.equal(nodesWithClass(page.output, gone).length, 0, `${lang}: ${gone} repeats what is already on screen`);
+    }
+    assert.equal(nodesWithClass(page.output, 'gesture-tutorial-single-rule').length, 0, `${lang}: the one-option rule waits for the end`);
     assert.equal(statusOf(page.output), '', 'nothing is complete yet');
 
     wave('LEFT');
-    assert.equal(reminderOf(page.output), expected.reminder, `${lang}: the reminder is fixed, not per-step`);
-    assert.equal(ruleOf(page.output, 'left'), expected.left.rule, `${lang}: a completed step keeps its rule on screen`);
-    // The left step landing says so, in the player's language, and says only
-    // that: the tutorial is not over yet.
-    assert.equal(successLineOf(page.output), expected.left.success, `${lang}: the left step landing is announced`);
-    assert.equal(stepSuccessOf(page.output, 'left'), expected.left.success, `${lang}: and stays on the step itself`);
-    assert.notEqual(statusOf(page.output), expected.complete, `${lang}: one step down is not the tutorial finished`);
+    assert.equal(stepSuccessOf(page.output, 'left'), expected.left.success, `${lang}: the learned step says what it picks`);
+    assert.equal(statusOf(page.output), '', `${lang}: one step down is not the tutorial finished`);
 
     wave('RIGHT');
-    assert.equal(stepSuccessOf(page.output, 'right'), expected.right.success, `${lang}: the right step's own success line`);
-    assert.equal(stepSuccessOf(page.output, 'left'), expected.left.success, `${lang}: and the left one is not taken away to say it`);
+    assert.equal(stepSuccessOf(page.output, 'right'), expected.right.success);
+    assert.equal(stepSuccessOf(page.output, 'left'), expected.left.success, `${lang}: the left one is not taken away`);
     assert.equal(completeLineOf(page.output), expected.complete);
-    assert.equal(reminderOf(page.output), expected.reminder, `${lang}: the reminder stays up at the end too`);
-    assert.equal(singleRuleOf(page.output), expected.singleOption, `${lang}: so does the one-option rule`);
-    assert.equal(pointerHintOf(page.output), expected.pointerHint, `${lang}: and so does the tap hint`);
+    assert.equal(singleRuleOf(page.output), expected.singleOption, `${lang}: then the one-option rule, large`);
     page.unmount();
   });
 });
 
-test('the three standing lines are fixed - no state or input takes any of them off the screen', () => {
+test('the one-option rule appears only once both waves are learned', () => {
   const t = getGestureTutorialStrings('zh');
   const page = mountTutorial();
-  const standing = () => [singleRuleOf(page.output), reminderOf(page.output), pointerHintOf(page.output)];
-  const expected = [t.singleOption, t.reminder, t.pointerHint];
-
-  assert.deepEqual(standing(), expected);
+  const shown = () => nodesWithClass(page.output, 'gesture-tutorial-single-rule').length;
+  assert.equal(shown(), 0);
   wave('RIGHT');
-  assert.deepEqual(standing(), expected, 'a wrong-direction wave must not disturb them');
+  assert.equal(shown(), 0, 'a wrong-direction wave changes nothing');
   press(page, 'left');
-  assert.deepEqual(standing(), expected);
+  assert.equal(shown(), 0);
   press(page, 'right');
-  assert.deepEqual(standing(), expected, 'a finished tutorial still shows the rules it taught');
+  assert.equal(singleRuleOf(page.output), t.singleOption);
   page.unmount();
 });
 

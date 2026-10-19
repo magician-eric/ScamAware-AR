@@ -405,6 +405,17 @@ public final class MainActivity extends Activity
         }
     }
 
+    /**
+     * The app was launched again while this activity exists (singleTask). Nothing restarts: the
+     * page carries on where it is, and if the glasses were plugged in since, the hardware starts.
+     */
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        Log.i(TAG, "再次啟動（沿用目前畫面）：" + (intent == null ? "—" : intent.getAction()));
+        if (foreground && hardware != null && !hardware.isStarted()) requestPermissionOrStart();
+    }
+
     @Override protected void onStart() {
         super.onStart();
         foreground = true;
