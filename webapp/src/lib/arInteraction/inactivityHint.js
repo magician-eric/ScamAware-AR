@@ -21,8 +21,10 @@ export const INACTIVITY_HINT_DELAY_MS = 10000;
 export const INACTIVITY_HINTS = Object.freeze({
   // Both directions live: the player picks a side.
   DUAL: 'dual',
-  // Only RIGHT: the one-action screen, and the two-action screen whose left
-  // side is currently switched off.
+  // The one-action screen: either direction takes its one option (the Gesture
+  // Bridge reads LEFT there as the one action), so the hint names both.
+  SINGLE: 'single',
+  // Only RIGHT: the two-action screen whose left side is currently switched off.
   RIGHT: AR_GESTURES.RIGHT,
   // Only LEFT. Rarer, and exactly why this is derived rather than assumed:
   // turning a live LEFT into "swipe right" would be pointing at nothing.
@@ -51,6 +53,7 @@ export function inactivityHintFor(snapshot) {
   if (snapshot.presenting) return null;
   const { leftAvailable, rightAvailable } = snapshot;
   if (leftAvailable && rightAvailable) return INACTIVITY_HINTS.DUAL;
+  if (rightAvailable && snapshot.mode === 'single') return INACTIVITY_HINTS.SINGLE;
   if (rightAvailable) return INACTIVITY_HINTS.RIGHT;
   if (leftAvailable) return INACTIVITY_HINTS.LEFT;
   return null;

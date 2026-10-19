@@ -18,8 +18,9 @@ export function getInteractionHintLang() {
 // One line per shape of the moment, keyed by what is actually callable:
 //
 //   dual   both directions are live - the player picks a side
-//   right  only RIGHT is live: a one-action screen, or a two-action screen
-//          whose left side is switched off right now
+//   single a one-action screen: either direction takes it
+//   right  only RIGHT is live: a two-action screen whose left side is
+//          switched off right now
 //   left   only LEFT is live
 //
 // The direction words here are the same mapping the gesture tutorial teaches
@@ -33,16 +34,19 @@ export function getInteractionHintLang() {
 const STRINGS = {
   zh: {
     [INACTIVITY_HINTS.DUAL]: '請向左或向右揮手，選擇你的答案。',
+    [INACTIVITY_HINTS.SINGLE]: '請向左或向右揮手，繼續體驗。',
     [INACTIVITY_HINTS.RIGHT]: '請向右揮手，繼續體驗。',
     [INACTIVITY_HINTS.LEFT]: '請向左揮手，選擇左邊的選項。',
   },
   en: {
     [INACTIVITY_HINTS.DUAL]: 'Swipe left or right to choose your answer.',
+    [INACTIVITY_HINTS.SINGLE]: 'Swipe left or right to continue.',
     [INACTIVITY_HINTS.RIGHT]: 'Swipe right to continue.',
     [INACTIVITY_HINTS.LEFT]: 'Swipe left to choose the option on the left.',
   },
   jp: {
     [INACTIVITY_HINTS.DUAL]: '左右どちらかに手を振って、回答を選んでください。',
+    [INACTIVITY_HINTS.SINGLE]: '左右どちらかに手を振って、次へ進んでください。',
     [INACTIVITY_HINTS.RIGHT]: '右に手を振って、次へ進んでください。',
     [INACTIVITY_HINTS.LEFT]: '左に手を振って、左側の選択肢を選んでください。',
   },

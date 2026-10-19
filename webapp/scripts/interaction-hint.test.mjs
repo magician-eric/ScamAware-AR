@@ -68,7 +68,7 @@ const { InteractionHint } = await import('../src/components/hints/InteractionHin
 const { getInteractionHintStrings } = await import('../src/components/hints/interactionHintI18n.js');
 
 const { DISPLAY, SINGLE, DUAL } = AR_INTERACTION_MODES;
-const { DUAL: HINT_DUAL, LEFT: HINT_LEFT, RIGHT: HINT_RIGHT } = INACTIVITY_HINTS;
+const { DUAL: HINT_DUAL, LEFT: HINT_LEFT, RIGHT: HINT_RIGHT, SINGLE: HINT_SINGLE } = INACTIVITY_HINTS;
 
 const SOURCES = {
   hint: await read('src/components/hints/InteractionHint.jsx'),
@@ -191,7 +191,7 @@ test('an ordinary re-render does not push the hint away', () => {
   }
   assert.equal(hintText(hint), null);
   tick(1000);
-  assert.equal(hintText(hint), t[HINT_RIGHT], 'the clock ran through every one of those re-renders');
+  assert.equal(hintText(hint), t[HINT_SINGLE], 'the clock ran through every one of those re-renders');
 
   hint.unmount();
   s.unmount();
@@ -204,7 +204,7 @@ test('an ordinary re-render does not push the hint away', () => {
 test('the line names a direction the player can actually wave right now', () => {
   const cases = [
     ['both options live', { mode: DUAL, surfaceId: 'test/s', left: () => {}, right: () => {} }, HINT_DUAL],
-    ['one action, taken by RIGHT', { mode: SINGLE, surfaceId: 'test/s', action: () => {} }, HINT_RIGHT],
+    ['one action, taken by either direction', { mode: SINGLE, surfaceId: 'test/s', action: () => {} }, HINT_SINGLE],
     ['declared two, only RIGHT live', { mode: DUAL, surfaceId: 'test/s', left: null, right: () => {} }, HINT_RIGHT],
     ['declared two, only LEFT live', { mode: DUAL, surfaceId: 'test/s', left: () => {}, right: null }, HINT_LEFT],
   ];
@@ -239,16 +239,19 @@ test('all three languages, out of the shared selector', () => {
   const EXPECTED = {
     zh: {
       [HINT_DUAL]: '請向左或向右揮手，選擇你的答案。',
+      [HINT_SINGLE]: '請向左或向右揮手，繼續體驗。',
       [HINT_RIGHT]: '請向右揮手，繼續體驗。',
       [HINT_LEFT]: '請向左揮手，選擇左邊的選項。',
     },
     en: {
       [HINT_DUAL]: 'Swipe left or right to choose your answer.',
+      [HINT_SINGLE]: 'Swipe left or right to continue.',
       [HINT_RIGHT]: 'Swipe right to continue.',
       [HINT_LEFT]: 'Swipe left to choose the option on the left.',
     },
     jp: {
       [HINT_DUAL]: '左右どちらかに手を振って、回答を選んでください。',
+      [HINT_SINGLE]: '左右どちらかに手を振って、次へ進んでください。',
       [HINT_RIGHT]: '右に手を振って、次へ進んでください。',
       [HINT_LEFT]: '左に手を振って、左側の選択肢を選んでください。',
     },
@@ -347,7 +350,7 @@ test('a video holds the clock, and releases it the moment it stops', () => {
   tick(INACTIVITY_HINT_DELAY_MS - 1);
   assert.equal(hintText(hint), null);
   tick(1);
-  assert.equal(hintText(hint), t[HINT_RIGHT]);
+  assert.equal(hintText(hint), t[HINT_SINGLE]);
 
   hint.unmount();
   s.unmount();
@@ -398,7 +401,7 @@ test('taking the choice takes the hint away', () => {
   tick(INACTIVITY_HINT_DELAY_MS - 1);
   assert.equal(hintText(hint), null);
   tick(1);
-  assert.equal(hintText(hint), t[HINT_RIGHT], 'with the line the new geometry calls for');
+  assert.equal(hintText(hint), t[HINT_SINGLE], 'with the line the new geometry calls for');
 
   hint.unmount();
   s.unmount();
@@ -418,7 +421,7 @@ test('a hint never outlives the screen it belongs to', () => {
   assert.equal(hintText(hint), null, 'the previous screen\'s hint must not carry over');
 
   tick(INACTIVITY_HINT_DELAY_MS);
-  assert.equal(hintText(hint), t[HINT_RIGHT], 'and the new screen is counted from its own start');
+  assert.equal(hintText(hint), t[HINT_SINGLE], 'and the new screen is counted from its own start');
 
   hint.unmount();
   second.unmount();
@@ -593,7 +596,7 @@ test('the shared anti-fraud quiz - every scenario ends on it - drives the hint',
   quiz.rerender();
   assert.equal(hintText(hint), null, 'answering clears it immediately');
   tick(INACTIVITY_HINT_DELAY_MS);
-  assert.equal(hintText(hint), t[HINT_RIGHT], 'and the follow-on action is a right swipe');
+  assert.equal(hintText(hint), t[HINT_SINGLE], 'and the follow-on action is a right swipe');
 
   hint.unmount();
   quiz.unmount();
@@ -610,7 +613,7 @@ test('the AR scan home stays quiet while it is looking, and speaks once a card i
 
   s.declare({ mode: SINGLE, surfaceId: 'ar-scan/target-offer', action: () => {} });
   tick(INACTIVITY_HINT_DELAY_MS);
-  assert.equal(hintText(hint), t[HINT_RIGHT]);
+  assert.equal(hintText(hint), t[HINT_SINGLE]);
 
   hint.unmount();
   s.unmount();
