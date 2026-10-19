@@ -51,7 +51,7 @@ const HAND_SRC = `${import.meta.env.BASE_URL}assets/shared/ui/gesture/hand.webp`
 // demonstration with no end state, the step it belongs to is finished the
 // instant the gesture is recognised, and a player who waves on the first
 // frame waits exactly as long as one who waves on the last.
-export const GESTURE_TUTORIAL_COMPLETE_DELAY_MS = 1000;
+export const GESTURE_TUTORIAL_COMPLETE_DELAY_MS = 3000;
 
 const { COMPLETE, WAIT_RIGHT } = GESTURE_TUTORIAL_STATES;
 const { LEFT, RIGHT } = AR_GESTURES;
@@ -156,7 +156,6 @@ export function GestureTutorial() {
   // The step whose success line is up right now - the one the player has just
   // finished, and only that one. Reaching WAIT_RIGHT means the LEFT wave
   // landed; reaching COMPLETE means the RIGHT one did.
-  const justCompleted = state === WAIT_RIGHT ? 'left' : (state === COMPLETE ? 'right' : null);
 
   return (
     <div className="gesture-tutorial-page">
@@ -192,13 +191,11 @@ export function GestureTutorial() {
                     it is what the step IS - and on the step being taught it
                     travels with the hand, on the same timeline. */}
                 <span className="gesture-tutorial-arrow" aria-hidden="true">{step.arrow}</span>
-                <span className="gesture-tutorial-step-title">{t[step.key].title}</span>
-                <span className="gesture-tutorial-step-instruction">{t[step.key].instruction}</span>
-                {/* What this wave does once the run starts. A player can work
-                    out how to make the gesture by copying the arrow; what it
-                    picks on a two-option screen is the part only the tutorial
-                    ever tells them, so it is on screen rather than implied. */}
-                <span className="gesture-tutorial-step-rule">{t[step.key].rule}</span>
+                {/* One line before the wave, and after it what the wave picks -
+                    nothing else, so the animation is what the player reads. */}
+                {!complete ? (
+                  <span className="gesture-tutorial-step-instruction">{t[step.key].instruction}</span>
+                ) : null}
                 {/* The demonstration track. It is rendered on BOTH panels, in
                     every state, and keeps its height whether or not anything
                     is in it - so a step becoming live, or being finished,
@@ -234,35 +231,12 @@ export function GestureTutorial() {
           })}
         </div>
 
-        {/* The three standing lines, fixed for the whole tutorial. None of
-            them is a state and nothing here switches any of them off:
-
-            - the one-option rule completes the mapping the panels start (two
-              options -> LEFT and RIGHT; one option -> RIGHT, and no LEFT),
-            - the reminder heads off the one mistake that makes the sensor
-              miss a real wave, which is the same on both steps,
-            - the tap hint says the other input out loud, so a player on a
-              phone or a laptop knows the run is theirs to take too. */}
-        <div className="gesture-tutorial-notes">
-          <p className="gesture-tutorial-single-rule">{t.singleOption}</p>
-          <p className="gesture-tutorial-reminder">{t.reminder}</p>
-          <p className="gesture-tutorial-pointer-hint">{t.pointerHint}</p>
-        </div>
-
-        {/* The one announcement row, holding its height while it is empty so
-            nothing above it moves when something arrives in it. It carries the
-            latest news: the step that has just landed, and then - once the
-            second one has - the tutorial being over. Each step's own success
-            line stays on the step itself (in the track its hand has just
-            vacated), so nothing that has been said is taken away to say the
-            next thing.
-
-            It is not a delay either. The navigation timer above is started by
-            reaching COMPLETE and by nothing else, so this says what happened
-            while the player is already on their way to /ar-scan. */}
+        {/* Once both waves are learned: the one-option rule, large, held for
+            GESTURE_TUTORIAL_COMPLETE_DELAY_MS before the scan opens. */}
         <p className="gesture-tutorial-status" aria-live="polite">
-          {state === COMPLETE ? t.complete : (justCompleted ? t[justCompleted].success : '')}
+          {state === COMPLETE ? t.complete : ''}
         </p>
+        {state === COMPLETE ? <p className="gesture-tutorial-single-rule">{t.singleOption}</p> : null}
 
         <div className="gesture-tutorial-dots" aria-hidden="true">
           {Array.from({ length: GESTURE_TUTORIAL_STEP_COUNT }, (unused, step) => (
