@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useARInteraction } from '../../lib/arInteraction';
 import { outcomeStrings } from './outcomeStrings';
+import { useFitToBox } from './useFitToBox';
 import './FraudClueAnalysis.css';
 
 // 詐騙疑點分析 - the second half of the Outcome System, and CIBAR's own
@@ -34,6 +35,7 @@ export function FraudClueAnalysis({
   const strings = outcomeStrings();
   const ledeLines = Array.isArray(lede) ? lede : [lede];
   const navigate = useNavigate();
+  const scrollRef = useFitToBox(scenarioId, clues.length, summary, ledeLines.join('\n'));
 
   useARInteraction({
     mode: 'single',
@@ -46,7 +48,7 @@ export function FraudClueAnalysis({
 
   return (
     <main className="cibar-analysis" data-analysis-scenario={scenarioId}>
-      <div className="cibar-analysis-scroll">
+      <div className="cibar-analysis-scroll" ref={scrollRef}>
         <h1 className="cibar-analysis-title">{strings.analysisTitle}</h1>
         {ledeLines.filter(Boolean).map((line) => (
           <p key={line} className="cibar-analysis-lede">{line}</p>

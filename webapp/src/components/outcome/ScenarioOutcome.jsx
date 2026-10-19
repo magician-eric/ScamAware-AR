@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useARInteraction } from '../../lib/arInteraction';
 import { resolveScenarioOutcome } from './outcomeContract';
 import { outcomeStrings } from './outcomeStrings';
+import { useFitToBox } from './useFitToBox';
 import './ScenarioOutcome.css';
 
 // The one結局畫面 every Scenario ends on - CIBAR's own educational UI, not a
@@ -47,6 +48,7 @@ export function ScenarioOutcome({
   const { mascot, tone } = resolveScenarioOutcome(scenarioId, state);
   const strings = outcomeStrings();
   const navigate = useNavigate();
+  const scrollRef = useFitToBox(scenarioId, state, title, outcome, explanation, takeaway, amounts.length);
 
   useARInteraction({
     mode: 'single',
@@ -60,7 +62,7 @@ export function ScenarioOutcome({
       data-outcome-scenario={scenarioId}
       data-outcome-state={state}
     >
-      <div className="cibar-outcome-scroll">
+      <div className="cibar-outcome-scroll" ref={scrollRef}>
         <section className="cibar-outcome-card">
           {/* No aspect-ratio, no cover, no filter: the ten mascot images have
               different natural proportions, so the well is sized off height

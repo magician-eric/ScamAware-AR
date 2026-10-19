@@ -7,6 +7,8 @@
 .cibar-analysis{height:100%;min-height:0;display:flex;flex-direction:column;box-sizing:border-box;background:radial-gradient(circle at 50% 0,rgba(37,208,255,.12),transparent 42%),#06162d;color:#f6fbff;overflow:hidden}
 .cibar-analysis-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(12px,2.4vh,20px);scrollbar-width:none}
 .cibar-analysis-scroll::-webkit-scrollbar{display:none}
+/* Zoomed down by useFitToBox.js when the content is taller than the screen. */
+.cibar-analysis-scroll>*{zoom:var(--cibar-fit,1)}
 .cibar-analysis .cibar-analysis-title{width:min(100%,430px);margin:0 auto clamp(8px,1.6vh,14px);font-size:clamp(23px,6vw,30px);line-height:1.25;overflow-wrap:anywhere}
 .cibar-analysis .cibar-analysis-lede{width:min(100%,430px);margin:0 auto clamp(8px,1.4vh,12px);color:#c5d2e3;font-size:var(--fs-body-sm);line-height:1.6}
 .cibar-analysis-clues{width:min(100%,430px);margin:0 auto;padding:0;list-style:none;display:grid;gap:clamp(8px,1.4vh,12px)}
