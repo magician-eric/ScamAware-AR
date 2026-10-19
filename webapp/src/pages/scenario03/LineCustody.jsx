@@ -14,6 +14,7 @@ import { playSound } from '../../lib/scenario03Feedback';
 import { usePaceMultiplier } from '../../lib/scenario03Store';
 import { getScenario03Lang, getScenario03Strings } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
+import { CaseNumber } from './components/CaseNumber';
 
 // Scene 09 - 資金監管任務卡. The ask finally arrives, wrapped as a numbered
 // "task" with a deadline - by now the player has been walked through so many
@@ -89,7 +90,7 @@ export function LineCustody() {
       <div className="pol-msg-card">
         <h4>{t.lineCustody.cardHeader}</h4>
         <dl>
-          <dt>{t.lineCustody.caseNumberLabel}</dt><dd>{session.caseNumber}</dd>
+          <dt>{t.lineCustody.caseNumberLabel}</dt><dd><CaseNumber value={session.caseNumber} /></dd>
           <dt>{t.lineCustody.custodyBankLabel}</dt><dd>{t.bank.brand}</dd>
           <dt>{t.lineCustody.accountNameLabel}</dt><dd>{t.lineCustody.accountNameValue}</dd>
           <dt>{t.lineCustody.custodyAccountLabel}</dt><dd>{session.fakeBankAccount}</dd>

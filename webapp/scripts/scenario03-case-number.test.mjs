@@ -1,7 +1,7 @@
 // Verifies Scenario03's fake case-number format and the fixed 22-county
 // three-letter code mapping (lib/session/ScenarioSessionFactory.js).
 // Format: 三碼縣市簡碼 + CIB + YYYYMMDD + 165 + 既有亂數, all uppercase,
-// e.g. "HSZCIB20260819165XXXX". fakeCaseNumber() is the ONLY generator -
+// e.g. "HSZCIB-20260819-165-1036". fakeCaseNumber() is the ONLY generator -
 // every screen reads session.caseNumber instead of re-deriving one.
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -32,7 +32,7 @@ const EXPECTED_CODES = {
   連江縣: 'LIE',
 };
 
-const CASE_NUMBER_RE = /^[A-Z]{3}CIB[0-9]{8}165[A-Z0-9]+$/;
+const CASE_NUMBER_RE = /^[A-Z]{3}CIB-[0-9]{8}-165-[0-9]{4}$/;
 
 test('all 22 counties map to their fixed three-letter code, exactly', () => {
   assert.equal(Object.keys(COUNTY_CODES).length, 22);
@@ -50,7 +50,7 @@ test('fakeCaseNumber() matches the fixed format for every county, and starts wit
   for (const [county, code] of Object.entries(EXPECTED_CODES)) {
     const caseNumber = fakeCaseNumber(county);
     assert.match(caseNumber, CASE_NUMBER_RE, `${county} -> ${caseNumber}`);
-    assert.ok(caseNumber.startsWith(`${code}CIB`), `${county} case number ${caseNumber} should start with ${code}CIB`);
+    assert.ok(caseNumber.startsWith(`${code}CIB-`), `${county} case number ${caseNumber} should start with ${code}CIB-`);
   }
 });
 
@@ -69,5 +69,5 @@ test('新竹市/新竹縣, 嘉義市/嘉義縣, and 新北市/南投縣 are dist
 test('an unlisted county falls back to the generic SIM code and still matches the format', () => {
   const caseNumber = fakeCaseNumber('不存在的縣市');
   assert.match(caseNumber, CASE_NUMBER_RE);
-  assert.ok(caseNumber.startsWith('SIMCIB'));
+  assert.ok(caseNumber.startsWith('SIMCIB-'));
 });

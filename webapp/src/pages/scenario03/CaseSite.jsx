@@ -8,6 +8,7 @@ import { playSound } from '../../lib/scenario03Feedback';
 import { getCaseSiteTasks, buildFakeDocuments } from '../../data/scenario03Config';
 import { getScenario03Lang, getScenario03Strings } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
+import { CaseNumber } from './components/CaseNumber';
 
 // Scene 06 - 假案件管理網站. A site that looks like a government service:
 // agency masthead, case card, countdown, a four-step checklist that unlocks
@@ -148,7 +149,7 @@ export function CaseSite() {
           <section className="pol-card">
             <h3>{t.caseSite.caseInfoHeader}</h3>
             <dl className="pol-kv">
-              <dt>{t.caseSite.caseNumberLabel}</dt><dd>{session.caseNumber}</dd>
+              <dt>{t.caseSite.caseNumberLabel}</dt><dd><CaseNumber value={session.caseNumber} /></dd>
               <dt>{t.caseSite.partyLabel}</dt><dd>{t.caseSite.partyValue}</dd>
               <dt>{t.caseSite.receivingUnitLabel}</dt>
               <dd>

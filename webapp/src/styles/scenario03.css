@@ -210,7 +210,8 @@
    already-dark-on-white bubbles where it happened to inherit correctly. */
 .pol-msg-card{background:#f7f8fa;border:1px solid #e2e6ee;border-radius:12px;padding:10px;font-size:var(--fs-caption);line-height:1.6;color:#000}
 .pol-msg-card h4{margin:0 0 6px;font-size:var(--fs-body-sm);font-weight:900;color:#000}
-.pol-msg-card dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0}
+.pol-msg-card dl{display:grid;grid-template-columns:fit-content(38%) minmax(0,1fr);gap:3px 10px;margin:0}
+.pol-case-number-part{white-space:nowrap}
 .pol-msg-card dt{color:#000;font-size:var(--fs-caption)}
 .pol-msg-card dd{margin:0;font-weight:700;font-size:var(--fs-caption);overflow-wrap:break-word;word-break:normal;color:#000}
 .pol-msg-card-cta{margin-top:9px;width:100%;appearance:none;border:0;border-radius:10px;background:var(--pol-accent);color:#fff;font-family:inherit;font-weight:800;font-size:var(--fs-caption);padding:9px;cursor:pointer}
