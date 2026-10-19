@@ -10,6 +10,7 @@ import { buildScenario03Script } from '../../data/scenario03Dialogues';
 import { sceneStartTime } from '../../data/scenario03Config';
 import { getScenario03Lang, getScenario03Strings } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
+import { CaseNumber } from './components/CaseNumber';
 
 // Scene 05 - LINE 案件說明. The "ask family or call 165 first" branch is the
 // one real off-ramp a victim has, so the script answers it the way the scam
@@ -39,7 +40,7 @@ export function LineIntro() {
         <div className="pol-msg-card">
           <h4>{t.lineIntro.caseCardHeader(session.caseDate)}</h4>
           <dl>
-            <dt>{t.lineIntro.caseNumberLabel}</dt><dd>{session.caseNumber}</dd>
+            <dt>{t.lineIntro.caseNumberLabel}</dt><dd><CaseNumber value={session.caseNumber} /></dd>
             <dt>{t.lineIntro.partyLabel}</dt><dd>{t.lineIntro.partyValue}</dd>
             <dt>{t.lineIntro.receivingUnitLabel}</dt>
             <dd>

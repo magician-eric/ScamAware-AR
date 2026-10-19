@@ -8,6 +8,7 @@ import { playSound } from '../../lib/scenario03Feedback';
 import { BALANCE_TOTAL, HOTLINE_165, formatNT } from '../../data/scenario03Config';
 import { getScenario03Strings } from './i18n';
 import { useARInteraction } from '../../lib/arInteraction';
+import { CaseNumber } from './components/CaseNumber';
 
 // Scene 11a - 最後一個決定. Everything before this was designed to make the
 // left-hand button feel like the safe, obedient, procedural choice. This is
@@ -78,7 +79,7 @@ export function FinalDecision() {
             <div className="label">{t.finalDecision.balanceLabel}</div>
             <div className="amount" style={{ color: 'var(--pol-danger-ink)' }}>{formatNT(BALANCE_TOTAL)}</div>
             <div className="pol-bank-row"><span>{t.finalDecision.toAccountLabel}</span><span>{session.fakeBankAccount}</span></div>
-            <div className="pol-bank-row"><span>{t.finalDecision.noteLabel}</span><span>{session.caseNumber}</span></div>
+            <div className="pol-bank-row"><span>{t.finalDecision.noteLabel}</span><span><CaseNumber value={session.caseNumber} /></span></div>
           </section>
           {/* AUD-06: pol-choices-split is the existing two-column modifier the
               in-call ownership question already uses - this screen's contract

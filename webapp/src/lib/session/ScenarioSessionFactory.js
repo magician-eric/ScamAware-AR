@@ -106,12 +106,14 @@ function resolveScenario03Cast(keepPoliceVisual = null) {
 
 // Fake case number format (spec section 10): 縣市碼三碼 + CIB + YYYYMMDD +
 // 165 (the real Anti-Fraud Hotline, same easter egg as fakePhoneNumber) +
-// a random tail, e.g. "HSZCIB20260819165XXXX". This is the ONLY place that
-// builds a case number - every screen reads session.caseNumber instead of
-// re-deriving one.
+// a random tail, in dash-separated groups, e.g. "HSZCIB-20260819-165-1036".
+// The dashes are where a narrow LINE bubble may wrap it: run together, the
+// 21 characters were one unbreakable word and ran out of the bubble. This is
+// the ONLY place that builds a case number - every screen reads
+// session.caseNumber instead of re-deriving one.
 export function fakeCaseNumber(county) {
   const code = COUNTY_CODES[county] ?? 'SIM';
-  return `${code}CIB${formatCompactDate()}165${randomDigits(4)}`;
+  return `${code}CIB-${formatCompactDate()}-165-${randomDigits(4)}`;
 }
 
 // Builds one digit-group of the given length with "165" forced in at a
