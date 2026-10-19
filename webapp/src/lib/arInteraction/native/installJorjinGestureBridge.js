@@ -82,6 +82,12 @@ export function formatNativeGestureDispatch(result) {
   ].join(' ');
 }
 
+// A one-option screen takes either direction (web 1.9.5), so the arm coming
+// back after a swipe - a wave the other way, a moment later - would pick the
+// next screen's only option with nobody choosing it. Within this long of the
+// last accepted wave, the opposite direction is not dispatched to such a screen.
+export const RETURN_STROKE_WINDOW_MS = 1500;
+
 // Installs the binding and returns a stop function.
 //
 //   const stop = installJorjinGestureBridge();
@@ -98,6 +104,7 @@ export function installJorjinGestureBridge(options = {}) {
     throw new TypeError('installJorjinGestureBridge({ onDispatch }): onDispatch must be a function');
   }
 
+  let lastAccepted = null;
   return subscribeNativeGestures(({ gesture, eventId, source }) => {
     // The revision is read here, at the moment the native event arrives, and
     // handed to the Bridge as `expectedRevision`. That is what makes one wave
@@ -106,7 +113,13 @@ export function installJorjinGestureBridge(options = {}) {
     // lands, the Bridge sees a revision that has moved and drops it instead
     // of re-aiming it at whatever is on screen now.
     const { revision } = getARGestureSnapshot();
+    const at = Date.now();
+    if (getARGestureSnapshot().mode === 'single' && lastAccepted && lastAccepted.gesture !== gesture
+        && at - lastAccepted.at < RETURN_STROKE_WINDOW_MS) {
+      return;
+    }
     const result = dispatchARGesture({ gesture, eventId, source, expectedRevision: revision });
+    if (result?.accepted === true) lastAccepted = { gesture, at };
 
     // Asked per delivery rather than once at install time. The binding is
     // installed when the app starts and stays installed, so a switch read at

@@ -25,6 +25,8 @@
 }
 .cibar-outcome-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(12px,2.4vh,20px);scrollbar-width:none}
 .cibar-outcome-scroll::-webkit-scrollbar{display:none}
+/* Zoomed down by useFitToBox.js when the card is taller than the screen. */
+.cibar-outcome-scroll>*{zoom:var(--cibar-fit,1)}
 .cibar-outcome-card{width:min(100%,430px);margin:0 auto;display:flex;flex-direction:column;gap:clamp(8px,1.6vh,14px);padding:clamp(14px,2.4vh,22px);border:1px solid rgba(255,255,255,.14);border-radius:22px;background:rgba(9,28,54,.94);box-shadow:0 18px 50px rgba(0,0,0,.3)}
 .cibar-outcome-mascot{height:clamp(140px,22vh,220px);display:flex;align-items:center;justify-content:center;border-radius:16px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025))}
 .cibar-outcome-mascot img{width:100%;height:100%;object-fit:contain}

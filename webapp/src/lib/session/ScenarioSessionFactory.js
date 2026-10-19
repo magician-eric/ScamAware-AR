@@ -17,6 +17,7 @@ import {
 } from '../dateTimeService';
 import { resolveCast } from '../../experience/characters/casting';
 import { getVisualAssetUrl } from '../../experience/characters/visuals';
+import { MALE_FORMAL_NAME_PARTS } from '../../experience/characters/names';
 import { localizeLocationName } from '../location/localizedLocationName';
 
 const SESSION_STORAGE_KEY = 'cibar-scenario03-session';
@@ -302,15 +303,37 @@ export function getProsecutorIdentity(session, lang, roleLabel = '') {
   };
 }
 
+// "Taipei City Police Department" -> "TCPD". A name that is already one word
+// ("Police") stays as it is.
+function abbreviateDepartmentEn(dept) {
+  const words = dept.split(/\s+/).filter((word) => /^[A-Z]/.test(word));
+  return words.length > 1 ? words.map((word) => word[0]).join('') : dept;
+}
+
+// The officer's surname: the first word of the English name, the pool surname
+// the Japanese name starts with.
+function officerSurname(session, lang) {
+  const name = getOfficerDisplayName(session, lang);
+  if (lang === 'en') return name.split(/\s+/)[0] ?? '';
+  const surname = MALE_FORMAL_NAME_PARTS.officer.jpSurnames.find((part) => name.startsWith(part));
+  return surname ?? name;
+}
+
 // `suffix` is the already-translated rank/title string the caller passes in
 // (e.g. t.common.policeOfficerSuffix) - this function only assembles
 // unit + suffix + name in the right order/spacing for the language.
+//
+// In English and Japanese the full form ("Taipei City Police Department
+// Investigating Officer Wu Cheng-Han") does not fit a LINE header, so the
+// account is named the way a contact would be saved: the department's short
+// form and the surname - "TCPD Mr. Wu", 「台北市警 佐藤さん」.
 export function getLineAccountDisplayName(session, lang, suffix) {
   const fallbackDept = lang === 'en' ? 'Police' : lang === 'jp' ? '警察' : '刑事警察';
   const dept = localizeLocationName(session?.locationProfile?.agencies?.policeDepartment, lang)
     ?? fallbackDept;
+  if (lang === 'en') return `${abbreviateDepartmentEn(dept)} Mr. ${officerSurname(session, lang)}`.trim();
+  if (lang === 'jp') return `${dept.replace(/(政府)?警察局$/, '警')} ${officerSurname(session, lang)}さん`.trim();
   const name = getOfficerDisplayName(session, lang);
-  if (lang === 'en') return `${dept} ${suffix} ${name}`.trim();
   return `${dept}${suffix} ${name}`.trim();
 }
 

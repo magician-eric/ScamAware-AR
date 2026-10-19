@@ -230,6 +230,33 @@ test('1. ONE_ACTION: a native RIGHT runs the single action exactly once', () => 
   screen.unmount();
 });
 
+test('1. ONE_ACTION: the arm coming back after a swipe does not take the next screen\'s option', () => {
+  // A wave right, then the return stroke (a wave left) a moment later. With
+  // either direction taking a one-option screen, that return used to choose
+  // the next screen's option with nobody choosing it.
+  const ran = [];
+  let second = null;
+  const first = mountSurface(surface({
+    mode: 'single', surfaceId: 'test/single-a', action: () => {
+      ran.push('a');
+      first.unmount();
+      second = mountSurface(surface({
+        mode: 'single', surfaceId: 'test/single-b', action: () => ran.push('b'),
+      }));
+    },
+  }));
+  const bridge = mountBridge();
+
+  wave('RIGHT');
+  wave('LEFT');
+  assert.deepEqual(ran, ['a'], 'the return stroke is not a choice');
+
+  wave('RIGHT');
+  assert.deepEqual(ran, ['a', 'b'], 'a second wave the same way still is');
+  bridge.unmount();
+  second?.unmount();
+});
+
 test('1. ZERO_ACTION: neither native gesture does anything on a display screen', () => {
   const screen = mountSurface(surface({ mode: 'display', surfaceId: 'test/display' }));
   const bridge = mountBridge();
