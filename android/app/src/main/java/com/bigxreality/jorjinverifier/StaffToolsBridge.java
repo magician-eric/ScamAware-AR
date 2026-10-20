@@ -45,6 +45,11 @@ final class StaffToolsBridge {
 
         /** Gather the log and offer the share sheet. Must not block. */
         void shareTofLog();
+
+        /** 辨識方式: "LOOSE" or "STANDARD". Shell 1.2.11+. */
+        default String applyRecognizer(String name) {
+            return gestureSettingsJson();
+        }
     }
 
     private final Host host;
@@ -67,6 +72,11 @@ final class StaffToolsBridge {
         return host.applyGestureSettings(maxRangeCm, signalMode, minRangeCm);
     }
 
+    @JavascriptInterface public String setRecognizer(String name) {
+        Log.i(TAG, "工作人員模式：辨識方式 " + name);
+        return host.applyRecognizer(name);
+    }
+
     @JavascriptInterface public String liveFrame() {
         return host.liveFrameJson();
     }
@@ -86,7 +96,9 @@ final class StaffToolsBridge {
                 + "version:1,"
                 + "available:true,"
                 + "getGestureSettings:function(){return j(function(){return n.getGestureSettings();});},"
-                + "setGestureSettings:function(s){s=s||{};return j(function(){"
+                + "setGestureSettings:function(s){s=s||{};"
+                + "if(s.recognizer&&n.setRecognizer)n.setRecognizer(String(s.recognizer));"
+                + "return j(function(){"
                 + "return n.setGestureRange(Number(s.minRangeCm)||" + GestureSettings.DEFAULT_MIN_RANGE_CM
                 + ",Number(s.maxRangeCm)||0,String(s.signalMode||''));});},"
                 + "liveFrame:function(){return j(function(){return n.liveFrame();});},"

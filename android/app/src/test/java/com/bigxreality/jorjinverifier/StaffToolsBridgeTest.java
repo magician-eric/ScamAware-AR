@@ -52,4 +52,27 @@ public class StaffToolsBridgeTest {
         assertEquals("1.2.4 的呼叫方式用預設最近距離",
                 "get;set 10-40 STRICT;set 15-35 AUTO;live;share;", calls.toString());
     }
+
+    @Test public void theRecognizerChoiceGoesToTheHost() {
+        StringBuilder calls = new StringBuilder();
+        StaffToolsBridge bridge = new StaffToolsBridge(new StaffToolsBridge.Host() {
+            @Override public String gestureSettingsJson() { return "{}"; }
+
+            @Override public String applyGestureSettings(int maxRangeCm, String signalMode, int minRangeCm) {
+                return "{}";
+            }
+
+            @Override public String liveFrameJson() { return "{}"; }
+
+            @Override public void shareTofLog() { }
+
+            @Override public String applyRecognizer(String name) {
+                calls.append(name);
+                return "{}";
+            }
+        });
+        bridge.setRecognizer("STANDARD");
+        assertEquals("STANDARD", calls.toString());
+        assertTrue(StaffToolsBridge.installScript().contains("n.setRecognizer(String(s.recognizer))"));
+    }
 }
