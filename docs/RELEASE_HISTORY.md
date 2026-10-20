@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.9.10-20261020.004` | 1.2.11 | 1.9.10 | 2026-10-20 | #38 | `217c575` | PATCH | Merge pull request #38 from magician-eric/claude/bold-gates-1avm9t |
 | `1.9.9-20261020.003` | 1.2.10 | 1.9.9 | 2026-10-20 | #37 | `1823998` | REBUILD | Merge pull request #37 from magician-eric/claude/bold-gates-1avm9t |
 | `1.9.9-20261020.002` | 1.2.9 | 1.9.9 | 2026-10-20 | #36 | `3ae9776` | REBUILD | Merge pull request #36 from magician-eric/claude/bold-gates-1avm9t |
 | `1.9.9-20261020.001` | 1.2.8 | 1.9.9 | 2026-10-20 | #35 | `3ae9b6d` | REBUILD | Merge pull request #35 from magician-eric/claude/bold-gates-1avm9t |
