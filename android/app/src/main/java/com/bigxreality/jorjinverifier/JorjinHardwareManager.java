@@ -732,13 +732,9 @@ final class JorjinHardwareManager {
             String firmware = null;
             try { firmware = manager.getTofFwVersion(); } catch (Throwable ignored) { }
             markModule("ToF 韌體 " + (firmware == null ? "（未知）" : firmware));
-            for (String command : ModuleGestureKeys.BEFORE) {
-                if (!sendModuleCommand(manager, id, command)) return;
-            }
+            // Only the key map, mid-stream, as up to 1.2.8. Shell 1.2.9 also turned the sensor off
+            // and on around it (the vendor app's order) and the glasses were no longer detected.
             for (String command : ModuleGestureKeys.COMMANDS) {
-                if (!sendModuleCommand(manager, id, command)) return;
-            }
-            for (String command : ModuleGestureKeys.AFTER) {
                 if (!sendModuleCommand(manager, id, command)) return;
             }
             trace.add(id, "模組手勢按鍵設定完成");
