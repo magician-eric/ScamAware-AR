@@ -86,6 +86,14 @@ final class TofGestureRecognizer {
      */
     static final int MIN_STROKE_SAMPLES = 3;
     /**
+     * Except a crossing this long seen in only two frames. Under strong lamp light (halogen and
+     * other yellow light is mostly infrared) the sensor only sees a hand while it is close and
+     * passing fast, so a real swipe can be two frames of a hand three zones apart - while a
+     * flicker or a blob changing shape moves a zone or two. Replaying the field logs of
+     * 2026-10-16 and 2026-10-20, the swipes this adds moved the way they were reported.
+     */
+    static final float TWO_FRAME_MIN_TRAVEL = 3f;
+    /**
      * Beyond this, a hand is narrow enough to be seen whole, clear of both sides of the view, at
      * some point of any swipe across it. Something that only ever shows an edge - a person
      * walking past, of whom only a shoulder fits - never is.
@@ -97,6 +105,11 @@ final class TofGestureRecognizer {
      * sideways without the hand moving sideways at all.
      */
     static final float MAX_DEPTH_CHANGE = 0.35f;
+    /**
+     * ... and by at least this much (mm). Close to the glasses a fraction is a few centimetres:
+     * a hand crossing at 11 cm read 6 cm at its far edge, and was turned down as a push.
+     */
+    static final float MIN_DEPTH_CHANGE_MM = 80f;
     /** The hand must be gone this long before it has left; two dropped frames do not end a swipe. */
     static final long RELEASE_MS = 150L;
     /** Clear for this long after a swipe before another can be recognised. */
@@ -512,11 +525,12 @@ final class TofGestureRecognizer {
     private String judge(Stroke stroke) {
         float h = Math.abs(stroke.dx), v = Math.abs(stroke.dy);
         long duration = stroke.endMs - stroke.startMs;
-        if (handFrames < MIN_HAND_FRAMES) return "只出現 " + handFrames + " 張畫面";
-        if (stroke.samples < MIN_STROKE_SAMPLES) return "只是兩張畫面之間的跳動";
+        boolean twoFrameCrossing = handFrames >= 2 && stroke.samples >= 2 && h >= TWO_FRAME_MIN_TRAVEL;
+        if (handFrames < MIN_HAND_FRAMES && !twoFrameCrossing) return "只出現 " + handFrames + " 張畫面";
+        if (stroke.samples < MIN_STROKE_SAMPLES && !twoFrameCrossing) return "只是兩張畫面之間的跳動";
         float near = Math.min(stroke.startRangeMm, stroke.endRangeMm);
         float far = Math.max(stroke.startRangeMm, stroke.endRangeMm);
-        if (far - near > MAX_DEPTH_CHANGE * far) {
+        if (far - near > MAX_DEPTH_CHANGE * far && far - near > MIN_DEPTH_CHANGE_MM) {
             return "距離從 " + Math.round(stroke.startRangeMm / 10f) + " 變到 "
                     + Math.round(stroke.endRangeMm / 10f) + " 公分，是往前推或往後拉";
         }

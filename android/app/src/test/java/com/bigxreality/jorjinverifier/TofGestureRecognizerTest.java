@@ -693,4 +693,35 @@ public class TofGestureRecognizerTest {
         away();
         assertNothing();
     }
+
+    // ------------------------------------------------------------------ strong lamp light
+
+    @Test public void aFastCrossingSeenInOnlyTwoFramesIsASwipe() {
+        // Under halogen light the hand only shows while close and fast: two frames, three zones apart.
+        settle();
+        scene.handAt(7.0f, MID, 200f);
+        frame();
+        scene.handAt(0.5f, MID, 200f);
+        frame();
+        away();
+        assertOnly(LEFT);
+    }
+
+    @Test public void twoFramesThatMoveLessThanThreeZonesAreStillAFlicker() {
+        settle();
+        scene.handAt(4.4f, MID, 200f);
+        frame();
+        scene.handAt(2.6f, MID, 200f);
+        frame();
+        away();
+        assertNothing();
+    }
+
+    @Test public void aCloseCrossingWhoseDistanceChangesAFewCentimetresIsNotAPush() {
+        // 19 -> 12 cm is more than 35% of the distance but only 7 cm: a hand passing at an angle.
+        settle();
+        move(-1.5f, MID, 190f, 8.5f, MID, 120f, 450);
+        away();
+        assertOnly(RIGHT);
+    }
 }
