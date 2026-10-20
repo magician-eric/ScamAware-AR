@@ -729,29 +729,50 @@ final class JorjinHardwareManager {
     private void configureModuleKeys(TofManager manager, int id) {
         trace.add(id, "設定模組手勢按鍵：L→keyleft R→keyright，其餘 keynone");
         Thread worker = new Thread(() -> {
+            String firmware = null;
+            try { firmware = manager.getTofFwVersion(); } catch (Throwable ignored) { }
+            markModule("ToF 韌體 " + (firmware == null ? "（未知）" : firmware));
+            for (String command : ModuleGestureKeys.BEFORE) {
+                if (!sendModuleCommand(manager, id, command)) return;
+            }
             for (String command : ModuleGestureKeys.COMMANDS) {
-                String reply = null;
-                for (int attempt = 1; attempt <= ModuleGestureKeys.ATTEMPTS; attempt++) {
-                    if (liveTofInstanceId != id) {
-                        Log.i(TAG, "ToF 已重建或釋放，停止設定模組手勢按鍵");
-                        return;
-                    }
-                    try {
-                        reply = manager.execute(ModuleGestureKeys.line(command));
-                    } catch (Throwable error) {
-                        reply = null;
-                        Log.w(TAG, "送出模組指令失敗：" + command, error);
-                    }
-                    if (ModuleGestureKeys.acknowledged(reply)) break;
-                }
-                Log.i(TAG, "模組手勢按鍵 " + command + " → "
-                        + (ModuleGestureKeys.acknowledged(reply)
-                                ? "OK" : "未確認（" + ModuleGestureKeys.describeReply(reply) + "）"));
+                if (!sendModuleCommand(manager, id, command)) return;
+            }
+            for (String command : ModuleGestureKeys.AFTER) {
+                if (!sendModuleCommand(manager, id, command)) return;
             }
             trace.add(id, "模組手勢按鍵設定完成");
         }, "JorjinToF-keymap");
         worker.setDaemon(true);
         worker.start();
+    }
+
+    /** One module command, resent until acknowledged; false when this ToF instance is gone. */
+    private boolean sendModuleCommand(TofManager manager, int id, String command) {
+        String reply = null;
+        for (int attempt = 1; attempt <= ModuleGestureKeys.ATTEMPTS; attempt++) {
+            if (liveTofInstanceId != id) {
+                Log.i(TAG, "ToF 已重建或釋放，停止設定模組手勢按鍵");
+                return false;
+            }
+            try {
+                reply = manager.execute(ModuleGestureKeys.line(command));
+            } catch (Throwable error) {
+                reply = null;
+                Log.w(TAG, "送出模組指令失敗：" + command, error);
+            }
+            if (ModuleGestureKeys.acknowledged(reply)) break;
+        }
+        String result = ModuleGestureKeys.acknowledged(reply)
+                ? "OK" : "未確認（" + ModuleGestureKeys.describeReply(reply) + "）";
+        Log.i(TAG, "模組手勢按鍵 " + command + " → " + result);
+        markModule("模組指令 " + command + " → " + result);
+        return true;
+    }
+
+    /** A line in the frame log about the module itself: its firmware, a command, a key. */
+    void markModule(String note) {
+        frameRecorder.mark(android.os.SystemClock.elapsedRealtime(), wallClock() + " " + note);
     }
 
     // ---------------------------------------------------------------- watchdog

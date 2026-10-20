@@ -473,6 +473,12 @@ public final class MainActivity extends Activity
             // The module's own engine recognised a swipe. The page reads the key itself (below);
             // the depth recogniser is told so it does not report the same swipe again.
             int code = event.getKeyCode();
+            // Every key from a real device goes into the frame log: whether the module's engine
+            // presses anything at all - and what - is the first question a field log must answer.
+            if (hardware != null && event.getDevice() != null && !event.getDevice().isVirtual()) {
+                hardware.markModule("按鍵 " + KeyEvent.keyCodeToString(code) + " 來自 "
+                        + describeInputDevice(event.getDevice()));
+            }
             if (hardware != null
                     && (code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT)) {
                 hardware.onModuleGestureKey(code == KeyEvent.KEYCODE_DPAD_RIGHT);
