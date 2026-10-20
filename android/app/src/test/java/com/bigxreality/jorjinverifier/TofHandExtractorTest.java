@@ -361,4 +361,35 @@ public class TofHandExtractorTest {
         frame();
         assertEquals(0L, extractor.handMask());
     }
+
+    // ------------------------------------------------------------------ strong lamp light
+
+    /** A hand at 20 cm in columns 2-4, plus six zones reading 5 cm at the given signal. */
+    private TofHandExtractor.Hand handWithNearReadings(float nearSignal) {
+        float[] range = new float[TofHandExtractor.ZONES];
+        float[] signal = new float[TofHandExtractor.ZONES];
+        for (int row = 2; row <= 5; row++) {
+            for (int col = 2; col <= 4; col++) {
+                range[row * 8 + col] = 200f;
+                signal[row * 8 + col] = 3000f;
+            }
+        }
+        for (int zone : new int[] {0, 7, 15, 48, 56, 63}) {
+            range[zone] = 50f;
+            signal[zone] = nearSignal;
+        }
+        clock += TofScene.FRAME_MS;
+        extractor.process(range, signal, clock, false);
+        clock += TofScene.FRAME_MS;
+        return extractor.process(range, signal, clock, false);
+    }
+
+    @Test public void weakNearReadingsFromLampLightDoNotHideTheHand() {
+        // Halogen light: nothing at 5 cm, only a few tens of signal. The hand behind is still seen.
+        assertTrue(handWithNearReadings(20f).present);
+    }
+
+    @Test public void somethingReallyAtTheGlassesStillHidesTheHand() {
+        assertFalse(handWithNearReadings(5000f).present);
+    }
 }
