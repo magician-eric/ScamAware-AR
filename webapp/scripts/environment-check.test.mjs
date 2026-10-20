@@ -14,6 +14,7 @@ const {
   judgeSwipes,
   judgeTof,
   readTofSnapshot,
+  recommendGestureSettings,
   summarizePixels,
   worst,
 } = await import('../src/lib/environment/environmentCheck.js');
@@ -176,4 +177,46 @@ test('false triggers make the verdict worse even when the light is fine', () => 
   assert.ok(many.advice.some((line) => line.includes('訊號過濾')));
   assert.equal(judgeEnvironment(quiet).falseTrigger.level, LEVEL.UNKNOWN, 'not measured is not a failure');
   assert.equal(judgeEnvironment(quiet).overall, LEVEL.GOOD);
+});
+
+// ---------------------------------------------------------------- 建議的手勢設定
+
+const shell = { minRangeCm: 10, maxRangeCm: 50, signalMode: 'AUTO', recognizer: 'LOOSE' };
+const quiet = (count) => ({ count, ms: FALSE_TRIGGER_MS });
+
+test('a clean venue keeps the defaults, and says so', () => {
+  const r = judgeEnvironment({ tofClear: clearQuiet, tofHand: handSteady, camera: neutral, swipes: swipes(0), falseTriggers: quiet(0) });
+  const advice = recommendGestureSettings(r, shell);
+  assert.deepEqual(advice.settings, { minRangeCm: 10, maxRangeCm: 50, signalMode: 'AUTO', recognizer: 'LOOSE' });
+  assert.equal(advice.same, true);
+});
+
+test('lamp light: loose, and the near limit down to 5 cm', () => {
+  const r = judgeEnvironment({ tofClear: noisy, tofHand: handSteady, camera: yellowLamp, swipes: swipes(4), falseTriggers: quiet(0) });
+  const advice = recommendGestureSettings(r, shell);
+  assert.equal(advice.settings.recognizer, 'LOOSE');
+  assert.equal(advice.settings.minRangeCm, 5);
+  assert.equal(advice.same, false);
+  assert.ok(advice.lines.includes('手勢最近距離：5 公分'));
+});
+
+test('false triggers pull the far limit in, then ask for full swipes', () => {
+  const base = { tofClear: clearQuiet, tofHand: handSteady, camera: neutral, swipes: swipes(0) };
+  assert.equal(recommendGestureSettings(judgeEnvironment({ ...base, falseTriggers: quiet(1) }), shell).settings.maxRangeCm, 40);
+  assert.equal(recommendGestureSettings(judgeEnvironment({ ...base, falseTriggers: quiet(2) }), shell).settings.maxRangeCm, 35);
+  const many = recommendGestureSettings(judgeEnvironment({ ...base, falseTriggers: quiet(3) }), shell).settings;
+  assert.equal(many.recognizer, 'STANDARD');
+  assert.equal(many.signalMode, 'STRICT');
+  assert.equal(many.maxRangeCm, 35);
+});
+
+test('an older Shell is never told to pick a recognizer it does not have', () => {
+  const r = judgeEnvironment({ tofClear: clearQuiet, tofHand: handSteady, camera: neutral, swipes: swipes(0), falseTriggers: quiet(3) });
+  const advice = recommendGestureSettings(r, { minRangeCm: 10, maxRangeCm: 50, signalMode: 'AUTO' });
+  assert.equal('recognizer' in advice.settings, false);
+  assert.equal(advice.lines.some((line) => line.startsWith('辨識方式')), false);
+});
+
+test('no result, no advice', () => {
+  assert.equal(recommendGestureSettings(null, shell), null);
 });

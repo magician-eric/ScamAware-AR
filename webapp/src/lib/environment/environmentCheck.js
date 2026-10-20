@@ -292,3 +292,59 @@ export function judgeEnvironment({ tofClear, tofHand, camera, swipes, falseTrigg
   }
   return { overall, summary, swipe, falseTrigger, tof, light, advice };
 }
+
+const SIGNAL_MODE_LABELS = Object.freeze({ AUTO: '自動', LOOSE: '寬鬆', STANDARD: '標準', STRICT: '嚴格' });
+const RECOGNIZER_LABELS = Object.freeze({ LOOSE: '寬鬆', STANDARD: '標準' });
+
+/**
+ * What 手勢設定 the host should choose after a check, and why - so nobody has to
+ * know what each setting does. `current` is the Shell's settings
+ * (lib/environment/staffTools.js), or null outside the glasses app; a Shell
+ * without 辨識方式 (before 1.2.11) gets no recognizer in the advice.
+ *
+ *   light in the way      -> 寬鬆辨識, 最近 5 cm (under lamp light a hand only
+ *                            shows close to the glasses)
+ *   1 false trigger       -> 最遠 40 cm;  2 or more -> 35 cm
+ *   3 or more             -> 標準辨識 and 訊號過濾 嚴格 as well
+ *
+ * @returns {{settings: object, lines: string[], reasons: string[], same: boolean}|null}
+ */
+export function recommendGestureSettings(result, current = null) {
+  if (!result) return null;
+  const lightInterferes = result.tof?.level === LEVEL.WARN || result.tof?.level === LEVEL.BAD
+    || result.light?.level === LEVEL.WARN;
+  const falseCount = typeof result.falseTrigger?.count === 'number' ? result.falseTrigger.count : 0;
+  const withRecognizer = typeof current?.recognizer === 'string';
+  const settings = { minRangeCm: 10, maxRangeCm: 50, signalMode: 'AUTO' };
+  if (withRecognizer) settings.recognizer = 'LOOSE';
+  const reasons = [];
+
+  if (lightInterferes) {
+    settings.minRangeCm = 5;
+    reasons.push('現場有強光干擾：強光下手要靠近眼鏡才看得到，最近距離放寬到 5 公分。');
+  }
+  if (withRecognizer) {
+    reasons.push('寬鬆辨識：5 公分到最遠距離之內往左或往右移動就算，斜著揮也算。');
+  }
+  if (falseCount >= 1) {
+    settings.maxRangeCm = falseCount >= 2 ? 35 : 40;
+    reasons.push(`沒有人揮手時誤觸了 ${falseCount} 次：最遠距離調成 ${settings.maxRangeCm} 公分，背後的人和牆就不會被看到。`);
+  }
+  if (falseCount >= 3) {
+    if (withRecognizer) settings.recognizer = 'STANDARD';
+    settings.signalMode = 'STRICT';
+    reasons.push('誤觸還是偏多：改成要完整橫揮才算（標準辨識），訊號過濾調成嚴格。');
+  }
+  if (result.swipe?.level === LEVEL.BAD && falseCount === 0 && !lightInterferes) {
+    reasons.push('揮手漏掉偏多但沒有燈光干擾：請玩家在右眼正前方約 20 公分、手掌朝向眼鏡揮動。');
+  }
+
+  const lines = [
+    ...(withRecognizer ? [`辨識方式：${RECOGNIZER_LABELS[settings.recognizer]}`] : []),
+    `手勢最近距離：${settings.minRangeCm} 公分`,
+    `手勢最遠距離：${settings.maxRangeCm} 公分`,
+    `訊號過濾：${SIGNAL_MODE_LABELS[settings.signalMode]}`,
+  ];
+  const same = Boolean(current) && Object.entries(settings).every(([key, value]) => current[key] === value);
+  return { settings, lines, reasons, same };
+}

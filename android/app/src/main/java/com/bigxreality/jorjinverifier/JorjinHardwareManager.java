@@ -99,6 +99,13 @@ final class JorjinHardwareManager {
     private final TofTrace trace = new TofTrace();
     private final AtomicLong tofFrameCount = new AtomicLong();
     private final TofGestureRecognizer depthRecognizer;
+    /** 寬鬆辨識: anything moving 5-50 cm sideways. See {@link LooseSwipeDetector}. */
+    private final LooseSwipeDetector looseDetector = new LooseSwipeDetector();
+    /** Which of the two reports swipes: 寬鬆 (the default) or 標準 ({@link #depthRecognizer}). */
+    private volatile boolean looseRecognizer = true;
+    static final String KEY_RECOGNIZER = "recognizer";
+    static final String RECOGNIZER_LOOSE = "LOOSE";
+    static final String RECOGNIZER_STANDARD = "STANDARD";
     /** Raw frames around every gesture decision, for tuning; see {@link TofFrameRecorder}. */
     private final TofFrameRecorder frameRecorder;
     /** Where {@link #frameRecorder} writes; the staff mode's 匯出紀錄檔 reads it. */
@@ -161,8 +168,13 @@ final class JorjinHardwareManager {
         this.frameRecorder = new TofFrameRecorder(frameFile);
         this.depthRecognizer = new TofGestureRecognizer(new TofGestureRecognizer.Callback() {
             @Override public void onRecognised(int gesture, int action, long eventTimeNanos) {
-                gestureController.onRawEvent(action, gesture, eventTimeNanos,
-                        android.os.SystemClock.elapsedRealtime(),
+                long now = android.os.SystemClock.elapsedRealtime();
+                if (looseRecognizer) {
+                    frameRecorder.mark(now, wallClock() + " 標準辨識：" + GestureLabels.code(gesture)
+                            + "（目前用寬鬆辨識，不送出）");
+                    return;
+                }
+                gestureController.onRawEvent(action, gesture, eventTimeNanos, now,
                         GestureController.Source.DEPTH_FRAME);
             }
 
@@ -173,6 +185,9 @@ final class JorjinHardwareManager {
         });
         this.gesturePrefs = this.context.getSharedPreferences(GestureSettings.PREFS, Context.MODE_PRIVATE);
         this.gestureSettings = GestureSettings.load(gesturePrefs);
+        looseDetector.setMaxRangeMm(gestureSettings.maxRangeCm * 10f);
+        this.looseRecognizer = !RECOGNIZER_STANDARD.equals(
+                gesturePrefs.getString(KEY_RECOGNIZER, RECOGNIZER_LOOSE));
         gestureSettings.applyTo(depthRecognizer);
     }
 
@@ -180,7 +195,31 @@ final class JorjinHardwareManager {
 
     /** The staff mode's gesture settings and what the sensor measures now, as JSON. */
     String gestureSettingsJson() {
-        return gestureSettings.toJson(depthRecognizer.noiseRatio(), depthRecognizer.signalFloorFraction());
+        String json = gestureSettings.toJson(depthRecognizer.noiseRatio(), depthRecognizer.signalFloorFraction());
+        return json.substring(0, json.length() - 1) + ",\"recognizer\":\""
+                + (looseRecognizer ? RECOGNIZER_LOOSE : RECOGNIZER_STANDARD) + "\"}";
+    }
+
+    /** The staff mode's 辨識方式: {@link #RECOGNIZER_LOOSE} or {@link #RECOGNIZER_STANDARD}. */
+    String applyRecognizer(String name) {
+        boolean loose = !RECOGNIZER_STANDARD.equals(name);
+        if (loose != looseRecognizer) {
+            looseRecognizer = loose;
+            gesturePrefs.edit().putString(KEY_RECOGNIZER,
+                    loose ? RECOGNIZER_LOOSE : RECOGNIZER_STANDARD).apply();
+            frameRecorder.mark(android.os.SystemClock.elapsedRealtime(),
+                    wallClock() + " 工作人員設定：辨識方式 " + recognizerLabel());
+        }
+        return gestureSettingsJson();
+    }
+
+    private String recognizerLabel() {
+        return looseRecognizer ? "寬鬆" : "標準";
+    }
+
+    /** The settings for a log line: range, filter and which recogniser reports. */
+    private String describeSettings() {
+        return gestureSettings.describe() + "、辨識方式 " + recognizerLabel();
     }
 
     /** Changes, keeps and logs the staff mode's gesture settings; any thread. */
@@ -190,6 +229,7 @@ final class JorjinHardwareManager {
             gestureSettings = wanted;
             wanted.save(gesturePrefs);
             wanted.applyTo(depthRecognizer);
+            looseDetector.setMaxRangeMm(wanted.maxRangeCm * 10f);
             frameRecorder.mark(android.os.SystemClock.elapsedRealtime(),
                     wallClock() + " 工作人員設定：" + wanted.describe());
         }
@@ -206,12 +246,12 @@ final class JorjinHardwareManager {
      * there is none yet. Blocks for as long as copying a few megabytes takes - not the main thread.
      */
     java.io.File exportTofLog(java.io.File exportDir) {
-        frameRecorder.line(wallClock() + " 匯出紀錄檔（" + gestureSettings.describe() + "）");
+        frameRecorder.line(wallClock() + " 匯出紀錄檔（" + describeSettings() + "）");
         frameFile.flush();
         String header = "# CIBAR ToF 紀錄檔：外殼 " + BuildConfig.SHELL_VERSION
                 + "（" + BuildConfig.VERSION_NAME + "）、" + android.os.Build.MANUFACTURER + " "
                 + android.os.Build.MODEL + "、Android " + android.os.Build.VERSION.RELEASE
-                + "、匯出於 " + wallClock() + "、" + gestureSettings.describe() + "\n";
+                + "、匯出於 " + wallClock() + "、" + describeSettings() + "\n";
         return TofLogExport.write(exportDir,
                 TofLogExport.fileName(BuildConfig.SHELL_VERSION, System.currentTimeMillis()),
                 header, frameFile.previousFile(), frameFile.file());
@@ -410,7 +450,7 @@ final class JorjinHardwareManager {
         gestureController.reset();
         depthRecognizer.reset();
         frameRecorder.line(wallClock() + " 開始：外殼 " + BuildConfig.SHELL_VERSION
-                + "（" + BuildConfig.VERSION_NAME + "）、" + gestureSettings.describe());
+                + "（" + BuildConfig.VERSION_NAME + "）、" + describeSettings());
         // Camera + ToF, always. This is the one start-up path the app has: the production
         // experience needs the RGB stream for recognition and the ToF module for gestures, so
         // there is nothing to choose between and nothing on screen that could choose it.
@@ -602,6 +642,20 @@ final class JorjinHardwareManager {
             TofHandExtractor.Hand hand =
                     depthRecognizer.onFrame(frame.medianRange, frame.peakSignalRate, now);
             frameRecorder.frame(now, frame.medianRange, frame.peakSignalRate, hand.describe());
+            looseDetector.setMirrored(!depthRecognizer.isColumnIncreasesRight());
+            int loose = looseDetector.onFrame(frame.medianRange, frame.peakSignalRate, now);
+            if (loose != LooseSwipeDetector.NONE) {
+                int gesture = loose == LooseSwipeDetector.LEFT
+                        ? TofGestureEvent.GESTURE_LEFT : TofGestureEvent.GESTURE_RIGHT;
+                if (looseRecognizer) {
+                    frameRecorder.mark(now, wallClock() + " 寬鬆辨識：" + GestureLabels.code(gesture));
+                    gestureController.onRawEvent(TofGestureEvent.ACTION_RECEIVED, gesture,
+                            System.nanoTime(), now, GestureController.Source.DEPTH_FRAME);
+                } else {
+                    frameRecorder.mark(now, wallClock() + " 寬鬆辨識：" + GestureLabels.code(gesture)
+                            + "（目前用標準辨識，不送出）");
+                }
+            }
             liveFrame.update(now, frame.medianRange, frame.peakSignalRate, hand,
                     depthRecognizer.handMask(), depthRecognizer.maskedMask(),
                     depthRecognizer.minRangeMm(), depthRecognizer.maxRangeMm(),

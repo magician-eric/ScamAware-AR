@@ -3,9 +3,10 @@
 //
 //   window.__cibarStaffTools = {
 //     version: 1, available: true,
-//     getGestureSettings() -> { minRangeCm, maxRangeCm, signalMode, noise, floor } | null,
-//     setGestureSettings({ minRangeCm, maxRangeCm, signalMode }) -> the same | null,
-//                         (Shell 1.2.4 has no minRangeCm and ignores it)
+//     getGestureSettings() -> { minRangeCm, maxRangeCm, signalMode, recognizer, noise, floor } | null,
+//     setGestureSettings({ minRangeCm, maxRangeCm, signalMode, recognizer }) -> the same | null,
+//                         (Shell 1.2.4 has no minRangeCm and ignores it; before 1.2.11
+//                          there is no recognizer)
 //     liveFrame() -> one 8x8 frame (TofLiveFrame.java) | null,
 //     shareTofLog() -> boolean,
 //   }
@@ -18,6 +19,8 @@
 export const STAFF_TOOLS_GLOBAL = '__cibarStaffTools';
 export const STAFF_TOOLS_READY_EVENT = 'cibarStaffToolsReady';
 export const TOF_LOG_EXPORT_EVENT = 'cibarTofLogExport';
+// The page's own: 現場環境檢測 applied its advice, so 手勢設定 reads the Shell again.
+export const GESTURE_SETTINGS_CHANGED_EVENT = 'cibarGestureSettingsChanged';
 
 // The choices on the panel's buttons - the Shell accepts only these
 // (GestureSettings.java), anything else falls back to the nearest.
@@ -26,6 +29,12 @@ export const RANGE_CHOICES_CM = Object.freeze([50, 40, 35]);
 // hand at the glasses - all noise to a swipe.
 export const MIN_RANGE_CHOICES_CM = Object.freeze([5, 10, 15]);
 export const DEFAULT_MIN_RANGE_CM = 10;
+
+// 辨識方式 (Shell 1.2.11+): which recogniser's swipes count.
+export const RECOGNIZERS = Object.freeze([
+  { id: 'LOOSE', label: '寬鬆', hint: '5–50 公分內往左或往右移動就算，斜著揮也算（建議，強光現場也適用）' },
+  { id: 'STANDARD', label: '標準', hint: '要求完整的橫向揮動，誤觸最少' },
+]);
 
 export const SIGNAL_MODES = Object.freeze([
   { id: 'AUTO', label: '自動', hint: '依現場雜訊自動調整（建議）' },

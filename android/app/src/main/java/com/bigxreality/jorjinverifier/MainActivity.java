@@ -194,6 +194,10 @@ public final class MainActivity extends Activity
         return hardware.gestureSettingsJson();
     }
 
+    @Override public String applyRecognizer(String name) {
+        return hardware.applyRecognizer(name);
+    }
+
     @Override public String applyGestureSettings(int maxRangeCm, String signalMode, int minRangeCm) {
         return hardware.applyGestureSettings(maxRangeCm, signalMode, minRangeCm);
     }

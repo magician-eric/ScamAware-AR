@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   DEFAULT_MIN_RANGE_CM,
+  GESTURE_SETTINGS_CHANGED_EVENT,
   MIN_RANGE_CHOICES_CM,
   RANGE_CHOICES_CM,
+  RECOGNIZERS,
   SIGNAL_MODES,
   STAFF_TOOLS_READY_EVENT,
   TOF_LOG_EXPORT_EVENT,
@@ -47,7 +49,11 @@ export function StaffGesturePanel() {
       setSettings(readGestureSettings());
     };
     window.addEventListener(STAFF_TOOLS_READY_EVENT, onReady);
-    return () => window.removeEventListener(STAFF_TOOLS_READY_EVENT, onReady);
+    window.addEventListener(GESTURE_SETTINGS_CHANGED_EVENT, onReady);
+    return () => {
+      window.removeEventListener(STAFF_TOOLS_READY_EVENT, onReady);
+      window.removeEventListener(GESTURE_SETTINGS_CHANGED_EVENT, onReady);
+    };
   }, []);
 
   useEffect(() => {
@@ -75,6 +81,7 @@ export function StaffGesturePanel() {
       minRangeCm: current.minRangeCm ?? DEFAULT_MIN_RANGE_CM,
       maxRangeCm: current.maxRangeCm,
       signalMode: current.signalMode,
+      ...(current.recognizer ? { recognizer: current.recognizer } : {}),
       ...change,
     });
     if (next) setSettings(next);
@@ -102,6 +109,28 @@ export function StaffGesturePanel() {
         手要比背後的東西（牆、桌子）近 10 公分以上才算，這一點系統會自動處理。現場有背景牆、玩家背後有觀眾或在教室宣導時，再用下面的設定調整。
       </p>
 
+      {typeof settings?.recognizer === 'string' && (
+        <>
+          <h3 className="staff-gesture-label">辨識方式</h3>
+          <div className="staff-btn-row staff-gesture-choices">
+            {RECOGNIZERS.map((recognizer) => (
+              <button
+                key={recognizer.id}
+                type="button"
+                className={`btn${settings.recognizer === recognizer.id ? '' : ' secondary'}`}
+                aria-pressed={settings.recognizer === recognizer.id}
+                onClick={() => choose({ recognizer: recognizer.id })}
+              >
+                {recognizer.label}
+              </button>
+            ))}
+          </div>
+          <p className="staff-env-note">
+            {RECOGNIZERS.find((recognizer) => recognizer.id === settings.recognizer)?.hint ?? ''}
+          </p>
+        </>
+      )}
+
       {typeof settings?.minRangeCm === 'number' && (
         <>
           <h3 className="staff-gesture-label">手勢最近距離</h3>
@@ -118,7 +147,7 @@ export function StaffGesturePanel() {
               </button>
             ))}
           </div>
-          <p className="staff-env-note">比這個距離近的都不看：臉、鼻樑、眼鏡框，還有手碰眼鏡、調整眼鏡的動作。建議 10 公分。</p>
+          <p className="staff-env-note">比這個距離近的都不看：臉、鼻樑、眼鏡框，還有手碰眼鏡、調整眼鏡的動作。建議 10 公分，強光現場 5 公分。（只用在標準辨識；寬鬆辨識固定從 5 公分起）</p>
         </>
       )}
 
