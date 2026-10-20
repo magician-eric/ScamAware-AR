@@ -109,6 +109,14 @@ final class TofHandExtractor {
      * is a little further away - is beyond the limit and reads as a hand of its own.
      */
     static final int TOO_NEAR_ZONES = 4;
+    /**
+     * A too-near zone only counts with at least this much signal. Strong lamp light (halogen and
+     * other yellow light is mostly infrared) makes the sensor report 1-9 cm in zones where nothing
+     * is, at a signal of a few tens - a hand or the face that close returns thousands. Counted,
+     * those readings threw away nearly every frame under such a lamp (field logs 2026-10-20) and
+     * the staff page's live view showed them as purple.
+     */
+    static final float TOO_NEAR_MIN_SIGNAL = 200f;
     /** Never more than this many zones masked: the rest of the view has to stay usable. */
     static final int MAX_MASKED_ZONES = 24;
 
@@ -414,7 +422,10 @@ final class TofHandExtractor {
             wasValid[i] = previousValid[i];
             previousValid[i] = valid;
             near[i] = valid && r <= farthest;
-            if (valid && r >= MIN_RANGE_MM && r < nearest && !masked[i]) tooNear++;
+            if (valid && r >= MIN_RANGE_MM && r < nearest && !masked[i]
+                    && (!hasSignal || signal[i] >= TOO_NEAR_MIN_SIGNAL)) {
+                tooNear++;
+            }
             foreground[i] = valid && r >= nearest && r <= farthest && r < foregroundLimit(i)
                     && !masked[i];
             if (valid && b > 0f && b <= EGO_BACKGROUND_MAX_MM && r > b + margin(b)) {
