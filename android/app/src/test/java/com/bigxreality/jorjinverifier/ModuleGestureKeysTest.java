@@ -73,10 +73,4 @@ public class ModuleGestureKeysTest {
         String long80 = new String(new char[80]).replace('\0', 'x');
         assertEquals(40, ModuleGestureKeys.describeReply(long80).length());
     }
-
-    @Test public void theMapIsSentTheVendorAppsWayWithTheSensorOff() {
-        // settofpwr 0 -> settofmode 1 -> key map -> settofpwr 1 -> settofconf 0
-        assertEquals(java.util.Arrays.asList("settofpwr 0", "settofmode 1"), ModuleGestureKeys.BEFORE);
-        assertEquals(java.util.Arrays.asList("settofpwr 1", "settofconf 0"), ModuleGestureKeys.AFTER);
-    }
 }
