@@ -48,6 +48,22 @@ final class ModuleGestureKeys {
             "settofkey HALT keynone"));
 
     /**
+     * Sent before {@link #COMMANDS}: the sensor off, then the module's own gesture engine on.
+     * This is the vendor app's order ({@code TofManager.usbSerialRunnable}: {@code settofpwr 0},
+     * {@code getfirmver}, {@code settofmode 1} and the key map, then {@code settofpwr 1} and
+     * {@code settofconf 0}) - it configures the engine while the sensor is off. Sent mid-stream
+     * instead, the map was never seen to take: no field log ever recorded a module key.
+     */
+    static final List<String> BEFORE = Collections.unmodifiableList(Arrays.asList(
+            "settofpwr 0",
+            "settofmode 1"));
+
+    /** Sent after {@link #COMMANDS}: the sensor back on, as JJSDK's own handshake leaves it. */
+    static final List<String> AFTER = Collections.unmodifiableList(Arrays.asList(
+            "settofpwr 1",
+            "settofconf 0"));
+
+    /**
      * How many times each command is sent before giving up on hearing it acknowledged. Sending a
      * key map twice is harmless; the module's reply arriving inside a depth-frame stream that
      * JJSDK's own reader is consuming at the same time is what makes a single try unreliable.
