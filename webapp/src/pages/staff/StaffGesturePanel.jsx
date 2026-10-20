@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   DEFAULT_MIN_RANGE_CM,
+  GESTURE_SETTINGS_CHANGED_EVENT,
   MIN_RANGE_CHOICES_CM,
   RANGE_CHOICES_CM,
   RECOGNIZERS,
@@ -48,7 +49,11 @@ export function StaffGesturePanel() {
       setSettings(readGestureSettings());
     };
     window.addEventListener(STAFF_TOOLS_READY_EVENT, onReady);
-    return () => window.removeEventListener(STAFF_TOOLS_READY_EVENT, onReady);
+    window.addEventListener(GESTURE_SETTINGS_CHANGED_EVENT, onReady);
+    return () => {
+      window.removeEventListener(STAFF_TOOLS_READY_EVENT, onReady);
+      window.removeEventListener(GESTURE_SETTINGS_CHANGED_EVENT, onReady);
+    };
   }, []);
 
   useEffect(() => {
@@ -142,7 +147,7 @@ export function StaffGesturePanel() {
               </button>
             ))}
           </div>
-          <p className="staff-env-note">比這個距離近的都不看：臉、鼻樑、眼鏡框，還有手碰眼鏡、調整眼鏡的動作。建議 10 公分。</p>
+          <p className="staff-env-note">比這個距離近的都不看：臉、鼻樑、眼鏡框，還有手碰眼鏡、調整眼鏡的動作。建議 10 公分，強光現場 5 公分。（只用在標準辨識；寬鬆辨識固定從 5 公分起）</p>
         </>
       )}
 

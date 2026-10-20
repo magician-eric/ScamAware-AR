@@ -10,8 +10,14 @@ import {
   averageSummaries,
   judgeEnvironment,
   readTofSnapshot,
+  recommendGestureSettings,
   summarizePixels,
 } from '../../lib/environment/environmentCheck';
+import {
+  GESTURE_SETTINGS_CHANGED_EVENT,
+  readGestureSettings,
+  writeGestureSettings,
+} from '../../lib/environment/staffTools';
 
 // 現場環境檢測 - part of 工作人員管理模式 and nowhere else (see StaffVersionPanel.jsx for why
 // the staff mode is the only door to it).
@@ -66,6 +72,15 @@ export function StaffEnvironmentPanel() {
   const [prompt, setPrompt] = useState(null);
   const [quiet, setQuiet] = useState(null);
   const [result, setResult] = useState(null);
+  const [advice, setAdvice] = useState(null);
+  const [applied, setApplied] = useState(false);
+
+  function applyAdvice() {
+    if (!advice || !writeGestureSettings(advice.settings)) return;
+    setApplied(true);
+    // 手勢設定 below shows what the Shell now holds.
+    window.dispatchEvent(new CustomEvent(GESTURE_SETTINGS_CHANGED_EVENT));
+  }
   const previewRef = useRef(null);
   const cancelledRef = useRef(false);
 
@@ -179,13 +194,17 @@ export function StaffEnvironmentPanel() {
   async function run() {
     cancelledRef.current = false;
     setResult(null);
+    setAdvice(null);
     const environment = await measureEnvironment();
     if (!environment) return;
     const swipes = await measureSwipes();
     if (!swipes) return;
     const falseTriggers = await measureFalseTriggers();
     if (falseTriggers === false) return;
-    setResult(judgeEnvironment({ ...environment, swipes, falseTriggers }));
+    const judged = judgeEnvironment({ ...environment, swipes, falseTriggers });
+    setResult(judged);
+    setAdvice(recommendGestureSettings(judged, readGestureSettings()));
+    setApplied(false);
     setStep(STEP.DONE);
   }
 
@@ -241,6 +260,30 @@ export function StaffEnvironmentPanel() {
             <ul className="staff-env-advice">
               {result.advice.map((line) => <li key={line}>{line}</li>)}
             </ul>
+          )}
+          {advice && (
+            <div className="staff-env-recommend">
+              <h3 className="staff-gesture-label">建議的手勢設定</h3>
+              <ul className="staff-env-advice">
+                {advice.lines.map((line) => <li key={line}>{line}</li>)}
+              </ul>
+              {advice.reasons.length > 0 && (
+                <p className="staff-env-note">{advice.reasons.join('')}</p>
+              )}
+              <div className="staff-btn-row">
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={advice.same || applied || !readGestureSettings()}
+                  onClick={applyAdvice}
+                >
+                  {advice.same ? '目前已是建議設定' : applied ? '已套用' : '套用建議設定'}
+                </button>
+              </div>
+              {!readGestureSettings() && (
+                <p className="staff-env-note">需要在眼鏡 App 內才能套用；也可以在下方「手勢設定」照著手動選。</p>
+              )}
+            </div>
           )}
           <p className="staff-env-note">環境數據的門檻為初版，之後會用現場紀錄檔（tof-frames.txt）再校正。</p>
         </div>

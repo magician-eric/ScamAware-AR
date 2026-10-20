@@ -69,6 +69,12 @@ final class LooseSwipeDetector {
 
     /** True when the columns run right to left for the wearer. */
     private boolean mirrored;
+    /** The staff mode's 手勢最遠距離 (at most {@link #FAR_MM}); the near end stays 5 cm. */
+    private volatile float farMm = FAR_MM;
+
+    void setMaxRangeMm(float value) {
+        farMm = Math.max(NEAR_MM * 2f, Math.min(FAR_MM, value));
+    }
 
     void setMirrored(boolean value) {
         mirrored = value;
@@ -80,7 +86,7 @@ final class LooseSwipeDetector {
         for (int i = 0; i < ZONES; i++) {
             float r = rangeMm[i];
             boolean strong = signal == null || signal.length < ZONES || signal[i] >= MIN_SIGNAL;
-            boolean inRange = r >= NEAR_MM && r <= FAR_MM && strong;
+            boolean inRange = r >= NEAR_MM && r <= farMm && strong;
             // Until a zone has learned something it shows nothing: whatever is in range is
             // foreground, and only what then stays put for ABSORB_MS - a table, a wall - is
             // learned. (Learning the first reading instead learned the wearer's own hand when it

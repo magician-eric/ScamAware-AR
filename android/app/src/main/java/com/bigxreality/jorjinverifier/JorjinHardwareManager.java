@@ -185,6 +185,7 @@ final class JorjinHardwareManager {
         });
         this.gesturePrefs = this.context.getSharedPreferences(GestureSettings.PREFS, Context.MODE_PRIVATE);
         this.gestureSettings = GestureSettings.load(gesturePrefs);
+        looseDetector.setMaxRangeMm(gestureSettings.maxRangeCm * 10f);
         this.looseRecognizer = !RECOGNIZER_STANDARD.equals(
                 gesturePrefs.getString(KEY_RECOGNIZER, RECOGNIZER_LOOSE));
         gestureSettings.applyTo(depthRecognizer);
@@ -228,6 +229,7 @@ final class JorjinHardwareManager {
             gestureSettings = wanted;
             wanted.save(gesturePrefs);
             wanted.applyTo(depthRecognizer);
+            looseDetector.setMaxRangeMm(wanted.maxRangeCm * 10f);
             frameRecorder.mark(android.os.SystemClock.elapsedRealtime(),
                     wallClock() + " 工作人員設定：" + wanted.describe());
         }

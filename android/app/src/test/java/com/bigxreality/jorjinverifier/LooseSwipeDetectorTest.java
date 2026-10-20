@@ -168,6 +168,17 @@ public class LooseSwipeDetectorTest {
         assertNothing();
     }
 
+    @Test public void theStaffFarLimitAppliesToo() {
+        detector.setMaxRangeMm(350f);
+        settle();
+        move(8.5f, MID, -1.5f, MID, 450, 450);
+        away();
+        assertNothing();
+        move(8.5f, MID, -1.5f, MID, 300, 450);
+        away();
+        assertOnly(LEFT);
+    }
+
     @Test public void lampLightNoiseAloneIsNothing() {
         noise = new Random(7);
         settle();

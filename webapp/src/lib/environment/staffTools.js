@@ -19,6 +19,8 @@
 export const STAFF_TOOLS_GLOBAL = '__cibarStaffTools';
 export const STAFF_TOOLS_READY_EVENT = 'cibarStaffToolsReady';
 export const TOF_LOG_EXPORT_EVENT = 'cibarTofLogExport';
+// The page's own: 現場環境檢測 applied its advice, so 手勢設定 reads the Shell again.
+export const GESTURE_SETTINGS_CHANGED_EVENT = 'cibarGestureSettingsChanged';
 
 // The choices on the panel's buttons - the Shell accepts only these
 // (GestureSettings.java), anything else falls back to the nearest.
