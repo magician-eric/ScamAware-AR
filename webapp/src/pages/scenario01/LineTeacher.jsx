@@ -70,10 +70,6 @@ export function LineTeacher() {
   const timestamps = useMemo(() => computeTimestamps(messages, chatStart), [messages, chatStart]);
 
   useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [messages, isTyping]);
-
-  useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
 

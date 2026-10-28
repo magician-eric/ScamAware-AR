@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { ChevronLeft, Menu, Phone, Search } from 'lucide-react';
 import { getLanguage } from '../../../lib/lang';
 
@@ -41,7 +42,39 @@ export function LineOutgoingBubble({ children, time, read = true, readLabel }) {
 
 export function LineSystemMessage({ children }) { return <div className="line-date-divider"><span>{children}</span></div>; }
 export function LineTypingIndicator() { return <div className="line-typing" aria-label="typing"><i /><i /><i /></div>; }
-export function LineChatScroll({ children, scrollRef, ...props }) { return <div className="line-chat-scroll" ref={scrollRef} {...props}>{children}</div>; }
+export function LineChatScroll({ children, scrollRef, ...props }) {
+  const localRef = useRef(null);
+  const viewportRef = scrollRef ?? localRef;
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    // A new beat (including a newly enabled card CTA) must be visible before
+    // paint. Scrolling only when the scenario's message count changes misses
+    // footers appearing later and images acquiring their intrinsic height.
+    let following = true;
+    const pinToBottom = () => { viewport.scrollTop = viewport.scrollHeight; };
+    const onScroll = () => {
+      following = viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop <= 2;
+    };
+    pinToBottom();
+    viewport.addEventListener('scroll', onScroll);
+
+    // Observe both the available space (a footer/rotation can shrink it) and
+    // the rows (late media/card content can grow). Preserve manual history
+    // scrolling until the next beat instead of continually pulling it down.
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
+      if (following) pinToBottom();
+    });
+    observer?.observe(viewport);
+    for (const row of viewport.children) observer?.observe(row);
+    return () => {
+      observer?.disconnect();
+      viewport.removeEventListener('scroll', onScroll);
+    };
+  });
+  return <div className="line-chat-scroll" ref={viewportRef} {...props}>{children}</div>;
+}
 // `label` has a language-aware default for the same reason `readLabel` above
 // does: this is the shared LINE surface every scenario mounts, so a caller
 // that leaves the label out must not be given a Chinese one. It used to
