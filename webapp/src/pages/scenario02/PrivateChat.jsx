@@ -825,12 +825,6 @@ export function PrivateChat() {
   const chatStart = useChatClock('cibar-scenario02-chat-clock');
   const timestamps = useMemo(() => computeTimestamps(timeline, chatStart, DAY_OFFSETS), [timeline, chatStart]);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [timeline, isTyping, pendingChoice, pendingTip]);
-
   // Same auto-open timing for photos, but sourced from the timeline itself:
   // dialogueTree's pendingImage only carries `{next}`, not the image payload,
   // so the actual item (src/alt/label) is whichever 'image' entry is last in
@@ -910,9 +904,6 @@ export function PrivateChat() {
     if (pendingVideo?.videoId === finishedVideoId) completeVideo();
     requestAnimationFrame(() => {
       scrollRef.current?.focus?.();
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-      }
     });
   }
 

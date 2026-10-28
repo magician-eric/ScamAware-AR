@@ -92,10 +92,6 @@ export function VipGroup() {
     });
   }, []);
 
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [rendered, isTyping]);
-
   // AR Interaction Contract: the group chat plays itself out, so the screen is
   // `display` for as long as messages are still arriving and becomes `single`
   // only once the 前往註冊平台 CTA is actually on screen.
