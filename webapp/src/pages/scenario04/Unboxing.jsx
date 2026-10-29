@@ -213,16 +213,18 @@ export function Unboxing() {
                 rows={compare.rows}
               />
             </div>
-            <p className="bp-chat-choices-prompt bp-section" style={{ margin: '0 0 8px' }}>{t('你準備怎麼處理？')}</p>
-            {/* One CTA: "先把商品頁和開箱照片留著" asked the player to save
-                material they already hold - the 商品頁 is recoverable from the
-                order, and the four unboxing photos were kept at reveal above. */}
-            <button type="button" className="bp-btn bp-btn-block" onClick={finish}>
-              {t('先問賣家是不是寄錯了')}
-            </button>
           </div>
         )}
       </div>
+      {stage === 'compare' && compare && (
+        <footer className="bp-unboxing-footer">
+          <p className="bp-chat-choices-prompt">{t('你準備怎麼處理？')}</p>
+          {/* Keep the one story action outside the scrolling evidence. */}
+          <button type="button" className="bp-btn bp-btn-block" onClick={finish}>
+            {t('先問賣家是不是寄錯了')}
+          </button>
+        </footer>
+      )}
     </div>
   );
 }

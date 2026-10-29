@@ -7,9 +7,8 @@ import { useT } from '../i18n';
 // through the scenario's CN/EN/JP dictionary instead of being frozen into
 // pixels, and stays readable at any width.
 //
-// Layout (see .bp-cva* in styles/blackpi.css):
-//   narrow phone  - claim photo above, actual photo below, arrow between
-//   >= 400px      - the two photos side by side
+// Layout (see .bp-cva* in apps/blackpi/styles/index.css):
+//   every phone width - two compact photos side by side, arrow between
 // Both photos are square and use object-fit: cover, so neither is
 // stretched and the product stays centred in frame.
 export function ClaimVsActual({ claimAssetKey, actualAssetKey, rows }) {

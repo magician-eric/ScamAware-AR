@@ -304,41 +304,31 @@
 
 /* ---- 商品頁宣稱 vs 實際收到 (unboxing) ----------------------------------
    Built in markup, never baked into an image, so the copy follows the
-   active CN/EN/JP dictionary. Photos stack on a narrow phone and sit side
-   by side once there is room; the claim/actual table does the same at a
-   smaller breakpoint because its values are short. */
-.bp-cva{display:grid;gap:12px}
-.bp-cva-media{display:grid;grid-template-columns:1fr;gap:8px;align-items:center;justify-items:center}
-.bp-cva-side{margin:0;width:100%;max-width:190px;display:grid;gap:6px;justify-items:center}
+   active CN/EN/JP dictionary. Keep both compact photos and both comparison
+   columns side by side on every phone; long translated values wrap. */
+.bp-cva{min-width:0;display:grid;gap:12px}
+.bp-cva-media{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;justify-items:center}
+.bp-cva-side{min-width:0;margin:0;width:100%;max-width:132px;display:grid;gap:6px;justify-items:center}
 .bp-cva-photo{width:100%;aspect-ratio:1/1;border-radius:14px;border:1.5px solid transparent}
 .bp-cva-side.claim .bp-cva-photo{border-color:var(--bp-gold-light)}
 .bp-cva-side.actual .bp-cva-photo{border-color:#F3C7C7}
-.bp-cva-cap{font-size:var(--fs-caption);font-weight:800;color:var(--bp-text-secondary)}
+.bp-cva-cap{min-width:0;text-align:center;overflow-wrap:anywhere;font-size:var(--fs-caption);font-weight:800;color:var(--bp-text-secondary)}
 .bp-cva-side.claim .bp-cva-cap{color:var(--bp-gold-deep)}
 .bp-cva-side.actual .bp-cva-cap{color:var(--bp-error)}
-.bp-cva-arrow{display:grid;place-items:center;width:26px;height:26px;border-radius:999px;background:var(--bp-surface-dim);color:var(--bp-text-tertiary);transform:rotate(90deg)}
+.bp-cva-arrow{display:grid;place-items:center;width:26px;height:26px;border-radius:999px;background:var(--bp-surface-dim);color:var(--bp-text-tertiary)}
 
 .bp-cva-table{margin:0;display:grid;gap:6px}
-.bp-cva-head{display:none}
-.bp-cva-row{display:grid;grid-template-columns:1fr;gap:4px;background:var(--bp-surface-dim);border-radius:12px;padding:8px 10px}
+.bp-cva-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 10px;font-size:var(--fs-caption);font-weight:800;color:var(--bp-text-tertiary)}
+.bp-cva-head span{min-width:0;overflow-wrap:anywhere}
+.bp-cva-head span:last-child{color:var(--bp-text-secondary)}
+.bp-cva-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start;background:var(--bp-surface-dim);border-radius:12px;padding:8px 10px}
 .bp-cva-row dt,.bp-cva-row dd{margin:0;min-width:0;font-size:var(--fs-body-sm);line-height:1.5;overflow-wrap:anywhere}
 .bp-cva-row dt{font-weight:700;color:var(--bp-gold-deep)}
 .bp-cva-row dd{font-weight:700;color:var(--bp-error)}
-.bp-cva-inline-label{display:block;font-size:var(--fs-caption);font-weight:700;color:var(--bp-text-tertiary)}
-
-@media (min-width:340px){
-  .bp-cva-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 10px;font-size:var(--fs-caption);font-weight:800;color:var(--bp-text-tertiary)}
-  .bp-cva-head span:last-child{color:var(--bp-text-secondary)}
-  .bp-cva-row{grid-template-columns:1fr 1fr;gap:10px;align-items:start}
-  .bp-cva-inline-label{display:none}
-}
-@media (min-width:400px){
-  .bp-cva-media{grid-template-columns:1fr auto 1fr}
-  .bp-cva-arrow{transform:none}
-}
+.bp-cva-inline-label{display:none}
 
 /* ---- staged unboxing reveal --------------------------------------------- */
-.bp-unboxing-stage{padding-bottom:24px}
+.bp-unboxing-stage{min-width:0;overscroll-behavior:contain;padding-bottom:24px}
 .bp-reveal-item-in{animation:bpRevealIn .38s ease-out}
 /* The 2x2 unboxing photo grid. Shared by both routes (robot vacuum and
    lucky bag) - named for the screen, not for one product, since it is no
@@ -586,6 +576,9 @@
 .bp-timeline-step{opacity:0;animation:bpTimelineStepIn .32s ease-out forwards;animation-delay:calc(var(--i,0) * 180ms)}
 .bp-pdp-intro-images{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.bp-pdp-intro-image{aspect-ratio:1;border-radius:10px}
 .bp-physical-world{background:linear-gradient(180deg,#d9d2c5,#f4efe6);padding-bottom:0}.bp-physical-world .bp-unboxing-stage{padding-bottom:28px}.bp-physical-world .bp-btn{position:static;margin-top:14px}
+.bp-unboxing-footer{flex:none;min-width:0;display:grid;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bp-surface);border-top:1px solid var(--bp-border)}
+.bp-unboxing-footer .bp-chat-choices-prompt{margin:0;overflow-wrap:anywhere}
+.bp-unboxing-footer .bp-btn{min-width:0;margin-top:0;white-space:normal;overflow-wrap:anywhere}
 .bp-os-notification{position:absolute;z-index:20;top:8px;left:10px;right:10px;padding:12px;border-radius:14px;background:rgba(25,25,28,.94);color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.3);animation:bpNoticeIn .35s ease-out}
 /* Sender row of the OS-style delivery notice: carrier mark then carrier name,
    on one line. The supplied HPE artwork is a black truck on transparent, so it
