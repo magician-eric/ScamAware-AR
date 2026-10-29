@@ -203,17 +203,18 @@
    Only what's genuinely scenario03-specific survives here: the
    card-in-bubble spacing and the case/status/custody message-card content
    itself (.pol-msg-card below). */
-.pol-line-card-slot{margin-top:8px}
+.pol-line-card-slot{min-width:0;max-width:100%;margin-top:8px}
 /* Explicit dark text color - this card's light background needs to stay
    readable wherever it's dropped in, including directly on a dark call
    screen (CallStage1's "對方口述的案件編號" card), not just inside LINE's
    already-dark-on-white bubbles where it happened to inherit correctly. */
-.pol-msg-card{background:#f7f8fa;border:1px solid #e2e6ee;border-radius:12px;padding:10px;font-size:var(--fs-caption);line-height:1.6;color:#000}
+.pol-msg-card{min-width:0;max-width:100%;overflow-wrap:anywhere;background:#f7f8fa;border:1px solid #e2e6ee;border-radius:12px;padding:10px;font-size:var(--fs-caption);line-height:1.6;color:#000}
 .pol-msg-card h4{margin:0 0 6px;font-size:var(--fs-body-sm);font-weight:900;color:#000}
 .pol-msg-card dl{display:grid;grid-template-columns:fit-content(38%) minmax(0,1fr);gap:3px 10px;margin:0}
-.pol-case-number-part{white-space:nowrap}
+.pol-case-number-part{white-space:normal;overflow-wrap:anywhere}
 .pol-msg-card dt{color:#000;font-size:var(--fs-caption)}
-.pol-msg-card dd{margin:0;font-weight:700;font-size:var(--fs-caption);overflow-wrap:break-word;word-break:normal;color:#000}
+.pol-msg-card dt,.pol-msg-card dd{min-width:0;overflow-wrap:anywhere}
+.pol-msg-card dd{margin:0;font-weight:700;font-size:var(--fs-caption);word-break:normal;color:#000}
 .pol-msg-card-cta{margin-top:9px;width:100%;appearance:none;border:0;border-radius:10px;background:var(--pol-accent);color:#fff;font-family:inherit;font-weight:800;font-size:var(--fs-caption);padding:9px;cursor:pointer}
 
 /* ---- countdown ------------------------------------------------------ */
@@ -268,18 +269,22 @@
 @media (prefers-reduced-motion:reduce){.pol-task.is-active{animation:none}}
 
 /* ---- fake document viewer ------------------------------------------- */
-.pol-doc-overlay{position:absolute;inset:0;z-index:9;background:rgba(6,8,12,.72);display:flex;flex-direction:column;padding:14px 10px}
-.pol-doc{flex:1;min-height:0;background:#fdfcf8;color:#000;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.pol-doc-overlay{position:absolute;inset:0;z-index:9;background:rgba(6,8,12,.72);display:flex;flex-direction:column;padding:14px 10px;min-width:0;min-height:0;overflow:hidden}
+.pol-doc{flex:1;min-width:0;min-height:0;width:100%;max-width:100%;max-height:100%;background:#fdfcf8;color:#000;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;position:relative}
 .pol-doc-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#33383f;color:#fff;padding:7px 10px;font-size:var(--fs-caption)}
-.pol-doc-close{appearance:none;border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:5px 10px;font-family:inherit;font-size:var(--fs-caption);font-weight:800;cursor:pointer}
-.pol-doc-page{flex:1;min-height:0;overflow-y:auto;padding:16px 16px 20px;scrollbar-width:none}
+/* Keep controls inside the phone, even with a long PDF name or larger text.
+   Only the paper scrolls; its toolbar and action footer remain visible. */
+.pol-doc-bar>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.pol-doc-close{flex:none;max-width:50%;overflow-wrap:anywhere;appearance:none;border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:5px 10px;font-family:inherit;font-size:var(--fs-caption);font-weight:800;cursor:pointer}
+.pol-doc-page{flex:1;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;overflow-wrap:anywhere;padding:16px 16px 20px;scrollbar-width:none}
 .pol-doc-page::-webkit-scrollbar{display:none}
 .pol-doc-issuer{text-align:center;font-size:var(--fs-body-sm);font-weight:900;letter-spacing:.06em}
 .pol-doc-title{text-align:center;font-size:var(--fs-title-sm);font-weight:900;margin:8px 0 4px;letter-spacing:.1em}
 .pol-doc-serial{text-align:center;font-size:var(--fs-caption);color:#000;margin-bottom:12px}
-.pol-doc-rows{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:var(--fs-caption);border-top:1px solid #d8d4c9;border-bottom:1px solid #d8d4c9;padding:9px 0;margin-bottom:10px}
+.pol-doc-rows{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:5px 10px;font-size:var(--fs-caption);border-top:1px solid #d8d4c9;border-bottom:1px solid #d8d4c9;padding:9px 0;margin-bottom:10px}
 .pol-doc-rows dt{color:#000}
-.pol-doc-rows dd{margin:0;font-weight:700;overflow-wrap:break-word;word-break:normal}
+.pol-doc-rows dt,.pol-doc-rows dd{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.pol-doc-rows dd{margin:0;font-weight:700}
 .pol-doc-p{font-size:var(--fs-caption);line-height:1.9;margin:0 0 9px;text-indent:2em}
 /* global.css's `p:not(.gugo-app *){color:var(--muted)}` reset applies to
    every bare <p> tag app-wide, including these, at specificity (0,1,1) -
@@ -289,14 +294,15 @@
    without this the documents' body paragraphs silently rendered in that
    reset's washed-out blue-grey instead of black. */
 .pol-doc .pol-doc-p,.pol-doc .pol-doc-consent-text{color:#000}
-.pol-doc-table{width:100%;border-collapse:collapse;font-size:var(--fs-caption);margin:6px 0 10px}
-.pol-doc-table th,.pol-doc-table td{border:1px solid #d8d4c9;padding:5px 7px;text-align:left}
+.pol-doc-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:var(--fs-caption);margin:6px 0 10px}
+.pol-doc-table th,.pol-doc-table td{overflow-wrap:anywhere;border:1px solid #d8d4c9;padding:5px 7px;text-align:left}
 .pol-doc-seal{margin-top:16px;display:flex;justify-content:flex-end}
 /* Off the --fs-* ladder: the rotated 74px seal is a stamp graphic, not a paragraph. */
 .pol-doc-seal span{width:74px;height:74px;border:2px solid rgba(200,32,32,.65);color:rgba(200,32,32,.75);border-radius:8px;display:grid;place-items:center;text-align:center;font-size:11px;font-weight:900;line-height:1.4;transform:rotate(-9deg)}
 .pol-doc-consent{margin-top:14px;display:flex;align-items:flex-start;gap:8px;background:#f2f4f8;border:1px solid #dfe4ee;border-radius:10px;padding:10px;font-size:var(--fs-caption);line-height:1.6;cursor:pointer}
 .pol-doc-consent input{margin-top:2px}
-.pol-doc-footer{flex:none;padding:10px 10px calc(10px + env(safe-area-inset-bottom));display:grid;gap:8px}
+.pol-doc-footer{flex:none;min-width:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.pol-doc-footer .pol-cta{min-width:0;white-space:normal;overflow-wrap:anywhere}
 
 /* ---- scene 10: bank app ---------------------------------------------- */
 /* ---- the browser the 好匯銀行 site is viewed in ----------------------
