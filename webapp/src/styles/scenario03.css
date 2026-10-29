@@ -230,7 +230,13 @@
 .pol-site-header h1{font-size:var(--fs-body);margin:0;font-weight:900;letter-spacing:.02em}
 .pol-site-header p{font-size:var(--fs-caption);margin:4px 0 0;color:rgba(255,255,255,.75)}
 .pol-site-url{font-size:var(--fs-caption);background:rgba(255,255,255,.15);border-radius:6px;padding:3px 7px;display:inline-block;margin-top:7px;word-break:break-all}
-.pol-site-body{flex:1;min-height:0;overflow-y:auto;padding:12px;display:grid;gap:10px;align-content:start;scrollbar-width:none}
+.pol-site-body{flex:1;min-height:0;min-width:0;overflow:hidden;padding:10px;display:flex;flex-direction:column;gap:8px}
+/* Keep every task visible; case metadata scrolls independently on short phones. */
+.pol-site-details{flex:1;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;display:grid;gap:8px;align-content:start}
+.pol-site-details .pol-kv{margin:0;grid-template-columns:auto minmax(0,1fr)}
+.pol-site-details .pol-kv dd{min-width:0;overflow-wrap:anywhere}
+.pol-task-section{flex:none;min-width:0;display:grid;gap:8px}
+.pol-task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .pol-site-body::-webkit-scrollbar{display:none}
 .pol-card{background:#fff;border:1px solid #dfe4ee;border-radius:12px;padding:12px}
 .pol-card h3{margin:0 0 8px;font-size:var(--fs-body-sm);font-weight:900}
@@ -244,7 +250,7 @@
 .pol-task-progress-count{color:#1d3b73;font-size:var(--fs-caption);font-weight:900}
 .pol-task-progress-bar{flex:1;height:5px;border-radius:999px;background:#e2e7f0;overflow:hidden}
 .pol-task-progress-bar i{display:block;height:100%;background:var(--pol-ok);border-radius:999px;transition:width .3s ease}
-.pol-task{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #dfe4ee;border-radius:12px;padding:10px 12px;width:100%;text-align:left;font-family:inherit;cursor:pointer;transition:box-shadow .2s,transform .2s}
+.pol-task{min-width:0;aspect-ratio:1;display:grid;grid-template-rows:auto 1fr auto;align-items:start;gap:4px;background:#fff;border:1px solid #dfe4ee;border-radius:12px;padding:8px;width:100%;text-align:left;font-family:inherit;cursor:pointer;transition:box-shadow .2s,transform .2s}
 /* color:inherit, because a <button disabled> otherwise takes the UA's own
    rgba(16,16,16,.3) - and under .is-locked's veil that measured 1.3:1. */
 .pol-task:disabled{cursor:not-allowed;color:inherit}
@@ -252,17 +258,18 @@
    45% opacity only made the step you cannot do yet unreadable. */
 .pol-task.is-locked{background:#f5f7fa;border-style:dashed}
 .pol-task.is-done{opacity:.82}
-.pol-task.is-active{background:linear-gradient(135deg,#1d5fbf,#12386f);border-color:#12386f;color:#fff;padding:13px 14px;box-shadow:0 8px 18px rgba(18,56,111,.28);animation:pol-task-breathe 2.4s ease-in-out infinite}
+.pol-task.is-active{background:linear-gradient(135deg,#1d5fbf,#12386f);border-color:#12386f;color:#fff;box-shadow:0 8px 18px rgba(18,56,111,.28);animation:pol-task-breathe 2.4s ease-in-out infinite}
 .pol-task-main{min-width:0}
 .pol-task-num{flex:none;width:22px;height:22px;border-radius:999px;background:#e6ebf5;color:#1d3b73;display:grid;place-items:center;font-size:var(--fs-caption);font-weight:900}
 .pol-task.is-done .pol-task-num{background:var(--pol-ok);color:#fff}
 .pol-task.is-active .pol-task-num{width:26px;height:26px;background:#fff;color:#12386f;font-size:var(--fs-body-sm)}
 .pol-task-label{font-size:var(--fs-caption);font-weight:800;line-height:1.4;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.pol-task.is-active .pol-task-label{font-size:var(--fs-body-sm)}
+.pol-task-label{overflow-wrap:anywhere}
+.pol-task.is-active .pol-task-label{font-size:var(--fs-caption)}
 .pol-task-badge{display:inline-block;background:#ffd400;color:#12386f;border-radius:999px;padding:1px 7px;font-size:var(--fs-caption);font-weight:900;letter-spacing:.04em}
 .pol-task-hint{font-size:var(--fs-caption);color:#000;margin-top:2px;display:block}
 .pol-task.is-active .pol-task-hint{color:rgba(255,255,255,.82)}
-.pol-task-state{margin-left:auto;font-size:var(--fs-caption);font-weight:800;color:#000;white-space:nowrap}
+.pol-task-state{justify-self:end;max-width:100%;overflow-wrap:anywhere;font-size:var(--fs-caption);font-weight:800;color:#000;white-space:normal}
 .pol-task.is-active .pol-task-state{color:#fff}
 .pol-task-go{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:4px 10px;font-size:var(--fs-caption);font-weight:900}
 @keyframes pol-task-breathe{0%,100%{box-shadow:0 8px 18px rgba(18,56,111,.28)}50%{box-shadow:0 8px 26px rgba(29,95,191,.55)}}

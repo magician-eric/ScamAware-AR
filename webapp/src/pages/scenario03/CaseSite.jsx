@@ -144,27 +144,29 @@ export function CaseSite() {
         </header>
 
         <div className="pol-site-body">
-          <Countdown deadlineAt={session.deadlineAt} label={t.caseSite.countdownLabel} />
+          <div className="pol-site-details">
+            <Countdown deadlineAt={session.deadlineAt} label={t.caseSite.countdownLabel} />
 
-          <section className="pol-card">
-            <h3>{t.caseSite.caseInfoHeader}</h3>
-            <dl className="pol-kv">
-              <dt>{t.caseSite.caseNumberLabel}</dt><dd><CaseNumber value={session.caseNumber} /></dd>
-              <dt>{t.caseSite.partyLabel}</dt><dd>{t.caseSite.partyValue}</dd>
-              <dt>{t.caseSite.receivingUnitLabel}</dt>
-              <dd>
-                {police}
-                {policeUnit.handlingUnit && policeUnit.handlingUnit !== police && (
-                  <><br />{policeUnit.handlingUnit}</>
-                )}
-              </dd>
-              <dt>{t.caseSite.directingAgencyLabel}</dt><dd>{prosecutors}</dd>
-              <dt>{t.caseSite.prosecutorLabel}</dt><dd>{getProsecutorDisplayName(session, lang)}</dd>
-              <dt>{t.caseSite.caseStatusLabel}</dt><dd style={{ color: 'var(--pol-danger-ink)' }}>{t.caseSite.caseStatusValue}</dd>
-            </dl>
-          </section>
+            <section className="pol-card">
+              <h3>{t.caseSite.caseInfoHeader}</h3>
+              <dl className="pol-kv">
+                <dt>{t.caseSite.caseNumberLabel}</dt><dd><CaseNumber value={session.caseNumber} /></dd>
+                <dt>{t.caseSite.partyLabel}</dt><dd>{t.caseSite.partyValue}</dd>
+                <dt>{t.caseSite.receivingUnitLabel}</dt>
+                <dd>
+                  {police}
+                  {policeUnit.handlingUnit && policeUnit.handlingUnit !== police && (
+                    <><br />{policeUnit.handlingUnit}</>
+                  )}
+                </dd>
+                <dt>{t.caseSite.directingAgencyLabel}</dt><dd>{prosecutors}</dd>
+                <dt>{t.caseSite.prosecutorLabel}</dt><dd>{getProsecutorDisplayName(session, lang)}</dd>
+                <dt>{t.caseSite.caseStatusLabel}</dt><dd style={{ color: 'var(--pol-danger-ink)' }}>{t.caseSite.caseStatusValue}</dd>
+              </dl>
+            </section>
 
-          <section style={{ display: 'grid', gap: 8 }}>
+          </div>
+          <section className="pol-task-section">
             <div className="pol-task-progress">
               <span className="pol-task-progress-label">{t.caseSite.progressLabel}</span>
               <span className="pol-task-progress-count">{doneCount} / {caseSiteTasks.length}</span>
@@ -173,32 +175,32 @@ export function CaseSite() {
               </span>
             </div>
 
-            {caseSiteTasks.map((task, i) => {
-              const done = read.includes(task.key);
-              const locked = i > 0 && !read.includes(caseSiteTasks[i - 1].key);
-              const active = !done && !locked;
-              return (
-                <button
-                  key={task.key}
-                  type="button"
-                  className={`pol-task${done ? ' is-done' : ''}${active ? ' is-active' : ''}${locked ? ' is-locked' : ''}`}
-                  disabled={locked}
-                  onClick={() => openDoc(i)}
-                >
-                  <span className="pol-task-num">{done ? '✓' : i + 1}</span>
-                  <span className="pol-task-main">
-                    <span className="pol-task-label">
-                      {task.label}
-                      {active && <span className="pol-task-badge">{t.caseSite.taskBadge}</span>}
+            <div className="pol-task-grid">
+              {caseSiteTasks.map((task, i) => {
+                const done = read.includes(task.key);
+                const locked = i > 0 && !read.includes(caseSiteTasks[i - 1].key);
+                const active = !done && !locked;
+                return (
+                  <button
+                    key={task.key}
+                    type="button"
+                    className={`pol-task${done ? ' is-done' : ''}${active ? ' is-active' : ''}${locked ? ' is-locked' : ''}`}
+                    disabled={locked}
+                    onClick={() => openDoc(i)}
+                  >
+                    <span className="pol-task-num">{done ? '✓' : i + 1}</span>
+                    <span className="pol-task-main">
+                      <span className="pol-task-label">
+                        {task.label}
+                      </span>
                     </span>
-                    <span className="pol-task-hint">{task.hint}</span>
-                  </span>
-                  <span className="pol-task-state">
-                    {done ? t.caseSite.taskDone : locked ? t.caseSite.taskLocked : <span className="pol-task-go">{t.caseSite.taskGo}</span>}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="pol-task-state">
+                      {done ? t.caseSite.taskDone : locked ? t.caseSite.taskLocked : <span className="pol-task-go">{t.caseSite.taskGo}</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </section>
         </div>
 
