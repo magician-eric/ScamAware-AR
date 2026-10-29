@@ -43,6 +43,7 @@
 | Release | Shell | Web Bundle | Date | PR | Commit | Type | Notes |
 | ------- | ----- | ---------- | ---- | -- | ------ | ---- | ----- |
 <!-- ota-release-rows -->
+| `1.9.13-20261029.002` | 1.2.11 | 1.9.13 | 2026-10-29 | #41 | `d296e62` | PATCH | Merge pull request #41 from magician-eric/fix/scenario04-comparison-layout |
 | `1.9.12-20261029.001` | 1.2.11 | 1.9.12 | 2026-10-29 | #40 | `71b4426` | PATCH | Merge pull request #40 from magician-eric/fix/scenario03-document-and-case-layout |
 | `1.9.11-20261028.001` | 1.2.11 | 1.9.11 | 2026-10-28 | #39 | `53a3d5b` | PATCH | Merge pull request #39 from magician-eric/fix/line-chat-action-visibility |
 | `1.9.10-20261020.004` | 1.2.11 | 1.9.10 | 2026-10-20 | #38 | `217c575` | PATCH | Merge pull request #38 from magician-eric/claude/bold-gates-1avm9t |
